@@ -1,6 +1,6 @@
 # SPEC 01 — Scaffold del monorepo (backend NestJS + frontend Angular)
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** —
 > **Date:** 2026-08-07
 > **Objective:** Inicializar un monorepo npm workspaces que contenga un backend NestJS y un frontend Angular listos para ejecutar, construir y testear desde la raíz.
