@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:18.4-alpine3.24
+    container_name: career_analyzer_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: career_analyzer
+      POSTGRES_PASSWORD: career_analyzer_dev
+      POSTGRES_DB: career_analyzer
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+
+volumes:
+  pgdata:
