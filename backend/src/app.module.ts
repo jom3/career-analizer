@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { HealthController } from './health.controller';
 import { OpenaiModule } from './openai/openai.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ProfileModule } from './profile/profile.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { PrismaModule } from './prisma/prisma.module';
     OpenaiModule,
     PrismaModule,
     AuthModule,
+    ProfileModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],
