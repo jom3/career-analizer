@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
 import { HealthController } from './health.controller';
 import { OpenaiModule } from './openai/openai.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -13,10 +14,13 @@ import { PrismaModule } from './prisma/prisma.module';
       isGlobal: true,
       validationSchema: Joi.object({
         OPENAI_API_KEY: Joi.string().required(),
+        JWT_SECRET: Joi.string().min(32).required(),
+        CLIENT_ORIGIN: Joi.string().uri().default('http://localhost:4200'),
       }),
     }),
     OpenaiModule,
     PrismaModule,
+    AuthModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],

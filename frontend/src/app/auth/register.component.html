@@ -1,0 +1,38 @@
+<section class="auth-page">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="auth-card">
+    <h1>Crear cuenta</h1>
+    <p class="subtitle">Empezá a usar Career Analyzer</p>
+
+    @if (errorMessage) {
+      <p class="error" role="alert">{{ errorMessage }}</p>
+    }
+
+    <label class="form-field">
+      Nombre
+      <input formControlName="name" type="text" autocomplete="name" />
+    </label>
+
+    <label class="form-field">
+      Email
+      <input formControlName="email" type="email" autocomplete="email" />
+    </label>
+
+    <label class="form-field">
+      Contraseña (mínimo 8 caracteres)
+      <input
+        formControlName="password"
+        type="password"
+        autocomplete="new-password"
+      />
+    </label>
+
+    <button type="submit" [disabled]="submitting">
+      {{ submitting ? 'Creando…' : 'Crear cuenta' }}
+    </button>
+
+    <p class="switch">
+      ¿Ya tenés cuenta?
+      <a routerLink="/auth/login">Ingresá</a>
+    </p>
+  </form>
+</section>
