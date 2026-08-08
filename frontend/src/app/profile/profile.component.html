@@ -8,21 +8,21 @@
     </div>
     <div class="actions">
       <a class="link" routerLink="/dashboard">Volver al dashboard</a>
-      <button type="button" (click)="onSave()" [disabled]="saving">
-        {{ saving ? 'Guardando…' : 'Guardar perfil' }}
+      <button type="button" (click)="onSave()" [disabled]="saving()">
+        {{ saving() ? 'Guardando…' : 'Guardar perfil' }}
       </button>
     </div>
   </header>
 
-  @if (loadError) {
-    <p class="error" role="alert">{{ loadError }}</p>
-  } @else if (loading) {
+  @if (loadError()) {
+    <p class="error" role="alert">{{ loadError() }}</p>
+  } @else if (loading()) {
     <p class="muted">Cargando tu perfil…</p>
   } @else {
-    @if (errorMessage) {
-      <p class="error" role="alert">{{ errorMessage }}</p>
+    @if (errorMessage()) {
+      <p class="error" role="alert">{{ errorMessage() }}</p>
     }
-    @if (saved) {
+    @if (saved()) {
       <p class="success" role="status">Perfil guardado.</p>
     }
 
@@ -342,8 +342,8 @@
       </section>
 
       <div class="sticky-actions">
-        <button type="submit" [disabled]="saving">
-          {{ saving ? 'Guardando…' : 'Guardar perfil' }}
+        <button type="submit" [disabled]="saving()">
+          {{ saving() ? 'Guardando…' : 'Guardar perfil' }}
         </button>
       </div>
     </form>

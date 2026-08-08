@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import {
   FormArray,
   FormControl,
@@ -91,11 +91,11 @@ export class ProfileComponent implements OnInit {
   readonly cefrLevels = CEFR_LEVELS;
   readonly skillLevels = SKILL_LEVELS;
 
-  loading = true;
-  saving = false;
-  saved = false;
-  errorMessage = '';
-  loadError = '';
+  readonly loading = signal(true);
+  readonly saving = signal(false);
+  readonly saved = signal(false);
+  readonly errorMessage = signal('');
+  readonly loadError = signal('');
 
   readonly form = new FormGroup({
     headline: new FormControl<string>('', {
@@ -154,9 +154,9 @@ export class ProfileComponent implements OnInit {
       const profile = await this.profileService.getProfile();
       this.loadForm(profile);
     } catch {
-      this.loadError = 'No se pudo cargar tu perfil.';
+      this.loadError.set('No se pudo cargar tu perfil.');
     } finally {
-      this.loading = false;
+      this.loading.set(false);
     }
   }
 
@@ -185,20 +185,20 @@ export class ProfileComponent implements OnInit {
 
   async onSave(): Promise<void> {
     if (this.form.invalid) {
-      this.errorMessage = 'Completá los campos obligatorios de las secciones.';
+      this.errorMessage.set('Completá los campos obligatorios de las secciones.');
       return;
     }
-    this.saving = true;
-    this.saved = false;
-    this.errorMessage = '';
+    this.saving.set(true);
+    this.saved.set(false);
+    this.errorMessage.set('');
     try {
       const profile = await this.profileService.putProfile(this.toPayload());
       this.loadForm(profile);
-      this.saved = true;
+      this.saved.set(true);
     } catch (error) {
-      this.errorMessage = this.messageFor(error);
+      this.errorMessage.set(this.messageFor(error));
     } finally {
-      this.saving = false;
+      this.saving.set(false);
     }
   }
 
