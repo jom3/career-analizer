@@ -13,6 +13,12 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Source {
+  USER
+  CV_IMPORT
+  AI
+}
+
 model Profile {
   id             String           @id @default(cuid())
   userId         String           @unique
@@ -23,6 +29,7 @@ model Profile {
   website        String?
   linkedin       String?
   summary        String?
+  source         Source           @default(USER)
   experiences    Experience[]
   skills         Skill[]
   education      Education[]
@@ -45,6 +52,7 @@ model Experience {
   current     Boolean   @default(false)
   description String?
   sortOrder   Int       @default(0)
+  source      Source    @default(USER)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
@@ -56,6 +64,7 @@ model Skill {
   name      String
   level     Int
   sortOrder Int      @default(0)
+  source    Source   @default(USER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -72,6 +81,7 @@ model Education {
   current     Boolean   @default(false)
   description String?
   sortOrder   Int       @default(0)
+  source      Source    @default(USER)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
@@ -85,6 +95,7 @@ model Certification {
   year      Int?
   url       String?
   sortOrder Int      @default(0)
+  source    Source   @default(USER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -99,6 +110,7 @@ model Project {
   url         String?
   techStack   String[]
   sortOrder   Int      @default(0)
+  source      Source   @default(USER)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -110,8 +122,23 @@ model Language {
   name      String
   level     String
   sortOrder Int      @default(0)
+  source    Source   @default(USER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model CvDocument {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  originalName   String
+  mimeType       String
+  storagePath    String
+  extractedText  String   @db.Text
+  sourceLanguage String?
+  model          String?
+  draftJson      Json?
+  createdAt      DateTime @default(now())
 }
 
 model User {
@@ -122,4 +149,5 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   profile      Profile?
+  cvDocuments  CvDocument[]
 }

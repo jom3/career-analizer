@@ -2,6 +2,7 @@ import { Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
+  IsEnum,
   IsIn,
   IsInt,
   IsISO8601,
@@ -14,6 +15,7 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
+import { Source } from '../../generated/prisma/enums.js';
 
 export class ExperienceDto {
   @IsOptional()
@@ -49,6 +51,10 @@ export class ExperienceDto {
   @MaxLength(2000)
   description?: string;
 
+  @IsOptional()
+  @IsEnum(Source)
+  source?: Source;
+
   @IsInt()
   sortOrder!: number;
 }
@@ -66,6 +72,10 @@ export class SkillDto {
   @Min(1)
   @Max(5)
   level!: number;
+
+  @IsOptional()
+  @IsEnum(Source)
+  source?: Source;
 
   @IsInt()
   sortOrder!: number;
@@ -105,6 +115,10 @@ export class EducationDto {
   @MaxLength(2000)
   description?: string;
 
+  @IsOptional()
+  @IsEnum(Source)
+  source?: Source;
+
   @IsInt()
   sortOrder!: number;
 }
@@ -132,6 +146,10 @@ export class CertificationDto {
   @IsOptional()
   @IsUrl()
   url?: string;
+
+  @IsOptional()
+  @IsEnum(Source)
+  source?: Source;
 
   @IsInt()
   sortOrder!: number;
@@ -165,6 +183,10 @@ export class ProjectDto {
   @MaxLength(60, { each: true })
   techStack!: string[];
 
+  @IsOptional()
+  @IsEnum(Source)
+  source?: Source;
+
   @IsInt()
   sortOrder!: number;
 }
@@ -180,6 +202,10 @@ export class LanguageDto {
 
   @IsIn(['A1', 'A2', 'B1', 'B2', 'C1', 'C2'])
   level!: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
+
+  @IsOptional()
+  @IsEnum(Source)
+  source?: Source;
 
   @IsInt()
   sortOrder!: number;
@@ -213,6 +239,10 @@ export class ProfileDto {
   @IsString()
   @MaxLength(2000)
   summary?: string;
+
+  @IsOptional()
+  @IsEnum(Source)
+  source?: Source;
 
   @IsArray()
   @ValidateNested({ each: true })
