@@ -1,0 +1,8 @@
+<section class="dashboard">
+  <header>
+    <h1>Hola, {{ user()?.name }}</h1>
+    <button type="button" (click)="logout()">Cerrar sesión</button>
+  </header>
+  <p class="email">{{ user()?.email }}</p>
+  <p class="muted">Tu sesión está activa.</p>
+</section>
