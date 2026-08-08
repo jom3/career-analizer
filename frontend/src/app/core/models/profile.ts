@@ -1,3 +1,5 @@
+export type Source = 'USER' | 'CV_IMPORT' | 'AI';
+
 export interface Experience {
   id?: string;
   company: string;
@@ -7,6 +9,7 @@ export interface Experience {
   endDate?: string | null;
   current: boolean;
   description?: string | null;
+  source?: Source;
   sortOrder: number;
 }
 
@@ -14,6 +17,7 @@ export interface Skill {
   id?: string;
   name: string;
   level: number;
+  source?: Source;
   sortOrder: number;
 }
 
@@ -26,6 +30,7 @@ export interface Education {
   endDate?: string | null;
   current: boolean;
   description?: string | null;
+  source?: Source;
   sortOrder: number;
 }
 
@@ -35,6 +40,7 @@ export interface Certification {
   issuer?: string | null;
   year?: number | null;
   url?: string | null;
+  source?: Source;
   sortOrder: number;
 }
 
@@ -45,6 +51,7 @@ export interface Project {
   description?: string | null;
   url?: string | null;
   techStack: string[];
+  source?: Source;
   sortOrder: number;
 }
 
@@ -52,6 +59,7 @@ export interface Language {
   id?: string;
   name: string;
   level: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
+  source?: Source;
   sortOrder: number;
 }
 
@@ -63,6 +71,7 @@ export interface Profile {
   website: string | null;
   linkedin: string | null;
   summary: string | null;
+  source?: Source;
   experiences: Experience[];
   skills: Skill[];
   education: Education[];

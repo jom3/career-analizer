@@ -3,5 +3,6 @@ dist/
 .angular/
 .env
 coverage/
+uploads/
 .DS_Store
 *.log

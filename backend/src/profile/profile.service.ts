@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '../generated/prisma/client';
+import { Source } from '../generated/prisma/enums.js';
 import { PrismaService } from '../prisma/prisma.service';
 import { ProfileDto } from './dto/profile.dto';
 
@@ -53,6 +54,7 @@ export class ProfileService {
           website: dto.website ?? null,
           linkedin: dto.linkedin ?? null,
           summary: dto.summary ?? null,
+          source: dto.source ?? Source.USER,
         },
         include: profileInclude,
       });
@@ -102,6 +104,7 @@ export class ProfileService {
         endDate: item.current ? null : this.toDate(item.endDate),
         current: item.current,
         description: item.description ?? null,
+        source: item.source ?? Source.USER,
         sortOrder: item.sortOrder,
       };
       if (item.id && ownedIds.has(item.id)) {
@@ -132,6 +135,7 @@ export class ProfileService {
       const data = {
         name: item.name,
         level: item.level,
+        source: item.source ?? Source.USER,
         sortOrder: item.sortOrder,
       };
       if (item.id && ownedIds.has(item.id)) {
@@ -169,6 +173,7 @@ export class ProfileService {
         endDate: item.current ? null : this.toDate(item.endDate),
         current: item.current,
         description: item.description ?? null,
+        source: item.source ?? Source.USER,
         sortOrder: item.sortOrder,
       };
       if (item.id && ownedIds.has(item.id)) {
@@ -203,6 +208,7 @@ export class ProfileService {
         issuer: item.issuer ?? null,
         year: item.year ?? null,
         url: item.url ?? null,
+        source: item.source ?? Source.USER,
         sortOrder: item.sortOrder,
       };
       if (item.id && ownedIds.has(item.id)) {
@@ -238,6 +244,7 @@ export class ProfileService {
         description: item.description ?? null,
         url: item.url ?? null,
         techStack: item.techStack,
+        source: item.source ?? Source.USER,
         sortOrder: item.sortOrder,
       };
       if (item.id && ownedIds.has(item.id)) {
@@ -270,6 +277,7 @@ export class ProfileService {
       const data = {
         name: item.name,
         level: item.level,
+        source: item.source ?? Source.USER,
         sortOrder: item.sortOrder,
       };
       if (item.id && ownedIds.has(item.id)) {

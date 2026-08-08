@@ -14,6 +14,7 @@ describe('ProfileService', () => {
     website: null,
     linkedin: null,
     summary: null,
+    source: 'USER',
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -146,6 +147,7 @@ describe('ProfileService', () => {
           endDate: null,
           current: false,
           description: null,
+          source: 'USER',
           sortOrder: 1,
         },
       });
@@ -159,6 +161,7 @@ describe('ProfileService', () => {
           endDate: null,
           current: true,
           description: null,
+          source: 'USER',
           sortOrder: 2,
         },
       });
@@ -167,6 +170,7 @@ describe('ProfileService', () => {
           profileId: 'profile-1',
           name: 'TypeScript',
           level: 4,
+          source: 'USER',
           sortOrder: 1,
         },
       });
@@ -204,6 +208,7 @@ describe('ProfileService', () => {
           endDate: null,
           current: true,
           description: null,
+          source: 'USER',
           sortOrder: 1,
         },
       });
