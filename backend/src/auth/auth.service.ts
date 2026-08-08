@@ -30,8 +30,14 @@ export class AuthService {
       throw new ConflictException('An account with this email already exists');
     }
     const passwordHash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
-    const user = await this.prisma.user.create({
-      data: { email: dto.email, passwordHash, name: dto.name },
+    const user = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.user.create({
+        data: { email: dto.email, passwordHash, name: dto.name },
+      });
+      await tx.profile.create({
+        data: { userId: created.id },
+      });
+      return created;
     });
     return this.sanitize(user);
   }

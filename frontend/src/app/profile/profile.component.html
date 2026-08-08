@@ -1,0 +1,351 @@
+<section class="profile-page">
+  <header class="page-header">
+    <div>
+      <h1>Mi perfil profesional</h1>
+      <p class="subtitle">
+        Esta es la fuente de verdad de tus documentos. Solo contenido real.
+      </p>
+    </div>
+    <div class="actions">
+      <a class="link" routerLink="/dashboard">Volver al dashboard</a>
+      <button type="button" (click)="onSave()" [disabled]="saving">
+        {{ saving ? 'Guardando…' : 'Guardar perfil' }}
+      </button>
+    </div>
+  </header>
+
+  @if (loadError) {
+    <p class="error" role="alert">{{ loadError }}</p>
+  } @else if (loading) {
+    <p class="muted">Cargando tu perfil…</p>
+  } @else {
+    @if (errorMessage) {
+      <p class="error" role="alert">{{ errorMessage }}</p>
+    }
+    @if (saved) {
+      <p class="success" role="status">Perfil guardado.</p>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="onSave()" class="profile-form">
+      <section class="card">
+        <h2>Información personal</h2>
+        <div class="grid">
+          <label class="form-field">
+            Título profesional
+            <input formControlName="headline" type="text" />
+          </label>
+          <label class="form-field">
+            Teléfono
+            <input formControlName="phone" type="tel" />
+          </label>
+          <label class="form-field">
+            Ubicación
+            <input formControlName="location" type="text" />
+          </label>
+          <label class="form-field">
+            Sitio web
+            <input formControlName="website" type="url" />
+          </label>
+          <label class="form-field">
+            LinkedIn
+            <input formControlName="linkedin" type="url" />
+          </label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Resumen profesional</h2>
+        <label class="form-field">
+          Contanos en pocas líneas quién sos profesionalmente.
+          <textarea formControlName="summary" rows="4"></textarea>
+        </label>
+      </section>
+
+      <section class="card">
+        <header class="section-header">
+          <h2>Experiencia</h2>
+          <button type="button" class="secondary" (click)="addExperience()">
+            + Agregar experiencia
+          </button>
+        </header>
+        @for (item of experiences.controls; track $index) {
+          <div class="item" [formGroup]="item">
+            <div class="item-head">
+              <span class="item-index">{{ $index + 1 }}</span>
+              <button
+                type="button"
+                class="danger"
+                (click)="removeAt(experiences, $index)"
+              >
+                Eliminar
+              </button>
+            </div>
+            <div class="grid">
+              <label class="form-field">
+                Empresa
+                <input formControlName="company" type="text" />
+              </label>
+              <label class="form-field">
+                Puesto
+                <input formControlName="position" type="text" />
+              </label>
+              <label class="form-field">
+                Ubicación
+                <input formControlName="location" type="text" />
+              </label>
+              <label class="form-field">
+                Desde
+                <input formControlName="startDate" type="date" />
+              </label>
+              <label class="form-field">
+                Hasta
+                <input
+                  formControlName="endDate"
+                  type="date"
+                  [disabled]="item.controls.current.value"
+                />
+              </label>
+              <label class="checkbox">
+                <input formControlName="current" type="checkbox" />
+                Trabajo actual
+              </label>
+            </div>
+            <label class="form-field">
+              Descripción
+              <textarea formControlName="description" rows="3"></textarea>
+            </label>
+          </div>
+        } @empty {
+          <p class="muted">Todavía no agregaste experiencia.</p>
+        }
+      </section>
+
+      <section class="card">
+        <header class="section-header">
+          <h2>Habilidades</h2>
+          <button type="button" class="secondary" (click)="addSkill()">
+            + Agregar habilidad
+          </button>
+        </header>
+        @for (item of skills.controls; track $index) {
+          <div class="item compact" [formGroup]="item">
+            <label class="form-field">
+              Habilidad
+              <input formControlName="name" type="text" />
+            </label>
+            <label class="form-field">
+              Nivel
+              <select formControlName="level">
+                @for (level of skillLevels; track level) {
+                  <option [ngValue]="level">{{ level }}</option>
+                }
+              </select>
+            </label>
+            <button
+              type="button"
+              class="danger"
+              (click)="removeAt(skills, $index)"
+            >
+              Eliminar
+            </button>
+          </div>
+        } @empty {
+          <p class="muted">Todavía no agregaste habilidades.</p>
+        }
+      </section>
+
+      <section class="card">
+        <header class="section-header">
+          <h2>Educación</h2>
+          <button type="button" class="secondary" (click)="addEducation()">
+            + Agregar educación
+          </button>
+        </header>
+        @for (item of education.controls; track $index) {
+          <div class="item" [formGroup]="item">
+            <div class="item-head">
+              <span class="item-index">{{ $index + 1 }}</span>
+              <button
+                type="button"
+                class="danger"
+                (click)="removeAt(education, $index)"
+              >
+                Eliminar
+              </button>
+            </div>
+            <div class="grid">
+              <label class="form-field">
+                Título / grado
+                <input formControlName="degree" type="text" />
+              </label>
+              <label class="form-field">
+                Institución
+                <input formControlName="institution" type="text" />
+              </label>
+              <label class="form-field">
+                Campo de estudio
+                <input formControlName="field" type="text" />
+              </label>
+              <label class="form-field">
+                Desde
+                <input formControlName="startDate" type="date" />
+              </label>
+              <label class="form-field">
+                Hasta
+                <input
+                  formControlName="endDate"
+                  type="date"
+                  [disabled]="item.controls.current.value"
+                />
+              </label>
+              <label class="checkbox">
+                <input formControlName="current" type="checkbox" />
+                En curso
+              </label>
+            </div>
+            <label class="form-field">
+              Descripción
+              <textarea formControlName="description" rows="3"></textarea>
+            </label>
+          </div>
+        } @empty {
+          <p class="muted">Todavía no agregaste educación.</p>
+        }
+      </section>
+
+      <section class="card">
+        <header class="section-header">
+          <h2>Certificaciones</h2>
+          <button
+            type="button"
+            class="secondary"
+            (click)="addCertification()"
+          >
+            + Agregar certificación
+          </button>
+        </header>
+        @for (item of certifications.controls; track $index) {
+          <div class="item" [formGroup]="item">
+            <div class="item-head">
+              <span class="item-index">{{ $index + 1 }}</span>
+              <button
+                type="button"
+                class="danger"
+                (click)="removeAt(certifications, $index)"
+              >
+                Eliminar
+              </button>
+            </div>
+            <div class="grid">
+              <label class="form-field">
+                Nombre
+                <input formControlName="name" type="text" />
+              </label>
+              <label class="form-field">
+                Emisor
+                <input formControlName="issuer" type="text" />
+              </label>
+              <label class="form-field">
+                Año
+                <input formControlName="year" type="number" min="1900" max="2100" />
+              </label>
+              <label class="form-field">
+                URL
+                <input formControlName="url" type="url" />
+              </label>
+            </div>
+          </div>
+        } @empty {
+          <p class="muted">Todavía no agregaste certificaciones.</p>
+        }
+      </section>
+
+      <section class="card">
+        <header class="section-header">
+          <h2>Proyectos</h2>
+          <button type="button" class="secondary" (click)="addProject()">
+            + Agregar proyecto
+          </button>
+        </header>
+        @for (item of projects.controls; track $index) {
+          <div class="item" [formGroup]="item">
+            <div class="item-head">
+              <span class="item-index">{{ $index + 1 }}</span>
+              <button
+                type="button"
+                class="danger"
+                (click)="removeAt(projects, $index)"
+              >
+                Eliminar
+              </button>
+            </div>
+            <div class="grid">
+              <label class="form-field">
+                Nombre
+                <input formControlName="name" type="text" />
+              </label>
+              <label class="form-field">
+                Rol
+                <input formControlName="role" type="text" />
+              </label>
+              <label class="form-field">
+                URL
+                <input formControlName="url" type="url" />
+              </label>
+              <label class="form-field">
+                Stack tecnológico (separado por comas)
+                <input formControlName="techStack" type="text" />
+              </label>
+            </div>
+            <label class="form-field">
+              Descripción
+              <textarea formControlName="description" rows="3"></textarea>
+            </label>
+          </div>
+        } @empty {
+          <p class="muted">Todavía no agregaste proyectos.</p>
+        }
+      </section>
+
+      <section class="card">
+        <header class="section-header">
+          <h2>Idiomas</h2>
+          <button type="button" class="secondary" (click)="addLanguage()">
+            + Agregar idioma
+          </button>
+        </header>
+        @for (item of languages.controls; track $index) {
+          <div class="item compact" [formGroup]="item">
+            <label class="form-field">
+              Idioma
+              <input formControlName="name" type="text" />
+            </label>
+            <label class="form-field">
+              Nivel
+              <select formControlName="level">
+                @for (level of cefrLevels; track level) {
+                  <option [ngValue]="level">{{ level }}</option>
+                }
+              </select>
+            </label>
+            <button
+              type="button"
+              class="danger"
+              (click)="removeAt(languages, $index)"
+            >
+              Eliminar
+            </button>
+          </div>
+        } @empty {
+          <p class="muted">Todavía no agregaste idiomas.</p>
+        }
+      </section>
+
+      <div class="sticky-actions">
+        <button type="submit" [disabled]="saving">
+          {{ saving ? 'Guardando…' : 'Guardar perfil' }}
+        </button>
+      </div>
+    </form>
+  }
+</section>

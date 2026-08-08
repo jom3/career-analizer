@@ -21,11 +21,20 @@ describe('AuthService', () => {
     data: { email: string; name: string; passwordHash: string };
   };
   const createMock = jest.fn<Promise<typeof userRow>, [CreateUserArgs]>();
+  const profileCreateMock = jest.fn().mockResolvedValue({});
+  const transactionMock = {
+    user: { create: createMock },
+    profile: { create: profileCreateMock },
+  };
   const prismaMock = {
     user: {
       findUnique: jest.fn(),
       create: createMock,
     },
+    $transaction: jest.fn(
+      async (callback: (tx: typeof transactionMock) => Promise<unknown>) =>
+        callback(transactionMock),
+    ),
   };
   const jwtMock = { sign: jest.fn() };
 
@@ -62,6 +71,9 @@ describe('AuthService', () => {
       expect(data).toMatchObject({ email: dto.email, name: dto.name });
       expect(data.passwordHash).not.toBe(dto.password);
       expect(await bcrypt.compare(dto.password, data.passwordHash)).toBe(true);
+      expect(profileCreateMock).toHaveBeenCalledWith({
+        data: { userId: 'user-1' },
+      });
       expect(result).not.toHaveProperty('passwordHash');
       expect(result).toMatchObject({
         id: 'user-1',
