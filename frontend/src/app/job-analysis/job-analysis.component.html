@@ -132,11 +132,27 @@
         </section>
       }
 
-      <div class="sticky-actions">
+      <div class="sticky-actions match-actions">
+        <button
+          type="button"
+          class="secondary"
+          [disabled]="matching()"
+          (click)="matchWithoutSaving()"
+        >
+          {{ matching() ? 'Calculando…' : 'Match sin guardar' }}
+        </button>
+        <button
+          type="button"
+          class="secondary"
+          [disabled]="saving() || matching()"
+          (click)="saveAndMatch()"
+        >
+          {{ saving() || matching() ? 'Calculando…' : 'Guardar y ver compatibilidad' }}
+        </button>
         <button type="button" class="secondary" (click)="reset()">
           Descartar
         </button>
-        <button type="submit" [disabled]="saving()">
+        <button type="submit" [disabled]="saving() || matching()">
           {{ saving() ? 'Guardando…' : editingId() ? 'Actualizar oferta' : 'Guardar en historial' }}
         </button>
       </div>
@@ -167,6 +183,14 @@
               </span>
             </div>
             <div class="history-actions">
+              <button
+                type="button"
+                class="secondary"
+                [disabled]="matchForId() === offer.id"
+                (click)="checkCompatibility(offer)"
+              >
+                {{ matchForId() === offer.id ? 'Calculando…' : 'Ver compatibilidad' }}
+              </button>
               <button
                 type="button"
                 class="secondary"

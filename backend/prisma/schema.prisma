@@ -177,16 +177,37 @@ model JobOffer {
   rawInput          String?   @db.Text
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
+  jobMatches        JobMatch[]
+}
+
+model JobMatch {
+  id                   String   @id @default(cuid())
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobOfferId           String?
+  jobOffer             JobOffer? @relation(fields: [jobOfferId], references: [id], onDelete: SetNull)
+  lang                 String   @default("es")
+  overallScore         Int
+  overallJustification String   @db.Text
+  dimensions           Json     // [{ key, score|null, justification }]
+  gaps                 Json     // [{ name, status, source, note? }]
+  recommendations      Json     // [{ type, target, suggestion }]
+  offerSnapshot        Json     // draft estructurado fuente del match
+  profileSnapshot      Json     // vista agregada del perfil usada al calcular
+  profileFingerprint   String   // huella del perfil al momento del análisis
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 }
 
 model User {
-  id           String    @id @default(cuid())
-  email        String    @unique
+  id           String     @id @default(cuid())
+  email        String     @unique
   passwordHash String
   name         String
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
   profile      Profile?
   cvDocuments  CvDocument[]
   jobOffers    JobOffer[]
+  jobMatches   JobMatch[]
 }

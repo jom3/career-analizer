@@ -5,6 +5,7 @@ import { authGuard } from './core/auth.guard';
 import { CvImportComponent } from './cv-import/cv-import.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { JobAnalysisComponent } from './job-analysis/job-analysis.component';
+import { JobMatchComponent } from './job-match/job-match.component';
 import { ProfileComponent } from './profile/profile.component';
 
 export const routes: Routes = [
@@ -28,6 +29,16 @@ export const routes: Routes = [
   {
     path: 'job-analysis',
     component: JobAnalysisComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'job-match',
+    component: JobMatchComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'job-match/:id',
+    component: JobMatchComponent,
     canActivate: [authGuard],
   },
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
