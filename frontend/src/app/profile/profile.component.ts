@@ -25,6 +25,7 @@ import {
   type SkillForm,
 } from '../core/profile-form';
 import { ProfileService } from '../core/profile.service';
+import { CvExportService, CvExportFormat } from '../core/cv-export.service';
 
 @Component({
   selector: 'app-profile',
@@ -34,6 +35,7 @@ import { ProfileService } from '../core/profile.service';
 })
 export class ProfileComponent implements OnInit {
   private readonly profileService = inject(ProfileService);
+  private readonly cvExportService = inject(CvExportService);
 
   readonly cefrLevels = CEFR_LEVELS;
   readonly skillLevels = SKILL_LEVELS;
@@ -41,6 +43,7 @@ export class ProfileComponent implements OnInit {
   readonly loading = signal(true);
   readonly saving = signal(false);
   readonly saved = signal(false);
+  readonly downloading = signal<'pdf' | 'docx' | null>(null);
   readonly errorMessage = signal('');
   readonly loadError = signal('');
 
@@ -124,6 +127,18 @@ export class ProfileComponent implements OnInit {
       this.errorMessage.set(this.messageFor(error));
     } finally {
       this.saving.set(false);
+    }
+  }
+
+  async onDownload(format: CvExportFormat): Promise<void> {
+    this.downloading.set(format);
+    this.errorMessage.set('');
+    try {
+      await this.cvExportService.download(format);
+    } catch {
+      this.errorMessage.set('No se pudo descargar el CV. Intentalo de nuevo.');
+    } finally {
+      this.downloading.set(null);
     }
   }
 
