@@ -3,6 +3,7 @@ import * as mammoth from 'mammoth';
 import { PDFParse } from 'pdf-parse';
 import { PrismaService } from '../prisma/prisma.service';
 import { CvExportService, CvData } from './cv-export.service';
+import { CvSkillGroupingService } from './cv-skill-grouping.service';
 
 async function extractDocxText(buffer: Buffer): Promise<string> {
   const result = await mammoth.extractRawText({ buffer });
@@ -23,6 +24,9 @@ describe('CvExportService', () => {
   let service: CvExportService;
   const prismaMock = {
     user: { findUnique: jest.fn() },
+  };
+  const groupingMock = {
+    group: jest.fn().mockResolvedValue([]),
   };
 
   const sampleData: CvData = {
@@ -60,6 +64,7 @@ describe('CvExportService', () => {
       providers: [
         CvExportService,
         { provide: PrismaService, useValue: prismaMock },
+        { provide: CvSkillGroupingService, useValue: groupingMock },
       ],
     }).compile();
 
@@ -277,7 +282,7 @@ describe('CvExportService', () => {
       expect(text).not.toContain('(4/5)');
     });
 
-    it('renders each skill on its own line in PDF and DOCX', async () => {
+    it('renders each skill on its own line when there is no grouping (fallback single paragraph)', async () => {
       const data: CvData = {
         ...sampleData,
         skills: [
@@ -289,11 +294,57 @@ describe('CvExportService', () => {
 
       const pdfBuffer = await service.buildPdf(data, 'es');
       const pdfText = await extractPdfText(pdfBuffer);
-      expect(pdfText).toMatch(/TypeScript\s*\n\s*JavaScript\s*\n\s*Angular/);
+      expect(pdfText).toContain('TypeScript, JavaScript, Angular');
 
-      const docxBuffer = await service.buildDocx(data, 'en');
+      const docxBuffer = await service.buildDocx(data, 'es');
       const docxText = await extractDocxText(docxBuffer);
-      expect(docxText).toMatch(/TypeScript\s*\n\s*JavaScript\s*\n\s*Angular/);
+      expect(docxText).toContain('TypeScript, JavaScript, Angular');
+    });
+
+    it('renders skills grouped by categories as comma-separated paragraphs', async () => {
+      const data: CvData = {
+        ...sampleData,
+        skills: [
+          { name: 'TypeScript', level: 4 },
+          { name: 'JavaScript', level: 5 },
+          { name: 'PostgreSQL', level: 4 },
+        ],
+        skillGroups: [
+          {
+            label: 'Lenguajes y Frameworks',
+            skills: ['TypeScript', 'JavaScript'],
+          },
+          { label: 'Bases de Datos', skills: ['PostgreSQL'] },
+        ],
+      };
+
+      const pdfBuffer = await service.buildPdf(data, 'es');
+      const pdfText = await extractPdfText(pdfBuffer);
+      expect(pdfText).toContain(
+        'Lenguajes y Frameworks: TypeScript, JavaScript',
+      );
+      expect(pdfText).toContain('Bases de Datos: PostgreSQL');
+
+      const docxBuffer = await service.buildDocx(data, 'es');
+      const docxText = await extractDocxText(docxBuffer);
+      expect(docxText).toContain(
+        'Lenguajes y Frameworks: TypeScript, JavaScript',
+      );
+      expect(docxText).toContain('Bases de Datos: PostgreSQL');
+    });
+
+    it('delegates grouping to the IA service for the base CV when groups are absent', async () => {
+      groupingMock.group.mockResolvedValue([
+        { label: 'Lenguajes', skills: ['TypeScript'] },
+      ]);
+      const data: CvData = {
+        ...sampleData,
+        skills: [{ name: 'TypeScript', level: 4 }],
+      };
+
+      await service.buildPdf(data, 'en');
+
+      expect(groupingMock.group).toHaveBeenCalledWith(['TypeScript'], 'en');
     });
   });
 

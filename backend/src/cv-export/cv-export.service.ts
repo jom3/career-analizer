@@ -5,6 +5,10 @@ import vfsFonts from 'pdfmake/build/vfs_fonts';
 import { Content, TCreatedPdf, TDocumentDefinitions } from 'pdfmake/interfaces';
 import { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import {
+  CvSkillGroupingService,
+  type CvSkillGroup,
+} from './cv-skill-grouping.service';
 
 export type CvLang = 'es' | 'en';
 
@@ -64,6 +68,7 @@ export interface CvData {
   summary?: string;
   experiences: CvExperience[];
   skills: CvSkill[];
+  skillGroups?: CvSkillGroup[];
   education: CvEducation[];
   certifications: CvCertification[];
   projects: CvProject[];
@@ -158,7 +163,10 @@ function formatDateRange(
 
 @Injectable()
 export class CvExportService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly skillGrouping: CvSkillGroupingService,
+  ) {}
 
   async loadCvData(userId: string): Promise<CvData> {
     const user = await this.prisma.user.findUnique({
@@ -232,8 +240,9 @@ export class CvExportService {
 
   async buildPdf(data: CvData, lang: CvLang): Promise<Buffer> {
     ensureFonts();
+    const skillGroups = await this.resolveSkillGroups(data, lang);
     const doc: TDocumentDefinitions = {
-      content: this.buildPdfContent(data, lang),
+      content: this.buildPdfContent({ ...data, skillGroups }, lang),
       defaultStyle: { font: 'Roboto', fontSize: 10 },
       styles: {
         name: { fontSize: 20, bold: true },
@@ -254,10 +263,32 @@ export class CvExportService {
   }
 
   async buildDocx(data: CvData, lang: CvLang): Promise<Buffer> {
+    const skillGroups = await this.resolveSkillGroups(data, lang);
     const doc = new Document({
-      sections: [{ children: this.buildDocxContent(data, lang) }],
+      sections: [
+        { children: this.buildDocxContent({ ...data, skillGroups }, lang) },
+      ],
     });
     return Packer.toBuffer(doc);
+  }
+
+  // Agrupa las skills en categorías de presentación (SPEC 13). Si el dato ya
+  // trae los grupos (CV adaptado), se respetan tal cual; en el CV base se pide
+  // la agrupación a la IA con guardia determinista.
+  private async resolveSkillGroups(
+    data: CvData,
+    lang: CvLang,
+  ): Promise<CvSkillGroup[] | undefined> {
+    if (data.skillGroups && data.skillGroups.length > 0) {
+      return data.skillGroups;
+    }
+    if (data.skills.length === 0) {
+      return undefined;
+    }
+    return this.skillGrouping.group(
+      data.skills.map((item) => item.name),
+      lang,
+    );
   }
 
   private buildPdfContent(data: CvData, lang: CvLang): Content[] {
@@ -316,9 +347,7 @@ export class CvExportService {
 
     if (data.skills.length > 0) {
       content.push({ text: titles.skills, style: 'sectionTitle' });
-      content.push(
-        ...data.skills.map((item) => ({ text: item.name, style: 'body' })),
-      );
+      content.push(...this.pdfSkillParagraphs(data.skillGroups, data.skills));
     }
 
     if (data.education.length > 0) {
@@ -480,7 +509,7 @@ export class CvExportService {
 
     if (data.skills.length > 0) {
       children.push(this.docxSectionTitle(titles.skills));
-      children.push(...data.skills.map((item) => this.docxBody(item.name)));
+      children.push(...this.docxSkillParagraphs(data.skillGroups, data.skills));
     }
 
     if (data.education.length > 0) {
@@ -595,6 +624,44 @@ export class CvExportService {
       children: [new TextRun({ text, bold: true, size: 28 })],
       spacing: { before: 280, after: 120 },
     });
+  }
+
+  // Sección de habilidades en formato párrafo agrupado por categorías (SPEC 13):
+  // un párrafo por categoría con las skills separadas por comas. Si no hay
+  // grupos (fallback), un único párrafo con todas las skills: se evita la
+  // línea-por-línea que los ATS pueden partir juntando dos palabras.
+  private pdfSkillParagraphs(
+    skillGroups: CvSkillGroup[] | undefined,
+    skills: CvSkill[],
+  ): Content[] {
+    return this.skillGroupLines(skillGroups, skills).map((line) => ({
+      text: line,
+      style: 'body',
+    }));
+  }
+
+  private docxSkillParagraphs(
+    skillGroups: CvSkillGroup[] | undefined,
+    skills: CvSkill[],
+  ): Paragraph[] {
+    return this.skillGroupLines(skillGroups, skills).map((line) =>
+      this.docxBody(line),
+    );
+  }
+
+  private skillGroupLines(
+    skillGroups: CvSkillGroup[] | undefined,
+    skills: CvSkill[],
+  ): string[] {
+    const groups = skillGroups && skillGroups.length > 0 ? skillGroups : null;
+    if (!groups) {
+      return [skills.map((item) => item.name).join(', ')];
+    }
+    return groups.map((group) =>
+      group.label
+        ? `${group.label}: ${group.skills.join(', ')}`
+        : group.skills.join(', '),
+    );
   }
 
   private pdfMetricsBullets(metrics: string[]): Content[] {
