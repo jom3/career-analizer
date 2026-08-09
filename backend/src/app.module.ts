@@ -4,6 +4,7 @@ import * as Joi from 'joi';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { CvAdaptationModule } from './cv-adaptation/cv-adaptation.module';
 import { CvExportModule } from './cv-export/cv-export.module';
 import { CvImportModule } from './cv-import/cv-import.module';
 import { HealthController } from './health.controller';
@@ -32,6 +33,7 @@ import { ProfileModule } from './profile/profile.module';
     CvExportModule,
     JobAnalysisModule,
     JobMatchModule,
+    CvAdaptationModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],
