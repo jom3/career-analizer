@@ -156,6 +156,26 @@ describe('CvParserService', () => {
     expect(english.sourceLanguage).toBe('en');
   });
 
+  it('incluye en el prompt la instrucción de texto limpio y no duplicar ítems', async () => {
+    createMock.mockResolvedValue({
+      choices: [{ message: { content: '{}' } }],
+    });
+
+    await service.parse(
+      'Experiencia laboral y habilidades en resumen profesional.',
+    );
+
+    const createCall = createMock.mock.calls[0] as unknown as Array<{
+      messages: Array<{ role: string; content: string }>;
+    }>;
+    const systemPrompt = createCall[0].messages[0].content;
+    expect(systemPrompt).toMatch(/ligaduras/i);
+    expect(systemPrompt).toMatch(/no dupliques|do not duplicate/i);
+    expect(systemPrompt).toMatch(
+      /respetá la grafía|reproduce the cv spelling/i,
+    );
+  });
+
   it('lanza 502 cuando el JSON de la IA no es parseable', async () => {
     createMock.mockResolvedValue({
       choices: [{ message: { content: 'esto no es json' } }],

@@ -128,6 +128,28 @@ describe('CV Import (e2e)', () => {
       .expect(200);
   });
 
+  it('stores a ligature-bearing PDF with a clean extractedText', async () => {
+    const agent = request.agent(app.getHttpServer());
+    await agent.post('/auth/login').send({ email, password }).expect(201);
+
+    const upload = await agent
+      .post('/cv-import')
+      .attach('file', readFileSync(path.join(fixturesDir, 'ligatures.pdf')), {
+        filename: 'ligatures.pdf',
+        contentType: 'application/pdf',
+      })
+      .expect(200);
+    const documentId = (upload.body as { documentId: string }).documentId;
+
+    const res = await agent.get(`/cv-import/${documentId}`).expect(200);
+    const body = res.body as { extractedText: string };
+    expect(body.extractedText).toBeDefined();
+    expect(body.extractedText).not.toMatch(/[\uFB00-\uFB06\u00A0\u2007\u202F]/);
+    expect(body.extractedText).toContain('file');
+    expect(body.extractedText).toContain('office');
+    expect(body.extractedText).toContain('start');
+  });
+
   it('rejects an unsupported mime type with 400', async () => {
     const agent = request.agent(app.getHttpServer());
     await agent.post('/auth/login').send({ email, password }).expect(201);

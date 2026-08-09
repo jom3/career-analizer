@@ -88,6 +88,9 @@
           <div class="item" [formGroup]="item">
             <div class="item-head">
               <span class="item-index">{{ $index + 1 }}</span>
+              @if (isExperienceDuplicate($index)) {
+                <span class="duplicate-badge">Duplicado</span>
+              }
               <button
                 type="button"
                 class="danger"
@@ -145,6 +148,9 @@
         </header>
         @for (item of skills.controls; track $index) {
           <div class="item compact" [formGroup]="item">
+            @if (isSkillDuplicate($index)) {
+              <span class="duplicate-badge">Duplicado</span>
+            }
             <label class="form-field">
               Habilidad
               <input formControlName="name" type="text" />

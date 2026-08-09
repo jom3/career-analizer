@@ -163,7 +163,13 @@ export class CvParserService {
     const extract = es
       ? 'Los contactos se devuelven solo si están escritos (teléfono, ubicación, sitio web, LinkedIn).'
       : 'Contact data must be returned only when written (phone, location, website, LinkedIn).';
-    return `${intro} ${noInvent} ${nulls} ${levels} ${dates} ${extract}`;
+    const cleanText = es
+      ? 'Ignorá ligaduras residuales (ﬁ, ﬃ, ﬂ) o errores tipográficos del texto y transcribí los datos limpios. Respetá la grafía del CV tal cual (empresas, tecnologías, nombres), sin corregir ni inventar.'
+      : 'Ignore residual ligatures (ﬁ, ﬃ, ﬂ) or typos in the text and transcribe the data cleanly. Reproduce the CV spelling as-is (companies, technologies, names), without correcting or inventing.';
+    const noDuplicates = es
+      ? 'No dupliques ítems: si el mismo dato aparece repetido (idéntico o casi-idéntico, p. ej. "TypeScript" y "Typescript", o "Full-stack" y "Full Stack"), devolvelo una sola vez, usando la variante más completa y legible.'
+      : 'Do not duplicate items: if the same piece of data appears repeated (identical or nearly identical, e.g. "TypeScript" and "Typescript", or "Full-stack" and "Full Stack"), return it only once, using the most complete and readable variant.';
+    return `${intro} ${noInvent} ${nulls} ${levels} ${dates} ${extract} ${cleanText} ${noDuplicates}`;
   }
 
   private buildDraftSchema(): Record<string, unknown> {

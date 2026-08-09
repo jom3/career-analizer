@@ -1,6 +1,7 @@
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { PDFParse } from 'pdf-parse';
 import * as mammoth from 'mammoth';
+import { normalizeText } from './text-normalizer';
 
 export const MIN_EXTRACTED_TEXT_LENGTH = 50;
 
@@ -17,7 +18,8 @@ export class TextExtractorService {
         ? await this.extractDocx(buffer)
         : await this.extractPdf(buffer);
 
-    const trimmed = text.trim();
+    const normalized = normalizeText(text);
+    const trimmed = normalized.trim();
     if (trimmed.length < MIN_EXTRACTED_TEXT_LENGTH) {
       throw new UnprocessableEntityException(
         'No se pudo extraer texto del documento. El archivo puede ser escaneado o no contener texto seleccionable.',
