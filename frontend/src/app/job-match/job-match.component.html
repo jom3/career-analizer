@@ -1,0 +1,192 @@
+<section class="job-match-page">
+  <header class="page-header">
+    <div>
+      @if (match()) {
+        <h1>Encaje con la oferta</h1>
+      } @else {
+        <h1>Mis análisis de encaje</h1>
+      }
+      <p class="subtitle">
+        Comparación entre tu perfil y cada oferta: puntaje global y por
+        dimensión, gaps de habilidades y recomendaciones para mejorar.
+      </p>
+    </div>
+    <div class="actions">
+      @if (match()) {
+        <a class="link" routerLink="/job-match">Ver historial</a>
+      }
+      <a class="link" routerLink="/dashboard">Volver al dashboard</a>
+    </div>
+  </header>
+
+  @if (errorMessage()) {
+    <p class="error" role="alert">{{ errorMessage() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="muted">Cargando…</p>
+  }
+
+  @if (!loading() && match(); as current) {
+    <section class="card score-card">
+      <div class="score-summary">
+        <div class="score-badge">{{ current.overallScore }}<span>%</span></div>
+        <div class="score-text">
+          <h2>Puntaje general</h2>
+          <p>{{ current.overallJustification }}</p>
+        </div>
+      </div>
+
+      @if (current.stale) {
+        <div class="stale-banner" role="status">
+          <p>
+            Tu perfil cambió desde que se calculó este resultado. Recalculalo
+            para ver el encaje actual.
+          </p>
+          <button
+            type="button"
+            [disabled]="recomputing()"
+            (click)="recompute()"
+          >
+            {{ recomputing() ? 'Recalculando…' : 'Recalcular' }}
+          </button>
+        </div>
+      }
+    </section>
+
+    <section class="card">
+      <header class="section-header">
+        <h2>Puntaje por dimensión</h2>
+      </header>
+      @if (isNullScore(current)) {
+        <p class="muted">
+          No hay datos de habilidades, experiencia, educación ni idiomas en tu
+          perfil para puntuar.
+        </p>
+      } @else {
+        @for (dimension of current.dimensions; track dimension.key) {
+          <div class="dimension">
+            <div class="dimension-head">
+              <strong>{{ dimensionLabels[dimension.key] }}</strong>
+              <span>
+                @if (dimension.score !== null) {
+                  {{ dimension.score }}%
+                } @else {
+                  Sin datos
+                }
+              </span>
+            </div>
+            <div class="bar">
+              <div
+                class="bar-fill"
+                [style.width.%]="dimension.score ?? 0"
+              ></div>
+            </div>
+            <p class="dimension-justification">{{ dimension.justification }}</p>
+          </div>
+        }
+      }
+    </section>
+
+    <section class="card">
+      <header class="section-header">
+        <h2>Diferencia de habilidades</h2>
+        <span class="muted">Según la oferta y tu perfil</span>
+      </header>
+      @if (current.gaps.length === 0) {
+        <p class="muted">No se detectaron gaps entre la oferta y tu perfil.</p>
+      } @else {
+        <ul class="gap-list">
+          @for (gap of current.gaps; track gap.name) {
+            <li class="gap-item">
+              <span
+                class="badge"
+                [class.status-have]="gap.status === 'HAVE'"
+                [class.status-missing]="gap.status === 'MISSING'"
+                [class.status-partial]="gap.status === 'PARTIAL'"
+              >
+                {{ gapStatusLabels[gap.status] }}
+              </span>
+              <strong>{{ gap.name }}</strong>
+              <span class="muted">{{ gapSourceLabels[gap.source] }}</span>
+              @if (gap.note) {
+                <p class="gap-note">{{ gap.note }}</p>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section class="card">
+      <header class="section-header">
+        <h2>Recomendaciones</h2>
+        <span class="muted">Sugerencias de la IA, no se aplican solas</span>
+      </header>
+      @if (current.recommendations.length === 0) {
+        <p class="muted">La IA no generó recomendaciones.</p>
+      } @else {
+        <ul class="recommendation-list">
+          @for (item of current.recommendations; track $index) {
+            <li class="recommendation-item">
+              <span
+                class="badge"
+                [class.recommendation-skill]="item.type === 'SKILL'"
+                [class.recommendation-profile]="item.type === 'PROFILE'"
+              >
+                {{ item.type === 'SKILL' ? 'Habilidad' : 'Perfil' }}
+              </span>
+              <div>
+                <strong>{{ item.target }}</strong>
+                <p>{{ item.suggestion }}</p>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+      <div class="danger-zone">
+        <button
+          type="button"
+          class="danger"
+          [disabled]="deleting()"
+          (click)="deleteMatch(current.id)"
+        >
+          {{ deleting() ? 'Eliminando…' : 'Eliminar este resultado' }}
+        </button>
+        <p class="muted">Borrar el match no borra la oferta guardada.</p>
+      </div>
+    </section>
+  }
+
+  @if (!loading() && !match()) {
+    <section class="card">
+      <header class="section-header">
+        <h2>Historial de análisis</h2>
+      </header>
+      @if (matches().length === 0) {
+        <p class="muted">
+          Todavía no hay análisis de encaje. Analizá una oferta en
+          <a class="link" routerLink="/job-analysis">analizar ofertas</a> y usá
+          "Ver compatibilidad".
+        </p>
+      } @else {
+        <ul class="match-list">
+          @for (item of matches(); track item.id) {
+            <li class="match-item">
+              <a class="match-link" routerLink="/job-match/{{ item.id }}">
+                <div class="match-main">
+                  <strong>{{ formatDate(item.createdAt) }}</strong>
+                  <span class="muted">Puntaje global de encaje</span>
+                </div>
+                <span class="score-badge small">{{ item.overallScore }}%</span>
+              </a>
+              @if (item.stale) {
+                <span class="badge status-missing">Perfil desactualizado</span>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+</section>
