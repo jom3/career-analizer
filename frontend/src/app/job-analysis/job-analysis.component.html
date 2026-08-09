@@ -194,6 +194,14 @@
               <button
                 type="button"
                 class="secondary"
+                [disabled]="adaptingId() === offer.id"
+                (click)="adaptCv(offer)"
+              >
+                {{ adaptingId() === offer.id ? 'Generando…' : 'Adaptar CV' }}
+              </button>
+              <button
+                type="button"
+                class="secondary"
                 (click)="editOffer(offer)"
               >
                 Editar

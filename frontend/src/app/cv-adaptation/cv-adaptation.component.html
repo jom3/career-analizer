@@ -1,0 +1,313 @@
+<section class="cv-adaptation-page">
+  <header class="page-header">
+    <div>
+      @if (version()) {
+        <h1>CV adaptado</h1>
+      } @else {
+        <h1>Mis CV adaptados</h1>
+      }
+      <p class="subtitle">
+        Versiones de tu CV ajustadas a cada oferta, generadas por IA según tu
+        perfil, sin inventar información.
+      </p>
+    </div>
+    <div class="actions">
+      @if (version()) {
+        <a class="link" routerLink="/cv-adaptation">Ver historial</a>
+      }
+      <a class="link" routerLink="/dashboard">Volver al dashboard</a>
+    </div>
+  </header>
+
+  @if (errorMessage()) {
+    <p class="error" role="alert">{{ errorMessage() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="muted">Cargando…</p>
+  }
+
+  @if (!loading() && version(); as current) {
+    <section class="card cv-section">
+      <header class="section-header">
+        <h2>Tu CV para esta oferta</h2>
+        <span class="badge tag-ai">Adaptado por IA</span>
+      </header>
+      <p class="muted">
+        Adaptado al idioma de la oferta, con foco en lo que pide. Los campos
+        estructurales (empresas, estudios, skills) provienen de tu perfil; la IA
+        solo reformula la redacción.
+      </p>
+    </section>
+
+    @if (current.stale) {
+      <div class="stale-banner" role="status">
+        <p>
+          Tu perfil cambió desde que se generó este CV. Regeneralo para que
+          refleje la información actual.
+        </p>
+        <button
+          type="button"
+          [disabled]="regenerating() || !current.jobOfferId"
+          (click)="regenerate()"
+        >
+          {{ regenerating() ? 'Generando…' : 'Generar nueva versión' }}
+        </button>
+      </div>
+      @if (!current.jobOfferId) {
+        <p class="muted">
+          La oferta original ya no está disponible, así que no se puede
+          regenerar desde aquí. Creá una nueva desde "Adaptar CV" en el análisis
+          de una oferta.
+        </p>
+      }
+    }
+
+    <section class="card cv-section">
+      <header class="section-header">
+        <h2>Perfil</h2>
+      </header>
+      @if (current.content.headline) {
+        <p class="headline">{{ current.content.headline }}</p>
+      }
+      @if (current.content.summary) {
+        <p>{{ current.content.summary }}</p>
+      }
+      <p class="muted contact">
+        @if (current.content.phone) {
+          <span>{{ current.content.phone }}</span>
+        }
+        @if (current.content.location) {
+          <span>{{ current.content.location }}</span>
+        }
+        @if (current.content.website) {
+          <span>{{ current.content.website }}</span>
+        }
+        @if (current.content.linkedin) {
+          <span>{{ current.content.linkedin }}</span>
+        }
+      </p>
+      @if (current.sourceLanguage) {
+        <p class="muted">Idioma del documento: {{ current.sourceLanguage }}</p>
+      }
+    </section>
+
+    <section class="card cv-section">
+      <header class="section-header">
+        <h2>Experiencia</h2>
+      </header>
+      @if (current.content.experiences.length === 0) {
+        <p class="muted">Sin experiencia registrada.</p>
+      } @else {
+        <ul class="entry-list">
+          @for (item of current.content.experiences; track item.originalId) {
+            <li>
+              <strong>{{ item.position }}</strong>
+              <span class="muted"> · {{ item.company }}</span>
+              @if (item.description) {
+                <p>{{ item.description }}</p>
+              }
+              @if (item.metrics.length > 0) {
+                <ul class="metric-list">
+                  @for (metric of item.metrics; track $index) {
+                    <li>{{ metric }}</li>
+                  }
+                </ul>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section class="card cv-section">
+      <header class="section-header">
+        <h2>Proyectos</h2>
+      </header>
+      @if (current.content.projects.length === 0) {
+        <p class="muted">Sin proyectos registrados.</p>
+      } @else {
+        <ul class="entry-list">
+          @for (item of current.content.projects; track item.originalId) {
+            <li>
+              <strong>{{ item.name }}</strong>
+              @if (item.role) {
+                <span class="muted"> · {{ item.role }}</span>
+              }
+              @if (item.description) {
+                <p>{{ item.description }}</p>
+              }
+              @if (item.techStack.length > 0) {
+                <p class="muted">Tecnologías: {{ item.techStack.join(', ') }}</p>
+              }
+              @if (item.metrics.length > 0) {
+                <ul class="metric-list">
+                  @for (metric of item.metrics; track $index) {
+                    <li>{{ metric }}</li>
+                  }
+                </ul>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section class="card cv-section">
+      <header class="section-header">
+        <h2>Habilidades</h2>
+      </header>
+      @if (current.content.skills.length === 0) {
+        <p class="muted">Sin habilidades registradas.</p>
+      } @else {
+        <ul class="skill-list">
+          @for (item of current.content.skills; track item.name) {
+            <li class="badge">{{ item.name }}</li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section class="card cv-section">
+      <header class="section-header">
+        <h2>Educación</h2>
+      </header>
+      @if (current.content.education.length === 0) {
+        <p class="muted">Sin educación registrada.</p>
+      } @else {
+        <ul class="entry-list">
+          @for (item of current.content.education; track item.originalId) {
+            <li>
+              <strong>{{ item.degree }}</strong>
+              <span class="muted"> · {{ item.institution }}</span>
+              @if (item.field) {
+                <p>{{ item.field }}</p>
+              }
+              @if (item.description) {
+                <p>{{ item.description }}</p>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section class="card cv-section">
+      <header class="section-header">
+        <h2>Certificaciones</h2>
+      </header>
+      @if (current.content.certifications.length === 0) {
+        <p class="muted">Sin certificaciones registradas.</p>
+      } @else {
+        <ul class="entry-list">
+          @for (item of current.content.certifications; track item.originalId) {
+            <li>
+              <strong>{{ item.name }}</strong>
+              @if (item.issuer) {
+                <span class="muted"> · {{ item.issuer }}</span>
+              }
+              @if (item.year) {
+                <span class="muted"> ({{ item.year }})</span>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section class="card cv-section">
+      <header class="section-header">
+        <h2>Idiomas</h2>
+      </header>
+      @if (current.content.languages.length === 0) {
+        <p class="muted">Sin idiomas registrados.</p>
+      } @else {
+        <ul class="skill-list">
+          @for (item of current.content.languages; track item.originalId) {
+            <li class="badge">{{ item.name }} · {{ item.level }}</li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section class="card cv-section">
+      <header class="section-header">
+        <h2>Descargar</h2>
+      </header>
+      <div class="download-actions">
+        <button
+          type="button"
+          [disabled]="exporting() !== null"
+          (click)="exportCv('pdf')"
+        >
+          {{ exporting() === 'pdf' ? 'Generando…' : 'Descargar PDF' }}
+        </button>
+        <button
+          type="button"
+          [disabled]="exporting() !== null"
+          (click)="exportCv('docx')"
+        >
+          {{ exporting() === 'docx' ? 'Generando…' : 'Descargar DOCX' }}
+        </button>
+        @if (current.jobOfferId) {
+          <button
+            type="button"
+            [disabled]="regenerating()"
+            (click)="regenerate()"
+          >
+            {{ regenerating() ? 'Generando…' : 'Generar nueva versión' }}
+          </button>
+        }
+      </div>
+      <p class="muted">
+        Según lo define el producto, el archivo exportado se marca como
+        "Adaptado por IA" para diferenciarlo de tu CV original.
+      </p>
+    </section>
+
+    <div class="danger-zone">
+      <button
+        type="button"
+        class="danger"
+        [disabled]="deleting()"
+        (click)="deleteVersion(current.id)"
+      >
+        {{ deleting() ? 'Eliminando…' : 'Eliminar este CV adaptado' }}
+      </button>
+      <p class="muted">Borrar la versión no modifica tu perfil original.</p>
+    </div>
+  }
+
+  @if (!loading() && !version()) {
+    <section class="card">
+      <header class="section-header">
+        <h2>Historial de CV adaptados</h2>
+      </header>
+      @if (versions().length === 0) {
+        <p class="muted">
+          Todavía no hay CV adaptados. Analizá una oferta y usá
+          <a class="link" routerLink="/job-analysis">analizar ofertas</a> o
+          <a class="link" routerLink="/job-match">análisis de encaje</a> para
+          generar uno.
+        </p>
+      } @else {
+        <ul class="match-list">
+          @for (item of versions(); track item.id) {
+            <li class="match-item">
+              <a class="match-link" routerLink="/cv-adaptation/{{ item.id }}">
+                <div class="match-main">
+                  <strong>{{ formatDate(item.createdAt) }}</strong>
+                  <span class="muted">CV adaptado para una oferta</span>
+                </div>
+                <span class="badge tag-ai">Adaptado por IA</span>
+              </a>
+              @if (item.stale) {
+                <span class="badge status-missing">Perfil desactualizado</span>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+</section>

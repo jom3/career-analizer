@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { LoginComponent } from './auth/login.component';
 import { RegisterComponent } from './auth/register.component';
 import { authGuard } from './core/auth.guard';
+import { CvAdaptationComponent } from './cv-adaptation/cv-adaptation.component';
 import { CvImportComponent } from './cv-import/cv-import.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { JobAnalysisComponent } from './job-analysis/job-analysis.component';
@@ -39,6 +40,16 @@ export const routes: Routes = [
   {
     path: 'job-match/:id',
     component: JobMatchComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'cv-adaptation',
+    component: CvAdaptationComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'cv-adaptation/:id',
+    component: CvAdaptationComponent,
     canActivate: [authGuard],
   },
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
