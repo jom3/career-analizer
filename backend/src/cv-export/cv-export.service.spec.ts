@@ -37,6 +37,7 @@ describe('CvExportService', () => {
         startDate: new Date('2020-01-01'),
         current: true,
         description: 'Built APIs',
+        metrics: ['Cut latency by 40%'],
       },
     ],
     skills: [{ name: 'TypeScript', level: 4 }],
@@ -47,6 +48,7 @@ describe('CvExportService', () => {
         name: 'Career Analyzer',
         role: 'Owner',
         techStack: ['NestJS', 'Angular'],
+        metrics: ['10k users'],
       },
     ],
     languages: [{ name: 'Spanish', level: 'C2' }],
@@ -78,8 +80,12 @@ describe('CvExportService', () => {
       expect(text).toContain('Juan Pérez');
       expect(text).toContain('Backend specialist.');
       expect(text).toContain('Senior Engineer');
-      expect(text).toContain('TypeScript (4/5)');
+      expect(text).toContain('TypeScript');
       expect(text).toContain('Spanish (C2)');
+      expect(text).not.toContain('(4/5)');
+      expect(text).toContain('Cut latency by 40%');
+      expect(text).toContain('10k users');
+      expect(text).toContain('01/2020 — Actualidad');
     });
   });
 
@@ -98,6 +104,9 @@ describe('CvExportService', () => {
       expect(text).toContain('Backend specialist.');
       expect(text).toContain('Senior Engineer');
       expect(text).toContain('AWS — Amazon — 2021');
+      expect(text).toContain('Cut latency by 40%');
+      expect(text).toContain('10k users');
+      expect(text).toContain('01/2020 — Actualidad');
     });
   });
 
@@ -169,6 +178,122 @@ describe('CvExportService', () => {
       expect(enText).toContain('Projects');
       expect(esText).toContain('Idiomas');
       expect(enText).toContain('Languages');
+    });
+  });
+
+  describe('skills, dates and metrics', () => {
+    it('renders skills without level and dates with current in es and en', async () => {
+      const esBuffer = await service.buildPdf(sampleData, 'es');
+      const esText = await extractPdfText(esBuffer);
+      const enBuffer = await service.buildPdf(sampleData, 'en');
+      const enText = await extractPdfText(enBuffer);
+
+      expect(esText).toContain('01/2020 — Actualidad');
+      expect(esText).not.toContain('(4/5)');
+      expect(enText).toContain('01/2020 — Present');
+      expect(enText).not.toContain('(4/5)');
+    });
+
+    it('renders non-current ranges as MM/YYYY — MM/YYYY', async () => {
+      const data: CvData = {
+        ...sampleData,
+        experiences: [
+          {
+            company: 'Acme',
+            position: 'Engineer',
+            startDate: new Date('2018-03-15'),
+            endDate: new Date('2020-11-30'),
+            current: false,
+          },
+        ],
+      };
+
+      const buffer = await service.buildPdf(data, 'es');
+      const text = await extractPdfText(buffer);
+
+      expect(text).toContain('03/2018 — 11/2020');
+    });
+
+    it('omits the metrics bullets when metrics is absent or empty', async () => {
+      const data: CvData = {
+        ...sampleData,
+        experiences: [
+          {
+            company: 'Acme',
+            position: 'Engineer',
+            current: true,
+            metrics: [],
+          },
+        ],
+        projects: [
+          { name: 'Project X', techStack: [], metrics: [] },
+          { name: 'Project Y', techStack: [] },
+        ],
+      };
+
+      const buffer = await service.buildPdf(data, 'es');
+      const text = await extractPdfText(buffer);
+
+      expect(text).not.toContain('•');
+    });
+
+    it('preserves line breaks in multiline descriptions', async () => {
+      const data: CvData = {
+        ...sampleData,
+        experiences: [
+          {
+            company: 'Acme',
+            position: 'Engineer',
+            current: true,
+            description: 'Primera línea.\nSegunda línea.\nTercera línea.',
+          },
+        ],
+      };
+
+      const pdfBuffer = await service.buildPdf(data, 'es');
+      const pdfText = await extractPdfText(pdfBuffer);
+      expect(pdfText).toContain('Primera línea.');
+      expect(pdfText).toContain('Segunda línea.');
+      expect(pdfText).toContain('Tercera línea.');
+      expect(pdfText).toMatch(
+        /Primera línea\.\s*\n\s*Segunda línea\.\s*\n\s*Tercera línea\./,
+      );
+
+      const docxBuffer = await service.buildDocx(data, 'es');
+      const docxText = await extractDocxText(docxBuffer);
+      expect(docxText).toContain('Primera línea.');
+      expect(docxText).toContain('Segunda línea.');
+      expect(docxText).toContain('Tercera línea.');
+      expect(docxText).toMatch(
+        /Primera línea\.\s*\n\s*Segunda línea\.\s*\n\s*Tercera línea\./,
+      );
+    });
+
+    it('renders languages with CEFR level in the DOCX', async () => {
+      const buffer = await service.buildDocx(sampleData, 'en');
+      const text = await extractDocxText(buffer);
+
+      expect(text).toContain('Spanish (C2)');
+      expect(text).not.toContain('(4/5)');
+    });
+
+    it('renders each skill on its own line in PDF and DOCX', async () => {
+      const data: CvData = {
+        ...sampleData,
+        skills: [
+          { name: 'TypeScript', level: 4 },
+          { name: 'JavaScript', level: 5 },
+          { name: 'Angular', level: 3 },
+        ],
+      };
+
+      const pdfBuffer = await service.buildPdf(data, 'es');
+      const pdfText = await extractPdfText(pdfBuffer);
+      expect(pdfText).toMatch(/TypeScript\s*\n\s*JavaScript\s*\n\s*Angular/);
+
+      const docxBuffer = await service.buildDocx(data, 'en');
+      const docxText = await extractDocxText(docxBuffer);
+      expect(docxText).toMatch(/TypeScript\s*\n\s*JavaScript\s*\n\s*Angular/);
     });
   });
 

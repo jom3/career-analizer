@@ -51,6 +51,7 @@ model Experience {
   endDate     DateTime?
   current     Boolean   @default(false)
   description String?
+  metrics     String[]
   sortOrder   Int       @default(0)
   source      Source    @default(USER)
   createdAt   DateTime  @default(now())
@@ -109,6 +110,7 @@ model Project {
   description String?
   url         String?
   techStack   String[]
+  metrics     String[]
   sortOrder   Int      @default(0)
   source      Source   @default(USER)
   createdAt   DateTime @default(now())

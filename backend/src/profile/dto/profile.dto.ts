@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import {
+  ArrayMaxSize,
   IsArray,
   IsBoolean,
   IsEnum,
@@ -50,6 +51,12 @@ export class ExperienceDto {
   @IsString()
   @MaxLength(2000)
   description?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  @ArrayMaxSize(5)
+  metrics?: string[];
 
   @IsOptional()
   @IsEnum(Source)
@@ -182,6 +189,12 @@ export class ProjectDto {
   @IsString({ each: true })
   @MaxLength(60, { each: true })
   techStack!: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  @ArrayMaxSize(5)
+  metrics?: string[];
 
   @IsOptional()
   @IsEnum(Source)

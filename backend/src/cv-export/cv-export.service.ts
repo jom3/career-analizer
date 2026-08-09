@@ -16,6 +16,7 @@ export interface CvExperience {
   endDate?: Date;
   current: boolean;
   description?: string;
+  metrics?: string[];
 }
 
 export interface CvSkill {
@@ -44,6 +45,7 @@ export interface CvProject {
   role?: string;
   description?: string;
   techStack: string[];
+  metrics?: string[];
 }
 
 export interface CvLanguage {
@@ -151,7 +153,7 @@ function formatDateRange(
   if (!startLabel && !endLabel) {
     return '';
   }
-  return `${startLabel ?? '—'} – ${endLabel ?? '—'}`;
+  return `${startLabel ?? '—'} — ${endLabel ?? '—'}`;
 }
 
 @Injectable()
@@ -190,6 +192,7 @@ export class CvExportService {
           endDate: item.endDate ?? undefined,
           current: item.current,
           description: item.description ?? undefined,
+          metrics: item.metrics,
         })),
       skills: (profile?.skills ?? [])
         .filter((item) => item.name)
@@ -219,6 +222,7 @@ export class CvExportService {
           role: item.role ?? undefined,
           description: item.description ?? undefined,
           techStack: item.techStack,
+          metrics: item.metrics,
         })),
       languages: (profile?.languages ?? [])
         .filter((item) => item.name)
@@ -279,7 +283,7 @@ export class CvExportService {
 
     if (data.summary) {
       content.push({ text: titles.summary, style: 'sectionTitle' });
-      content.push({ text: data.summary, style: 'body' });
+      content.push(...this.pdfBodyParagraphs(data.summary));
     }
 
     if (data.experiences.length > 0) {
@@ -302,19 +306,19 @@ export class CvExportService {
           },
         );
         if (item.description) {
-          content.push({ text: item.description, style: 'body' });
+          content.push(...this.pdfBodyParagraphs(item.description));
+        }
+        if (item.metrics && item.metrics.length > 0) {
+          content.push(...this.pdfMetricsBullets(item.metrics));
         }
       }
     }
 
     if (data.skills.length > 0) {
       content.push({ text: titles.skills, style: 'sectionTitle' });
-      content.push({
-        text: data.skills
-          .map((item) => `${item.name} (${item.level}/5)`)
-          .join('  ·  '),
-        style: 'body',
-      });
+      content.push(
+        ...data.skills.map((item) => ({ text: item.name, style: 'body' })),
+      );
     }
 
     if (data.education.length > 0) {
@@ -341,7 +345,7 @@ export class CvExportService {
           content.push({ text: meta.join('  |  '), style: 'itemMeta' });
         }
         if (item.description) {
-          content.push({ text: item.description, style: 'body' });
+          content.push(...this.pdfBodyParagraphs(item.description));
         }
       }
     }
@@ -372,19 +376,22 @@ export class CvExportService {
           });
         }
         if (item.description) {
-          content.push({ text: item.description, style: 'body' });
+          content.push(...this.pdfBodyParagraphs(item.description));
+        }
+        if (item.metrics && item.metrics.length > 0) {
+          content.push(...this.pdfMetricsBullets(item.metrics));
         }
       }
     }
 
     if (data.languages.length > 0) {
       content.push({ text: titles.languages, style: 'sectionTitle' });
-      content.push({
-        text: data.languages
-          .map((item) => `${item.name} (${item.level})`)
-          .join('  ·  '),
-        style: 'body',
-      });
+      content.push(
+        ...data.languages.map((item) => ({
+          text: `${item.name} (${item.level})`,
+          style: 'body',
+        })),
+      );
     }
 
     return content;
@@ -429,7 +436,7 @@ export class CvExportService {
 
     if (data.summary) {
       children.push(this.docxSectionTitle(titles.summary));
-      children.push(this.docxBody(data.summary));
+      children.push(...this.docxBodyParagraphs(data.summary));
     }
 
     if (data.experiences.length > 0) {
@@ -463,20 +470,17 @@ export class CvExportService {
           }),
         );
         if (item.description) {
-          children.push(this.docxBody(item.description));
+          children.push(...this.docxBodyParagraphs(item.description));
+        }
+        if (item.metrics && item.metrics.length > 0) {
+          children.push(...this.docxMetricsBullets(item.metrics));
         }
       }
     }
 
     if (data.skills.length > 0) {
       children.push(this.docxSectionTitle(titles.skills));
-      children.push(
-        this.docxBody(
-          data.skills
-            .map((item) => `${item.name} (${item.level}/5)`)
-            .join('  ·  '),
-        ),
-      );
+      children.push(...data.skills.map((item) => this.docxBody(item.name)));
     }
 
     if (data.education.length > 0) {
@@ -522,7 +526,7 @@ export class CvExportService {
           );
         }
         if (item.description) {
-          children.push(this.docxBody(item.description));
+          children.push(...this.docxBodyParagraphs(item.description));
         }
       }
     }
@@ -566,7 +570,10 @@ export class CvExportService {
           );
         }
         if (item.description) {
-          children.push(this.docxBody(item.description));
+          children.push(...this.docxBodyParagraphs(item.description));
+        }
+        if (item.metrics && item.metrics.length > 0) {
+          children.push(...this.docxMetricsBullets(item.metrics));
         }
       }
     }
@@ -574,10 +581,8 @@ export class CvExportService {
     if (data.languages.length > 0) {
       children.push(this.docxSectionTitle(titles.languages));
       children.push(
-        this.docxBody(
-          data.languages
-            .map((item) => `${item.name} (${item.level})`)
-            .join('  ·  '),
+        ...data.languages.map((item) =>
+          this.docxBody(`${item.name} (${item.level})`),
         ),
       );
     }
@@ -590,6 +595,34 @@ export class CvExportService {
       children: [new TextRun({ text, bold: true, size: 28 })],
       spacing: { before: 280, after: 120 },
     });
+  }
+
+  private pdfMetricsBullets(metrics: string[]): Content[] {
+    return metrics.map((metric) => ({ text: `• ${metric}`, style: 'body' }));
+  }
+
+  private docxMetricsBullets(metrics: string[]): Paragraph[] {
+    return metrics.map((metric) => this.docxBody(`• ${metric}`));
+  }
+
+  // Divide un texto multilínea en párrafos para que los saltos de línea se
+  // preserven en la exportación (pdfmake/docx colapsan \n a un espacio).
+  private pdfBodyParagraphs(text: string): Content[] {
+    return this.nonEmptyLines(text).map((line) => ({
+      text: line,
+      style: 'body',
+    }));
+  }
+
+  private docxBodyParagraphs(text: string): Paragraph[] {
+    return this.nonEmptyLines(text).map((line) => this.docxBody(line));
+  }
+
+  private nonEmptyLines(text: string): string[] {
+    return text
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
   }
 
   private docxBody(text: string): Paragraph {
