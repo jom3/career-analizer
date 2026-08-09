@@ -7,8 +7,9 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { JobAnalysisService } from '../core/job-analysis.service';
+import { JobMatchService } from '../core/job-match.service';
 import type {
   InputType,
   JobLevel,
@@ -100,6 +101,8 @@ function buildForm(draft?: JobOfferDraft | null): FormGroup<JobOfferForm> {
 })
 export class JobAnalysisComponent implements OnInit {
   private readonly jobAnalysisService = inject(JobAnalysisService);
+  private readonly jobMatchService = inject(JobMatchService);
+  private readonly router = inject(Router);
 
   readonly levelOptions: (JobLevel | '')[] = [
     '',
@@ -112,6 +115,8 @@ export class JobAnalysisComponent implements OnInit {
 
   readonly analyzing = signal(false);
   readonly saving = signal(false);
+  readonly matching = signal(false);
+  readonly matchForId = signal<string | null>(null);
   readonly deletingId = signal<string | null>(null);
   readonly loadingHistory = signal(true);
   readonly errorMessage = signal('');
@@ -275,6 +280,61 @@ export class JobAnalysisComponent implements OnInit {
     }
   }
 
+  async checkCompatibility(offer: JobOffer): Promise<void> {
+    this.matchForId.set(offer.id);
+    this.errorMessage.set('');
+    try {
+      const match = await this.jobMatchService.create({
+        jobOfferId: offer.id,
+      });
+      await this.router.navigate(['/job-match', match.id]);
+    } catch (error) {
+      this.errorMessage.set(this.messageFor(error));
+    } finally {
+      this.matchForId.set(null);
+    }
+  }
+
+  async saveAndMatch(): Promise<void> {
+    if (this.form.invalid) {
+      this.errorMessage.set('Completá el título de la oferta antes de continuar.');
+      return;
+    }
+    this.saving.set(true);
+    this.errorMessage.set('');
+    this.savedMessage.set('');
+    try {
+      const payload = this.buildPayload();
+      const editingId = this.editingId();
+      const saved = editingId
+        ? await this.jobAnalysisService.update(editingId, payload)
+        : await this.jobAnalysisService.create(payload);
+      this.resetPreview();
+      await this.loadHistory();
+      this.savedMessage.set('La oferta se guardó. Calculando compatibilidad…');
+      await this.runMatch(() =>
+        this.jobMatchService.create({ jobOfferId: saved.id }),
+      );
+    } catch (error) {
+      this.errorMessage.set(this.messageFor(error));
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
+  async matchWithoutSaving(): Promise<void> {
+    if (this.form.invalid) {
+      this.errorMessage.set('Completá el título de la oferta antes de continuar.');
+      return;
+    }
+    await this.runMatch(() =>
+      this.jobMatchService.create({
+        offer: this.buildPayload(),
+        saveOffer: false,
+      }),
+    );
+  }
+
   async editOffer(offer: JobOffer): Promise<void> {
     this.errorMessage.set('');
     this.savedMessage.set('');
@@ -313,6 +373,21 @@ export class JobAnalysisComponent implements OnInit {
 
   private async analyzeFile(file: File): Promise<void> {
     await this.runAnalysis(() => this.jobAnalysisService.analyzeFile(file));
+  }
+
+  private async runMatch(
+    create: () => Promise<{ id: string }>,
+  ): Promise<void> {
+    this.matching.set(true);
+    this.errorMessage.set('');
+    try {
+      const match = await create();
+      await this.router.navigate(['/job-match', match.id]);
+    } catch (error) {
+      this.errorMessage.set(this.messageFor(error));
+    } finally {
+      this.matching.set(false);
+    }
   }
 
   private async runAnalysis(
