@@ -8,6 +8,7 @@ import { CvExportModule } from './cv-export/cv-export.module';
 import { CvImportModule } from './cv-import/cv-import.module';
 import { HealthController } from './health.controller';
 import { JobAnalysisModule } from './job-analysis/job-analysis.module';
+import { JobMatchModule } from './job-match/job-match.module';
 import { OpenaiModule } from './openai/openai.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProfileModule } from './profile/profile.module';
@@ -30,6 +31,7 @@ import { ProfileModule } from './profile/profile.module';
     CvImportModule,
     CvExportModule,
     JobAnalysisModule,
+    JobMatchModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],
