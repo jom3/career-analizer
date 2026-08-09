@@ -8,6 +8,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { CvAdaptationService } from '../core/cv-adaptation.service';
 import { JobAnalysisService } from '../core/job-analysis.service';
 import { JobMatchService } from '../core/job-match.service';
 import type {
@@ -102,6 +103,7 @@ function buildForm(draft?: JobOfferDraft | null): FormGroup<JobOfferForm> {
 export class JobAnalysisComponent implements OnInit {
   private readonly jobAnalysisService = inject(JobAnalysisService);
   private readonly jobMatchService = inject(JobMatchService);
+  private readonly cvAdaptationService = inject(CvAdaptationService);
   private readonly router = inject(Router);
 
   readonly levelOptions: (JobLevel | '')[] = [
@@ -117,6 +119,7 @@ export class JobAnalysisComponent implements OnInit {
   readonly saving = signal(false);
   readonly matching = signal(false);
   readonly matchForId = signal<string | null>(null);
+  readonly adaptingId = signal<string | null>(null);
   readonly deletingId = signal<string | null>(null);
   readonly loadingHistory = signal(true);
   readonly errorMessage = signal('');
@@ -292,6 +295,21 @@ export class JobAnalysisComponent implements OnInit {
       this.errorMessage.set(this.messageFor(error));
     } finally {
       this.matchForId.set(null);
+    }
+  }
+
+  async adaptCv(offer: JobOffer): Promise<void> {
+    this.adaptingId.set(offer.id);
+    this.errorMessage.set('');
+    try {
+      const adapted = await this.cvAdaptationService.create({
+        jobOfferId: offer.id,
+      });
+      await this.router.navigate(['/cv-adaptation', adapted.id]);
+    } catch (error) {
+      this.errorMessage.set(this.messageFor(error));
+    } finally {
+      this.adaptingId.set(null);
     }
   }
 

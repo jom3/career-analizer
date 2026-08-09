@@ -52,6 +52,25 @@
           </button>
         </div>
       }
+
+      @if (current.jobOfferId) {
+        <div class="adapt-row">
+          <div>
+            <strong>CV para esta oferta</strong>
+            <p class="muted">
+              Generá una versión de tu CV adaptada a la posición y al idioma de
+              la oferta.
+            </p>
+          </div>
+          <button
+            type="button"
+            [disabled]="adapting()"
+            (click)="adaptCv()"
+          >
+            {{ adapting() ? 'Generando…' : 'Adaptar CV' }}
+          </button>
+        </div>
+      }
     </section>
 
     <section class="card">
