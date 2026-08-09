@@ -1,0 +1,191 @@
+<section class="job-analysis-page">
+  <header class="page-header">
+    <div>
+      <h1>Analizar ofertas de trabajo</h1>
+      <p class="subtitle">
+        Pegá el texto de una oferta, copiá o subí una captura, o subí un PDF. La
+        IA extrae solo lo que aparece en la fuente: revisá el resultado antes de
+        guardarlo en tu historial.
+      </p>
+    </div>
+    <div class="actions">
+      <a class="link" routerLink="/dashboard">Volver al dashboard</a>
+    </div>
+  </header>
+
+  @if (errorMessage()) {
+    <p class="error" role="alert">{{ errorMessage() }}</p>
+  }
+  @if (savedMessage()) {
+    <p class="success" role="status">{{ savedMessage() }}</p>
+  }
+
+  <section class="card input-zone" (paste)="onTextPaste($event)">
+    <h2>¿Qué querés analizar?</h2>
+    <div class="input-methods">
+      <label class="form-field input-text">
+        Pegá el texto de la oferta
+        <textarea
+          [value]="textInput()"
+          (input)="textInput.set($any($event.target).value)"
+          rows="6"
+          placeholder="Pegá acá la descripción del puesto…"
+        ></textarea>
+      </label>
+      <div class="file-buttons">
+        <span class="muted">o</span>
+        <label class="file-button secondary">
+          Subir imagen
+          <input
+            type="file"
+            accept="image/*"
+            (change)="onImageSelected($event)"
+          />
+        </label>
+        <span class="muted">o</span>
+        <label class="file-button secondary">
+          Subir PDF / DOCX
+          <input
+            type="file"
+            accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            (change)="onPdfSelected($event)"
+          />
+        </label>
+        <p class="paste-hint">
+          También podés copiar una captura (Ctrl+C) y pegarla en esta página.
+        </p>
+      </div>
+    </div>
+    <button type="button" [disabled]="analyzing()" (click)="analyzeText()">
+      {{ analyzing() ? 'Analizando…' : 'Analizar oferta' }}
+    </button>
+  </section>
+
+  @if (resultReady()) {
+    <form [formGroup]="form" (ngSubmit)="onSave()" class="offer-form">
+      <section class="card">
+        <h2>
+          Resultado del análisis
+          @if (editingId()) {
+            <span class="muted">— editando oferta guardada</span>
+          }
+        </h2>
+        <div class="grid">
+          <label class="form-field">
+            Título
+            <input formControlName="title" type="text" />
+          </label>
+          <label class="form-field">
+            Compañía
+            <input formControlName="company" type="text" />
+          </label>
+          <label class="form-field">
+            Nivel
+            <select formControlName="level">
+              @for (level of levelOptions; track level) {
+                <option [ngValue]="level">
+                  {{ level || 'Sin especificar' }}
+                </option>
+              }
+            </select>
+          </label>
+          <label class="form-field">
+            Años de experiencia requeridos
+            <input formControlName="experienceYears" type="number" min="0" />
+          </label>
+        </div>
+        <label class="form-field">
+          Resumen de la experiencia requerida
+          <textarea formControlName="experienceSummary" rows="3"></textarea>
+        </label>
+      </section>
+
+      @for (section of listSections; track section.key) {
+        <section class="card">
+          <header class="section-header">
+            <h2>{{ section.label }}</h2>
+            <button
+              type="button"
+              class="secondary"
+              (click)="addItem(section.array)"
+            >
+              + Agregar
+            </button>
+          </header>
+          @for (item of section.array.controls; track $index) {
+            <div class="item compact">
+              <label class="form-field">
+                {{ section.itemLabel }}
+                <input [formControl]="item" type="text" />
+              </label>
+              <button
+                type="button"
+                class="danger"
+                (click)="removeItem(section.array, $index)"
+              >
+                Eliminar
+              </button>
+            </div>
+          } @empty {
+            <p class="muted">Sin elementos.</p>
+          }
+        </section>
+      }
+
+      <div class="sticky-actions">
+        <button type="button" class="secondary" (click)="reset()">
+          Descartar
+        </button>
+        <button type="submit" [disabled]="saving()">
+          {{ saving() ? 'Guardando…' : editingId() ? 'Actualizar oferta' : 'Guardar en historial' }}
+        </button>
+      </div>
+    </form>
+  }
+
+  <section class="card history">
+    <header class="section-header">
+      <h2>Historial de ofertas</h2>
+    </header>
+    @if (loadingHistory()) {
+      <p class="muted">Cargando tu historial…</p>
+    } @else if (history().length === 0) {
+      <p class="muted">
+        Todavía no guardaste ofertas. Analizá una y guardala para verla acá.
+      </p>
+    } @else {
+      <ul class="history-list">
+        @for (offer of history(); track offer.id) {
+          <li class="history-item">
+            <div class="history-main">
+              <strong>{{ offer.title }}</strong>
+              <span class="muted">
+                {{ offer.company || '—' }}
+                @if (offer.level) {
+                  · {{ offer.level }}
+                }
+              </span>
+            </div>
+            <div class="history-actions">
+              <button
+                type="button"
+                class="secondary"
+                (click)="editOffer(offer)"
+              >
+                Editar
+              </button>
+              <button
+                type="button"
+                class="danger"
+                [disabled]="deletingId() === offer.id"
+                (click)="deleteOffer(offer.id)"
+              >
+                {{ deletingId() === offer.id ? 'Eliminando…' : 'Eliminar' }}
+              </button>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+</section>

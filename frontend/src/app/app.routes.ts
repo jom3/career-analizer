@@ -4,6 +4,7 @@ import { RegisterComponent } from './auth/register.component';
 import { authGuard } from './core/auth.guard';
 import { CvImportComponent } from './cv-import/cv-import.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { JobAnalysisComponent } from './job-analysis/job-analysis.component';
 import { ProfileComponent } from './profile/profile.component';
 
 export const routes: Routes = [
@@ -22,6 +23,11 @@ export const routes: Routes = [
   {
     path: 'cv-import',
     component: CvImportComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'job-analysis',
+    component: JobAnalysisComponent,
     canActivate: [authGuard],
   },
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
