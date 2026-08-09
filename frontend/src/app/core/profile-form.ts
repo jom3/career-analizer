@@ -26,6 +26,7 @@ export interface ExperienceInput {
   endDate?: string | null;
   current?: boolean;
   description?: string | null;
+  metrics?: string[];
   source?: Source;
 }
 
@@ -64,6 +65,7 @@ export interface ProjectInput {
   description?: string | null;
   url?: string | null;
   techStack?: string[];
+  metrics?: string[];
   source?: Source;
 }
 
@@ -99,6 +101,7 @@ export type ExperienceForm = FormGroup<{
   endDate: FormControl<string>;
   current: FormControl<boolean>;
   description: FormControl<string>;
+  metrics: FormArray<FormControl<string>>;
   source: FormControl<Source>;
 }>;
 
@@ -137,6 +140,7 @@ export type ProjectForm = FormGroup<{
   description: FormControl<string>;
   url: FormControl<string>;
   techStack: FormControl<string>;
+  metrics: FormArray<FormControl<string>>;
   source: FormControl<Source>;
 }>;
 
@@ -176,6 +180,10 @@ export function syncEndDate(group: CurrentDateGroup, checked: boolean): void {
   } else {
     group.controls.endDate.enable();
   }
+}
+
+export function newMetricForm(value = ''): FormControl<string> {
+  return new FormControl<string>(value, { nonNullable: true });
 }
 
 function toDateInput(value?: string | null): string {
@@ -247,6 +255,9 @@ export function newExperienceForm(item?: ExperienceInput): ExperienceForm {
     description: new FormControl<string>(item?.description ?? '', {
       nonNullable: true,
     }),
+    metrics: new FormArray<FormControl<string>>(
+      (item?.metrics ?? []).map((metric) => newMetricForm(metric)),
+    ),
     source: new FormControl<Source>(item?.source ?? 'USER', {
       nonNullable: true,
     }),
@@ -334,6 +345,9 @@ export function newProjectForm(item?: ProjectInput): ProjectForm {
     techStack: new FormControl<string>((item?.techStack ?? []).join(', '), {
       nonNullable: true,
     }),
+    metrics: new FormArray<FormControl<string>>(
+      (item?.metrics ?? []).map((metric) => newMetricForm(metric)),
+    ),
     source: new FormControl<Source>(item?.source ?? 'USER', {
       nonNullable: true,
     }),
@@ -429,6 +443,7 @@ export function profileFormToPayload(form: ProfileForm): ProfilePayload {
       endDate: item.current ? null : item.endDate || null,
       current: item.current,
       description: item.description.trim() || null,
+      metrics: item.metrics.map((m) => m.trim()).filter((m) => m.length > 0),
       source: item.source,
       sortOrder: index,
     })),
@@ -470,6 +485,7 @@ export function profileFormToPayload(form: ProfileForm): ProfilePayload {
         .split(',')
         .map((tech) => tech.trim())
         .filter((tech) => tech.length > 0),
+      metrics: item.metrics.map((m) => m.trim()).filter((m) => m.length > 0),
       source: item.source,
       sortOrder: index,
     })),

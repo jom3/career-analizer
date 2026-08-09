@@ -112,6 +112,41 @@
   white-space: nowrap;
 }
 
+.overlap-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #b45309;
+  background: rgb(245 158 11 / 0.12);
+  border: 1px solid rgb(245 158 11 / 0.4);
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  white-space: nowrap;
+}
+
+.metrics-editor {
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.metrics-editor legend {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0 0.25rem;
+}
+
+.metric-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.metric-row input {
+  flex: 1;
+}
+
 textarea {
   padding: 0.6rem 0.75rem;
   border: 1px solid var(--color-border);
