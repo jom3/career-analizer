@@ -8,6 +8,22 @@
     </div>
     <div class="actions">
       <a class="link" routerLink="/dashboard">Volver al dashboard</a>
+      <button
+        type="button"
+        class="secondary download"
+        (click)="onDownload('pdf')"
+        [disabled]="downloading() !== null"
+      >
+        {{ downloading() === 'pdf' ? 'Generando…' : 'Descargar PDF' }}
+      </button>
+      <button
+        type="button"
+        class="secondary download"
+        (click)="onDownload('docx')"
+        [disabled]="downloading() !== null"
+      >
+        {{ downloading() === 'docx' ? 'Generando…' : 'Descargar DOCX' }}
+      </button>
       <button type="button" (click)="onSave()" [disabled]="saving()">
         {{ saving() ? 'Guardando…' : 'Guardar perfil' }}
       </button>

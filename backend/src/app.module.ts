@@ -4,6 +4,7 @@ import * as Joi from 'joi';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { CvExportModule } from './cv-export/cv-export.module';
 import { CvImportModule } from './cv-import/cv-import.module';
 import { HealthController } from './health.controller';
 import { OpenaiModule } from './openai/openai.module';
@@ -26,6 +27,7 @@ import { ProfileModule } from './profile/profile.module';
     AuthModule,
     ProfileModule,
     CvImportModule,
+    CvExportModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],
