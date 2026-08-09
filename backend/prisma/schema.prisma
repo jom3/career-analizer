@@ -178,6 +178,7 @@ model JobOffer {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   jobMatches        JobMatch[]
+  adaptedCvs        AdaptedCv[]
 }
 
 model JobMatch {
@@ -197,6 +198,24 @@ model JobMatch {
   profileFingerprint   String   // huella del perfil al momento del análisis
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
+  adaptedCvs           AdaptedCv[]
+}
+
+model AdaptedCv {
+  id                 String    @id @default(cuid())
+  userId             String
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobOfferId         String?
+  jobOffer           JobOffer? @relation(fields: [jobOfferId], references: [id], onDelete: SetNull)
+  jobMatchId         String?
+  jobMatch           JobMatch? @relation(fields: [jobMatchId], references: [id], onDelete: SetNull)
+  sourceLanguage     String?
+  content            Json
+  offerSnapshot      Json
+  profileSnapshot    Json
+  profileFingerprint String
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 }
 
 model User {
@@ -210,4 +229,5 @@ model User {
   cvDocuments  CvDocument[]
   jobOffers    JobOffer[]
   jobMatches   JobMatch[]
+  adaptedCvs   AdaptedCv[]
 }
