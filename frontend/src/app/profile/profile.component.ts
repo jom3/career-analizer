@@ -1,8 +1,20 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  OnInit,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormArray, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { combineLatest, Subscription } from 'rxjs';
 import type { Profile } from '../core/models/profile';
+import {
+  experienceDuplicateKey,
+  findDuplicates,
+  skillDuplicateKey,
+} from '../core/duplicates';
 import {
   CEFR_LEVELS,
   SKILL_LEVELS,
@@ -33,7 +45,7 @@ import { CvExportService, CvExportFormat } from '../core/cv-export.service';
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',
 })
-export class ProfileComponent implements OnInit {
+export class ProfileComponent implements OnInit, OnDestroy {
   private readonly profileService = inject(ProfileService);
   private readonly cvExportService = inject(CvExportService);
 
@@ -46,8 +58,14 @@ export class ProfileComponent implements OnInit {
   readonly downloading = signal<'pdf' | 'docx' | null>(null);
   readonly errorMessage = signal('');
   readonly loadError = signal('');
+  readonly duplicateKeys = signal<{
+    skills: Set<string>;
+    experiences: Set<string>;
+  }>({ skills: new Set(), experiences: new Set() });
 
   readonly form: ProfileForm = buildProfileForm();
+
+  private duplicateSubscription?: Subscription;
 
   get experiences(): FormArray<ExperienceForm> {
     return this.form.controls.experiences;
@@ -77,6 +95,49 @@ export class ProfileComponent implements OnInit {
     } finally {
       this.loading.set(false);
     }
+    this.refreshDuplicates();
+    this.duplicateSubscription = combineLatest([
+      this.experiences.valueChanges,
+      this.skills.valueChanges,
+    ]).subscribe(() => this.refreshDuplicates());
+  }
+
+  ngOnDestroy(): void {
+    this.duplicateSubscription?.unsubscribe();
+  }
+
+  isSkillDuplicate(index: number): boolean {
+    const group = this.skills.controls[index];
+    const key = skillDuplicateKey({ name: group.controls.name.value });
+    return this.duplicateKeys().skills.has(key);
+  }
+
+  isExperienceDuplicate(index: number): boolean {
+    const group = this.experiences.controls[index];
+    const key = experienceDuplicateKey({
+      company: group.controls.company.value,
+      position: group.controls.position.value,
+      startDate: group.controls.startDate.value,
+      endDate: group.controls.endDate.value,
+    });
+    return this.duplicateKeys().experiences.has(key);
+  }
+
+  private refreshDuplicates(): void {
+    const skills = this.skills.controls.map((group) => ({
+      name: group.controls.name.value,
+    }));
+    const experiences = this.experiences.controls.map((group) => ({
+      company: group.controls.company.value,
+      position: group.controls.position.value,
+      startDate: group.controls.startDate.value,
+      endDate: group.controls.endDate.value,
+    }));
+    const result = findDuplicates({ skills, experiences });
+    this.duplicateKeys.set({
+      skills: new Set(result.skills.map((group) => group.key)),
+      experiences: new Set(result.experiences.map((group) => group.key)),
+    });
   }
 
   addExperience(): void {

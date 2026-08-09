@@ -33,4 +33,28 @@ describe('TextExtractorService', () => {
       UnprocessableEntityException,
     );
   });
+
+  it('normaliza el texto extraído (sin ligaduras ni espacios múltiples)', async () => {
+    const buffer = readFileSync(path.join(fixturesDir, 'sample.pdf'));
+    const text = await service.extract(buffer, MIME_TYPE_PDF);
+    expect(text).not.toMatch(/[\uFB00-\uFB06\u00A0\u2007\u202F]/);
+    expect(text).not.toMatch(/[ \t]{2,}/);
+  });
+
+  it('normaliza un PDF cuyo contenido codifica ligaduras', async () => {
+    const buffer = readFileSync(path.join(fixturesDir, 'ligatures.pdf'));
+    const text = await service.extract(buffer, MIME_TYPE_PDF);
+    expect(text).not.toMatch(/[\uFB00-\uFB06]/);
+    expect(text).toContain('file');
+    expect(text).toContain('office');
+    expect(text).toContain('flow');
+    expect(text).toContain('start');
+  });
+
+  it('normaliza un DOCX cuyas ligaduras llegan crudas desde mammoth', async () => {
+    const buffer = readFileSync(path.join(fixturesDir, 'ligatures.docx'));
+    const text = await service.extract(buffer, MIME_TYPE_DOCX);
+    expect(text).not.toMatch(/[\uFB00-\uFB06]/);
+    expect(text).toContain('file office efficient style');
+  });
 });
