@@ -15,5 +15,6 @@ import { TextExtractorService } from './text-extractor.service';
     AtsCheckService,
     CvImportService,
   ],
+  exports: [TextExtractorService],
 })
 export class CvImportModule {}

@@ -19,6 +19,20 @@ enum Source {
   AI
 }
 
+enum JobLevel {
+  Junior
+  Mid
+  Senior
+  Lead
+  Executive
+}
+
+enum InputType {
+  TEXT
+  PDF
+  IMAGE
+}
+
 model Profile {
   id             String           @id @default(cuid())
   userId         String           @unique
@@ -143,6 +157,28 @@ model CvDocument {
   createdAt      DateTime @default(now())
 }
 
+model JobOffer {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title             String
+  company           String?
+  level             JobLevel?
+  responsibilities  String[]
+  requiredSkills    String[]
+  preferredSkills   String[]
+  experienceYears   Int?
+  experienceSummary String?   @db.Text
+  education         String[]
+  languages         String[]
+  keywords          String[]
+  sourceLanguage    String?
+  inputType         InputType @default(TEXT)
+  rawInput          String?   @db.Text
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
 model User {
   id           String    @id @default(cuid())
   email        String    @unique
@@ -152,4 +188,5 @@ model User {
   updatedAt    DateTime  @updatedAt
   profile      Profile?
   cvDocuments  CvDocument[]
+  jobOffers    JobOffer[]
 }
