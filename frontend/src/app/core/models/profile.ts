@@ -9,6 +9,7 @@ export interface Experience {
   endDate?: string | null;
   current: boolean;
   description?: string | null;
+  metrics: string[];
   source?: Source;
   sortOrder: number;
 }
@@ -51,6 +52,7 @@ export interface Project {
   description?: string | null;
   url?: string | null;
   techStack: string[];
+  metrics: string[];
   source?: Source;
   sortOrder: number;
 }

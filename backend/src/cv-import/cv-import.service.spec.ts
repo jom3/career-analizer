@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { readFile, unlink } from 'fs/promises';
 import { PrismaService } from '../prisma/prisma.service';
@@ -6,11 +6,15 @@ import { AtsCheckService } from './ats-check.service';
 import { CvImportService } from './cv-import.service';
 import { CvParserService } from './cv-parser.service';
 import { CvDraft } from './cv-import.types';
-import { TextExtractorService } from './text-extractor.service';
+import {
+  MIME_TYPE_DOCX,
+  MIME_TYPE_PDF,
+  TextExtractorService,
+} from './text-extractor.service';
 import { Source } from '../generated/prisma/enums.js';
 
 jest.mock('fs/promises', () => ({
-  readFile: jest.fn().mockResolvedValue(Buffer.from('binary')),
+  readFile: jest.fn().mockResolvedValue(Buffer.from('%PDF-1.4\nbinary')),
   unlink: jest.fn().mockResolvedValue(undefined),
 }));
 
@@ -84,14 +88,14 @@ describe('CvImportService', () => {
 
     expect(readFile).toHaveBeenCalledWith('C:/uploads/123.pdf');
     expect(textExtractorMock.extract).toHaveBeenCalledWith(
-      Buffer.from('binary'),
-      'application/pdf',
+      Buffer.from('%PDF-1.4\nbinary'),
+      MIME_TYPE_PDF,
     );
     expect(prismaMock.cvDocument.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         userId: 'user-1',
         originalName: 'cv.pdf',
-        mimeType: 'application/pdf',
+        mimeType: MIME_TYPE_PDF,
         extractedText: 'texto extraido',
         sourceLanguage: 'es',
         model: 'test-model',
@@ -114,6 +118,43 @@ describe('CvImportService', () => {
     );
     expect(unlink).toHaveBeenCalledWith(file.path);
     expect(prismaMock.cvDocument.create).not.toHaveBeenCalled();
+  });
+
+  it('rechaza con 400 un archivo que no es PDF ni DOCX por su contenido', async () => {
+    (readFile as jest.Mock).mockResolvedValueOnce(
+      Buffer.from('plain text without magic bytes'),
+    );
+
+    await expect(service.importCv('user-1', file)).rejects.toThrow(
+      BadRequestException,
+    );
+    expect(textExtractorMock.extract).not.toHaveBeenCalled();
+    expect(unlink).toHaveBeenCalledWith(file.path);
+    expect(prismaMock.cvDocument.create).not.toHaveBeenCalled();
+  });
+
+  it('detecta un DOCX por sus magic bytes aunque el mimetype declarado sea otro', async () => {
+    (readFile as jest.Mock).mockResolvedValueOnce(
+      Buffer.concat([
+        Buffer.from([0x50, 0x4b, 0x03, 0x04]),
+        Buffer.from('docx content'),
+      ]),
+    );
+    const fileWithOpaqueMime = {
+      ...file,
+      mimetype: 'application/octet-stream',
+    };
+    textExtractorMock.extract.mockResolvedValue('texto extraido');
+    parserMock.parse.mockResolvedValue({ draft, sourceLanguage: 'es' });
+    atsCheckMock.check.mockReturnValue([]);
+    prismaMock.cvDocument.create.mockResolvedValue({ id: 'doc-1' });
+
+    await service.importCv('user-1', fileWithOpaqueMime);
+
+    expect(textExtractorMock.extract).toHaveBeenCalledWith(
+      expect.any(Buffer),
+      MIME_TYPE_DOCX,
+    );
   });
 
   it('devuelve el documento propio del usuario', async () => {

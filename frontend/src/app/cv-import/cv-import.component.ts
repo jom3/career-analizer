@@ -216,14 +216,25 @@ export class CvImportComponent implements OnInit {
 
   private messageFor(error: unknown): string {
     if (error instanceof HttpErrorResponse) {
-      if (error.status === 400) {
-        return 'El archivo debe ser PDF o DOCX y pesar menos de 10 MB.';
-      }
       if (error.status === 404) {
         return 'El borrador ya no existe. Subí el CV nuevamente.';
       }
+      if (error.status === 413) {
+        return 'El archivo supera el límite de 10 MB.';
+      }
       if (error.status === 422) {
         return 'No se pudo extraer texto del archivo. Puede ser un PDF escaneado sin capa de texto.';
+      }
+      const backendMessage = (error.error as { message?: string | string[] })
+        ?.message;
+      if (typeof backendMessage === 'string' && backendMessage.length > 0) {
+        return backendMessage;
+      }
+      if (Array.isArray(backendMessage) && backendMessage.length > 0) {
+        return backendMessage.join(', ');
+      }
+      if (error.status === 400) {
+        return 'El archivo debe ser PDF o DOCX y pesar menos de 10 MB.';
       }
     }
     return 'No se pudo procesar el archivo. Intentalo de nuevo.';

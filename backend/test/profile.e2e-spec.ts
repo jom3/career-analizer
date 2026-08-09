@@ -70,6 +70,7 @@ describe('Profile (e2e)', () => {
           position: 'Senior Engineer',
           startDate: '2020-01-01',
           current: true,
+          metrics: ['Cut latency by 40%'],
           sortOrder: 1,
         },
       ],
@@ -80,6 +81,7 @@ describe('Profile (e2e)', () => {
           name: 'Career Analyzer',
           role: 'Owner',
           techStack: ['NestJS', 'Angular'],
+          metrics: ['10k users'],
           sortOrder: 1,
         },
       ],
@@ -90,28 +92,33 @@ describe('Profile (e2e)', () => {
     const put = await agent.put('/profile').send(payload).expect(200);
     const saved = put.body as {
       headline: string;
-      experiences: { id: string }[];
+      experiences: { id: string; metrics: string[] }[];
       skills: { id: string; level: number }[];
       languages: { level: string }[];
-      projects: { techStack: string[] }[];
+      projects: { techStack: string[]; metrics: string[] }[];
     };
     expect(saved.headline).toBe('Software Engineer');
     expect(saved.experiences).toHaveLength(1);
+    expect(saved.experiences[0].metrics).toEqual(['Cut latency by 40%']);
     expect(saved.skills[0].level).toBe(4);
     expect(saved.languages[0].level).toBe('C2');
     expect(saved.projects[0].techStack).toEqual(['NestJS', 'Angular']);
+    expect(saved.projects[0].metrics).toEqual(['10k users']);
 
     const res = await agent.get('/profile').expect(200);
     const body = res.body as {
       headline: string;
-      experiences: { company: string; current: boolean }[];
+      experiences: { company: string; current: boolean; metrics: string[] }[];
+      projects: { metrics: string[] }[];
       skills: unknown[];
     };
     expect(body.headline).toBe('Software Engineer');
     expect(body.experiences[0]).toMatchObject({
       company: 'Acme',
       current: true,
+      metrics: ['Cut latency by 40%'],
     });
+    expect(body.projects[0].metrics).toEqual(['10k users']);
     expect(body.skills).toHaveLength(1);
   });
 
@@ -174,6 +181,31 @@ describe('Profile (e2e)', () => {
     expect(body.experiences.some((item) => item.company === 'Gamma')).toBe(
       true,
     );
+  });
+
+  it('PUT with more than 5 metrics on an item returns 400', async () => {
+    const agent = request.agent(app.getHttpServer());
+    await agent.post('/auth/login').send({ email, password }).expect(201);
+
+    await agent
+      .put('/profile')
+      .send({
+        experiences: [
+          {
+            company: 'Acme',
+            position: 'Engineer',
+            current: false,
+            metrics: ['1', '2', '3', '4', '5', '6'],
+            sortOrder: 1,
+          },
+        ],
+        skills: [],
+        education: [],
+        certifications: [],
+        projects: [],
+        languages: [],
+      })
+      .expect(400);
   });
 
   it('PUT with an invalid DTO returns 400', async () => {

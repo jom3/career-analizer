@@ -9,6 +9,29 @@ export const MIME_TYPE_PDF = 'application/pdf';
 export const MIME_TYPE_DOCX =
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
+export type FileKind = 'pdf' | 'docx';
+
+// Detecta el tipo real de archivo por sus magic bytes en lugar de confiar en
+// el mimetype declarado por el cliente, que puede ser impreciso.
+export function detectFileType(buffer: Buffer): FileKind | null {
+  if (
+    buffer.length >= 5 &&
+    buffer.subarray(0, 5).toString('latin1') === '%PDF-'
+  ) {
+    return 'pdf';
+  }
+  if (
+    buffer.length >= 4 &&
+    buffer[0] === 0x50 &&
+    buffer[1] === 0x4b &&
+    buffer[2] === 0x03 &&
+    buffer[3] === 0x04
+  ) {
+    return 'docx';
+  }
+  return null;
+}
+
 // Extrae el texto plano de un PDF o DOCX y valida que el resultado sea utilizable.
 @Injectable()
 export class TextExtractorService {

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import * as path from 'path';
 import { readFile, unlink } from 'fs/promises';
 import { Prisma } from '../generated/prisma/client';
@@ -6,7 +10,12 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AtsCheckService } from './ats-check.service';
 import { CvParserService } from './cv-parser.service';
 import { AtsCheckItem, CvDraft, SourceLanguage } from './cv-import.types';
-import { TextExtractorService } from './text-extractor.service';
+import {
+  detectFileType,
+  MIME_TYPE_DOCX,
+  MIME_TYPE_PDF,
+  TextExtractorService,
+} from './text-extractor.service';
 
 export interface CvImportResult {
   documentId: string;
@@ -32,14 +41,21 @@ export class CvImportService {
   ): Promise<CvImportResult> {
     try {
       const buffer = await readFile(file.path);
-      const text = await this.textExtractor.extract(buffer, file.mimetype);
+      const kind = detectFileType(buffer);
+      if (!kind) {
+        throw new BadRequestException(
+          'Formato no soportado. Subí un archivo PDF o DOCX.',
+        );
+      }
+      const mimeType = kind === 'pdf' ? MIME_TYPE_PDF : MIME_TYPE_DOCX;
+      const text = await this.textExtractor.extract(buffer, mimeType);
       const { draft, sourceLanguage } = await this.cvParser.parse(text);
       const atsReport = this.atsCheck.check(draft);
       const document = await this.prisma.cvDocument.create({
         data: {
           userId,
           originalName: file.originalname,
-          mimeType: file.mimetype,
+          mimeType,
           storagePath: path.join('uploads', file.filename),
           extractedText: text,
           sourceLanguage,

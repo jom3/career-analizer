@@ -15,6 +15,7 @@ import {
   findDuplicates,
   skillDuplicateKey,
 } from '../core/duplicates';
+import { overlappingExperiences } from '../core/overlap-warning';
 import {
   CEFR_LEVELS,
   SKILL_LEVELS,
@@ -24,6 +25,7 @@ import {
   newEducationForm,
   newExperienceForm,
   newLanguageForm,
+  newMetricForm,
   newProjectForm,
   newSkillForm,
   profileFormToPayload,
@@ -62,6 +64,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     skills: Set<string>;
     experiences: Set<string>;
   }>({ skills: new Set(), experiences: new Set() });
+  readonly overlapIndices = signal<Set<number>>(new Set());
 
   readonly form: ProfileForm = buildProfileForm();
 
@@ -100,6 +103,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       this.experiences.valueChanges,
       this.skills.valueChanges,
     ]).subscribe(() => this.refreshDuplicates());
+    this.experiences.valueChanges.subscribe(() => this.refreshOverlaps());
   }
 
   ngOnDestroy(): void {
@@ -121,6 +125,25 @@ export class ProfileComponent implements OnInit, OnDestroy {
       endDate: group.controls.endDate.value,
     });
     return this.duplicateKeys().experiences.has(key);
+  }
+
+  isExperienceOverlapping(index: number): boolean {
+    return this.overlapIndices().has(index);
+  }
+
+  private refreshOverlaps(): void {
+    const experiences = this.experiences.controls.map((group) => ({
+      startDate: group.controls.startDate.value,
+      endDate: group.controls.endDate.value,
+      current: group.controls.current.value,
+    }));
+    const pairs = overlappingExperiences(experiences);
+    const involved = new Set<number>();
+    for (const [first, second] of pairs) {
+      involved.add(first);
+      involved.add(second);
+    }
+    this.overlapIndices.set(involved);
   }
 
   private refreshDuplicates(): void {
@@ -157,6 +180,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
   addLanguage(): void {
     this.languages.push(newLanguageForm());
+  }
+
+  addMetric(group: ExperienceForm | ProjectForm): void {
+    group.controls.metrics.push(newMetricForm());
+  }
+
+  removeMetric(group: ExperienceForm | ProjectForm, index: number): void {
+    group.controls.metrics.removeAt(index);
   }
 
   removeAt(array: FormArray, index: number): void {

@@ -2,10 +2,34 @@ import { UnprocessableEntityException } from '@nestjs/common';
 import { readFileSync } from 'fs';
 import * as path from 'path';
 import {
+  detectFileType,
   MIME_TYPE_DOCX,
   MIME_TYPE_PDF,
   TextExtractorService,
 } from './text-extractor.service';
+
+describe('detectFileType', () => {
+  it('detecta un PDF por su cabecera %PDF-', () => {
+    expect(detectFileType(Buffer.from('%PDF-1.7\n...'))).toBe('pdf');
+  });
+
+  it('detecta un DOCX por su firma ZIP PK', () => {
+    expect(
+      detectFileType(
+        Buffer.concat([
+          Buffer.from([0x50, 0x4b, 0x03, 0x04]),
+          Buffer.from('zip content'),
+        ]),
+      ),
+    ).toBe('docx');
+  });
+
+  it('devuelve null para contenido que no es PDF ni DOCX', () => {
+    expect(detectFileType(Buffer.from('plain text'))).toBeNull();
+    expect(detectFileType(Buffer.from(''))).toBeNull();
+    expect(detectFileType(Buffer.from('%PDF'))).toBeNull();
+  });
+});
 
 describe('TextExtractorService', () => {
   let service: TextExtractorService;

@@ -104,6 +104,7 @@ export class ProfileService {
         endDate: item.current ? null : this.toDate(item.endDate),
         current: item.current,
         description: item.description ?? null,
+        metrics: item.metrics ?? [],
         source: item.source ?? Source.USER,
         sortOrder: item.sortOrder,
       };
@@ -244,6 +245,7 @@ export class ProfileService {
         description: item.description ?? null,
         url: item.url ?? null,
         techStack: item.techStack,
+        metrics: item.metrics ?? [],
         source: item.source ?? Source.USER,
         sortOrder: item.sortOrder,
       };

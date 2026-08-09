@@ -147,6 +147,7 @@ describe('ProfileService', () => {
           endDate: null,
           current: false,
           description: null,
+          metrics: [],
           source: 'USER',
           sortOrder: 1,
         },
@@ -161,6 +162,7 @@ describe('ProfileService', () => {
           endDate: null,
           current: true,
           description: null,
+          metrics: [],
           source: 'USER',
           sortOrder: 2,
         },
@@ -208,8 +210,90 @@ describe('ProfileService', () => {
           endDate: null,
           current: true,
           description: null,
+          metrics: [],
           source: 'USER',
           sortOrder: 1,
+        },
+      });
+    });
+
+    it('persists metrics on experiences and projects, defaulting to empty', async () => {
+      txMock.experience.findMany.mockResolvedValue([]);
+      txMock.skill.findMany.mockResolvedValue([]);
+      txMock.education.findMany.mockResolvedValue([]);
+      txMock.certification.findMany.mockResolvedValue([]);
+      txMock.project.findMany.mockResolvedValue([]);
+      txMock.language.findMany.mockResolvedValue([]);
+
+      await service.replaceForUser('user-1', {
+        experiences: [
+          {
+            company: 'Acme',
+            position: 'Engineer',
+            current: false,
+            metrics: ['Cut latency by 40%'],
+            sortOrder: 1,
+          },
+        ],
+        skills: [],
+        projects: [
+          {
+            name: 'Career Analyzer',
+            role: 'Owner',
+            techStack: ['NestJS'],
+            metrics: ['10k users'],
+            sortOrder: 1,
+          },
+          {
+            name: 'Project X',
+            techStack: [],
+            sortOrder: 2,
+          },
+        ],
+        education: [],
+        certifications: [],
+        languages: [],
+      });
+
+      expect(txMock.experience.create).toHaveBeenCalledWith({
+        data: {
+          profileId: 'profile-1',
+          company: 'Acme',
+          position: 'Engineer',
+          location: null,
+          startDate: null,
+          endDate: null,
+          current: false,
+          description: null,
+          metrics: ['Cut latency by 40%'],
+          source: 'USER',
+          sortOrder: 1,
+        },
+      });
+      expect(txMock.project.create).toHaveBeenCalledWith({
+        data: {
+          profileId: 'profile-1',
+          name: 'Career Analyzer',
+          role: 'Owner',
+          description: null,
+          url: null,
+          techStack: ['NestJS'],
+          metrics: ['10k users'],
+          source: 'USER',
+          sortOrder: 1,
+        },
+      });
+      expect(txMock.project.create).toHaveBeenCalledWith({
+        data: {
+          profileId: 'profile-1',
+          name: 'Project X',
+          role: null,
+          description: null,
+          url: null,
+          techStack: [],
+          metrics: [],
+          source: 'USER',
+          sortOrder: 2,
         },
       });
     });

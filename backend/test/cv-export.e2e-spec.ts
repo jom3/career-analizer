@@ -74,6 +74,7 @@ describe('CV Export (e2e)', () => {
             startDate: '2020-01-01',
             current: true,
             description: 'Built the careers API.',
+            metrics: ['Cut latency by 40%'],
             sortOrder: 1,
           },
         ],
@@ -81,7 +82,15 @@ describe('CV Export (e2e)', () => {
         languages: [{ name: 'Spanish', level: 'C2', sortOrder: 1 }],
         education: [],
         certifications: [],
-        projects: [],
+        projects: [
+          {
+            name: 'Career Analyzer',
+            role: 'Owner',
+            techStack: ['NestJS', 'Angular'],
+            metrics: ['10k users'],
+            sortOrder: 1,
+          },
+        ],
       })
       .expect(200);
 
@@ -127,8 +136,12 @@ describe('CV Export (e2e)', () => {
         'Backend specialist in TypeScript and NestJS.',
       );
       expect(result.text).toContain('Senior Engineer');
-      expect(result.text).toContain('TypeScript (4/5)');
+      expect(result.text).toContain('TypeScript');
+      expect(result.text).not.toContain('(4/5)');
       expect(result.text).toContain('Spanish (C2)');
+      expect(result.text).toContain('Cut latency by 40%');
+      expect(result.text).toContain('10k users');
+      expect(result.text).toContain('01/2020 — Actualidad');
     } finally {
       await pdf.destroy();
     }
@@ -158,8 +171,12 @@ describe('CV Export (e2e)', () => {
       'Backend specialist in TypeScript and NestJS.',
     );
     expect(result.value).toContain('Senior Engineer');
-    expect(result.value).toContain('TypeScript (4/5)');
+    expect(result.value).toContain('TypeScript');
+    expect(result.value).not.toContain('(4/5)');
     expect(result.value).toContain('Spanish (C2)');
+    expect(result.value).toContain('Cut latency by 40%');
+    expect(result.value).toContain('10k users');
+    expect(result.value).toContain('01/2020 — Actualidad');
   });
 
   it('lang=es and lang=en change only the section titles', async () => {

@@ -91,6 +91,11 @@
               @if (isExperienceDuplicate($index)) {
                 <span class="duplicate-badge">Duplicado</span>
               }
+              @if (isExperienceOverlapping($index)) {
+                <span class="overlap-badge" title="Otra experiencia comparte este rango de fechas">
+                  Rango solapado
+                </span>
+              }
               <button
                 type="button"
                 class="danger"
@@ -133,6 +138,28 @@
               Descripción
               <textarea formControlName="description" rows="3"></textarea>
             </label>
+            <fieldset class="metrics-editor">
+              <legend>Logros (opcional)</legend>
+              @for (metric of item.controls.metrics.controls; track $index) {
+                <div class="metric-row">
+                  <input [formControl]="metric" type="text" placeholder="p. ej. Reduje la latencia un 40%" />
+                  <button
+                    type="button"
+                    class="danger"
+                    (click)="removeMetric(item, $index)"
+                  >
+                    Quitar
+                  </button>
+                </div>
+              }
+              <button
+                type="button"
+                class="secondary"
+                (click)="addMetric(item)"
+              >
+                + Agregar logro
+              </button>
+            </fieldset>
           </div>
         } @empty {
           <p class="muted">Todavía no agregaste experiencia.</p>
@@ -323,6 +350,28 @@
               Descripción
               <textarea formControlName="description" rows="3"></textarea>
             </label>
+            <fieldset class="metrics-editor">
+              <legend>Logros (opcional)</legend>
+              @for (metric of item.controls.metrics.controls; track $index) {
+                <div class="metric-row">
+                  <input [formControl]="metric" type="text" placeholder="p. ej. 10k usuarios activos" />
+                  <button
+                    type="button"
+                    class="danger"
+                    (click)="removeMetric(item, $index)"
+                  >
+                    Quitar
+                  </button>
+                </div>
+              }
+              <button
+                type="button"
+                class="secondary"
+                (click)="addMetric(item)"
+              >
+                + Agregar logro
+              </button>
+            </fieldset>
           </div>
         } @empty {
           <p class="muted">Todavía no agregaste proyectos.</p>
