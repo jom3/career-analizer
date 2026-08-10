@@ -1,0 +1,92 @@
+<section class="cover-letter-page">
+  <header class="page-header">
+    <div>
+      <h1>Carta de motivación</h1>
+      @if (letter(); as current) {
+        <p class="subtitle">
+          {{ formatDate(current.createdAt) }} · {{ current.sourceLanguage }}
+        </p>
+      }
+    </div>
+    <div class="actions">
+      <a class="link" routerLink="/cover-letter">Ver historial</a>
+      <a class="link" routerLink="/dashboard">Volver al dashboard</a>
+    </div>
+  </header>
+
+  @if (errorMessage()) {
+    <p class="error" role="alert">{{ errorMessage() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="muted">Cargando…</p>
+  }
+
+  @if (!loading() && letter(); as current) {
+    @if (current.stale) {
+      <div class="stale-banner" role="status">
+        <p>
+          El perfil cambió desde esta carta: genera una nueva para que refleje
+          la información actual.
+        </p>
+        @if (current.jobOfferId) {
+          <a
+            class="button secondary"
+            routerLink="/cover-letter/new"
+            [queryParams]="{ jobOfferId: current.jobOfferId }"
+          >Generar una nueva</a
+          >
+        }
+      </div>
+    }
+
+    <section class="card">
+      <header class="section-header">
+        <h2>{{ current.recruiterName || 'Equipo de selección' }}</h2>
+        <span class="badge tag-ai">Generada por IA (editada por ti)</span>
+      </header>
+      @if (current.note) {
+        <p class="muted">Nota: {{ current.note }}</p>
+      }
+      <pre class="letter-text">{{ current.content }}</pre>
+    </section>
+
+    <section class="card">
+      <header class="section-header">
+        <h2>Descargar</h2>
+      </header>
+      <div class="letter-actions">
+        <button
+          type="button"
+          [disabled]="exporting() !== null"
+          (click)="exportLetter('pdf')"
+        >
+          {{ exporting() === 'pdf' ? 'Generando…' : 'Descargar PDF' }}
+        </button>
+        <button
+          type="button"
+          [disabled]="exporting() !== null"
+          (click)="exportLetter('docx')"
+        >
+          {{ exporting() === 'docx' ? 'Generando…' : 'Descargar DOCX' }}
+        </button>
+      </div>
+      <p class="muted">
+        El archivo incluye fecha, asunto de la oferta y tu firma, derivados de
+        tu perfil y de la oferta guardada.
+      </p>
+    </section>
+
+    <div class="danger-zone">
+      <button
+        type="button"
+        class="danger"
+        [disabled]="deleting()"
+        (click)="deleteLetter()"
+      >
+        {{ deleting() ? 'Eliminando…' : 'Eliminar carta' }}
+      </button>
+      <p class="muted">Borrar la carta no elimina la oferta guardada.</p>
+    </div>
+  }
+</section>

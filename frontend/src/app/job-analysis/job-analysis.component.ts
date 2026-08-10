@@ -313,6 +313,12 @@ export class JobAnalysisComponent implements OnInit {
     }
   }
 
+  newLetter(offer: JobOffer): void {
+    void this.router.navigate(['/cover-letter/new'], {
+      queryParams: { jobOfferId: offer.id },
+    });
+  }
+
   async saveAndMatch(): Promise<void> {
     if (this.form.invalid) {
       this.errorMessage.set('Completá el título de la oferta antes de continuar.');
