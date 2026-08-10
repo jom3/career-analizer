@@ -1,0 +1,107 @@
+<section class="cover-letter-page">
+  <header class="page-header">
+    <div>
+      <h1>Carta de motivación</h1>
+      <p class="subtitle">
+        Generá un borrador desde tu perfil y la oferta, revísalo y editalo antes
+        de guardarlo.
+      </p>
+    </div>
+    <div class="actions">
+      <a class="link" routerLink="/cover-letter">Ver historial</a>
+      <a class="link" routerLink="/dashboard">Volver al dashboard</a>
+    </div>
+  </header>
+
+  @if (errorMessage()) {
+    <p class="error" role="alert">{{ errorMessage() }}</p>
+  }
+
+  @if (!jobOfferId()) {
+    <section class="card">
+      <h2>Elegí una oferta primero</h2>
+      <p class="muted">
+        La carta se genera para una postulación concreta. Guardá una oferta en
+        <a class="link" routerLink="/job-analysis">analizar ofertas</a> y, desde
+        su detalle, tocá "Carta de motivación".
+      </p>
+    </section>
+  } @else {
+    <section class="card">
+      <header class="section-header">
+        <h2>Datos de la postulación</h2>
+        @if (offer(); as current) {
+          <span class="badge">{{ current.sourceLanguage }}</span>
+        }
+      </header>
+      @if (loadingOffer()) {
+        <p class="muted">Cargando la oferta…</p>
+      } @else if (offer(); as current) {
+        <p class="muted">
+          {{ current.title }}{{ current.company ? ' — ' + current.company : '' }}
+        </p>
+      }
+
+      <form [formGroup]="form" class="letter-form">
+        <label class="form-field">
+          Recruiter (opcional — si está vacío, el saludo es genérico)
+          <input
+            formControlName="recruiterName"
+            type="text"
+            maxlength="120"
+            placeholder="María Pérez"
+          />
+        </label>
+        <label class="form-field">
+          Nota libre (opcional)
+          <textarea
+            formControlName="note"
+            rows="3"
+            maxlength="2000"
+            placeholder="Dónde viste la vacante, disponibilidad, aclaraciones…"
+          ></textarea>
+        </label>
+      </form>
+      <div class="letter-actions">
+        <button
+          type="button"
+          [disabled]="generating() || !offer()"
+          (click)="generateDraft()"
+        >
+          {{ generating() ? 'Generando…' : 'Generar borrador' }}
+        </button>
+      </div>
+    </section>
+
+    @if (draftContent()) {
+      <section class="card">
+        <header class="section-header">
+          <h2>Revisá y editá la carta</h2>
+          <span class="badge tag-ai">Borrador por IA</span>
+        </header>
+        @if (draftLanguage()) {
+          <p class="muted">Idioma: {{ draftLanguage() }}</p>
+        }
+        <p class="muted">
+          El texto todavía no se guardó. Editá lo que quieras y tocá "Guardar
+          carta" cuando quede lista.
+        </p>
+        <textarea
+          class="letter-editor"
+          [value]="draftContent()"
+          (input)="draftContent.set($any($event.target).value)"
+          rows="16"
+        ></textarea>
+        <div class="letter-actions">
+          <button
+            type="button"
+            [disabled]="saving() || !draftContent().trim()"
+            (click)="save()"
+          >
+            {{ saving() ? 'Guardando…' : 'Guardar carta' }}
+          </button>
+        </div>
+      </section>
+    }
+  }
+</section>

@@ -2,6 +2,9 @@ import { Routes } from '@angular/router';
 import { LoginComponent } from './auth/login.component';
 import { RegisterComponent } from './auth/register.component';
 import { authGuard } from './core/auth.guard';
+import { CoverLetterComponent } from './cover-letter/cover-letter.component';
+import { CoverLetterDetailComponent } from './cover-letter/cover-letter-detail.component';
+import { CoverLetterNewComponent } from './cover-letter/cover-letter-new.component';
 import { CvAdaptationComponent } from './cv-adaptation/cv-adaptation.component';
 import { CvImportComponent } from './cv-import/cv-import.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
@@ -50,6 +53,21 @@ export const routes: Routes = [
   {
     path: 'cv-adaptation/:id',
     component: CvAdaptationComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'cover-letter',
+    component: CoverLetterComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'cover-letter/new',
+    component: CoverLetterNewComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'cover-letter/:id',
+    component: CoverLetterDetailComponent,
     canActivate: [authGuard],
   },
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },

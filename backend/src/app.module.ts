@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { CvAdaptationModule } from './cv-adaptation/cv-adaptation.module';
 import { CvExportModule } from './cv-export/cv-export.module';
 import { CvImportModule } from './cv-import/cv-import.module';
+import { CoverLetterModule } from './cover-letter/cover-letter.module';
 import { HealthController } from './health.controller';
 import { JobAnalysisModule } from './job-analysis/job-analysis.module';
 import { JobMatchModule } from './job-match/job-match.module';
@@ -34,6 +35,7 @@ import { ProfileModule } from './profile/profile.module';
     JobAnalysisModule,
     JobMatchModule,
     CvAdaptationModule,
+    CoverLetterModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],

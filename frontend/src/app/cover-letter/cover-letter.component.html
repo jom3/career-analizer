@@ -1,0 +1,58 @@
+<section class="cover-letter-page">
+  <header class="page-header">
+    <div>
+      <h1>Mis cartas de motivación</h1>
+      <p class="subtitle">
+        Cartas generadas con IA desde tu perfil para cada oferta. Revisás el
+        borrador, lo editás y recién después se guarda.
+      </p>
+    </div>
+    <div class="actions">
+      <a class="link" routerLink="/dashboard">Volver al dashboard</a>
+    </div>
+  </header>
+
+  @if (errorMessage()) {
+    <p class="error" role="alert">{{ errorMessage() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="muted">Cargando…</p>
+  }
+
+  @if (!loading() && !errorMessage()) {
+    <section class="card">
+      <header class="section-header">
+        <h2>Historial de cartas</h2>
+      </header>
+      @if (letters().length === 0) {
+        <p class="muted">
+          Todavía no generaste cartas. Andá a
+          <a class="link" routerLink="/job-analysis">analizar ofertas</a>,
+          guardá una y usá el botón "Carta de motivación".
+        </p>
+      } @else {
+        <ul class="letter-list">
+          @for (item of letters(); track item.id) {
+            <li class="letter-item">
+              <a class="letter-link" routerLink="/cover-letter/{{ item.id }}">
+                <div class="letter-main">
+                  <strong>
+                    {{ item.recruiterName || 'Equipo de selección' }}
+                  </strong>
+                  <span class="muted">
+                    {{ formatDate(item.createdAt) }} · {{ item.sourceLanguage }}
+                  </span>
+                </div>
+                <span class="badge tag-ai">Generada por IA</span>
+              </a>
+              @if (item.stale) {
+                <span class="badge status-missing">Perfil desactualizado</span>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+</section>
