@@ -179,6 +179,7 @@ model JobOffer {
   updatedAt         DateTime  @updatedAt
   jobMatches        JobMatch[]
   adaptedCvs        AdaptedCv[]
+  coverLetters      CoverLetter[]
 }
 
 model JobMatch {
@@ -218,6 +219,23 @@ model AdaptedCv {
   updatedAt          DateTime  @updatedAt
 }
 
+model CoverLetter {
+  id                 String    @id @default(cuid())
+  userId             String
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobOfferId         String?
+  jobOffer           JobOffer? @relation(fields: [jobOfferId], references: [id], onDelete: SetNull)
+  recruiterName      String?
+  note               String?   @db.Text
+  sourceLanguage     String?
+  content            String    @db.Text
+  offerSnapshot      Json
+  profileSnapshot    Json
+  profileFingerprint String
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
 model User {
   id           String     @id @default(cuid())
   email        String     @unique
@@ -230,4 +248,5 @@ model User {
   jobOffers    JobOffer[]
   jobMatches   JobMatch[]
   adaptedCvs   AdaptedCv[]
+  coverLetters CoverLetter[]
 }
