@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { I18nService } from '../core/i18n/i18n.service';
 import type { CvExportFormat } from '../core/models/cover-letter';
 import { CoverLetterService } from './cover-letter.service';
 import type { CoverLetter } from '../core/models/cover-letter';
@@ -12,6 +13,7 @@ import type { CoverLetter } from '../core/models/cover-letter';
   styleUrl: './cover-letter-detail.component.scss',
 })
 export class CoverLetterDetailComponent implements OnInit {
+  readonly i18n = inject(I18nService);
   private readonly coverLetterService = inject(CoverLetterService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -58,7 +60,7 @@ export class CoverLetterDetailComponent implements OnInit {
   async deleteLetter(): Promise<void> {
     const current = this.letter();
     if (!current) return;
-    if (!window.confirm('¿Eliminar esta carta de motivación?')) return;
+    if (!window.confirm(this.i18n.t('coverLetter.confirmDelete'))) return;
     this.deleting.set(true);
     this.errorMessage.set('');
     try {
@@ -72,7 +74,8 @@ export class CoverLetterDetailComponent implements OnInit {
   }
 
   formatDate(value: string): string {
-    return new Date(value).toLocaleDateString('es-AR');
+    const locale = this.i18n.is('en') ? 'en-US' : 'es-AR';
+    return new Date(value).toLocaleDateString(locale);
   }
 
   private messageFor(error: unknown): string {
@@ -87,10 +90,12 @@ export class CoverLetterDetailComponent implements OnInit {
         return backendMessage.join(', ');
       }
       if (error.status === 0) {
-        return 'No se pudo conectar con el servidor (posible bloqueo CORS). Abrí el frontend en http://localhost:4200 y verificá que el backend corra en el puerto 3000.';
+        return this.i18n.t('coverLetter.errorCors');
       }
-      return `Error del servidor (${error.status}). Intentalo de nuevo.`;
+      return this.i18n
+        .t('coverLetter.errorServer')
+        .replace('{status}', String(error.status));
     }
-    return 'No se pudo completar la operación. Intentalo de nuevo.';
+    return this.i18n.t('coverLetter.errorGeneric');
   }
 }

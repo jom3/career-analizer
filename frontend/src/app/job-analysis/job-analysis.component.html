@@ -1,63 +1,53 @@
 <section class="job-analysis-page">
-  <header class="page-header">
+  <header class="page-head">
     <div>
-      <h1>Analizar ofertas de trabajo</h1>
-      <p class="subtitle">
-        Pegá el texto de una oferta, copiá o subí una captura, o subí un PDF. La
-        IA extrae solo lo que aparece en la fuente: revisá el resultado antes de
-        guardarlo en tu historial.
-      </p>
-    </div>
-    <div class="actions">
-      <a class="link" routerLink="/dashboard">Volver al dashboard</a>
+      <h1 class="page-title">{{ i18n.t('jobAnalysis.title') }}</h1>
+      <p class="page-sub">{{ i18n.t('jobAnalysis.subtitle') }}</p>
     </div>
   </header>
 
   @if (errorMessage()) {
-    <p class="error" role="alert">{{ errorMessage() }}</p>
+    <p class="alert alert--error" role="alert">{{ errorMessage() }}</p>
   }
   @if (savedMessage()) {
-    <p class="success" role="status">{{ savedMessage() }}</p>
+    <p class="alert alert--success" role="status">{{ savedMessage() }}</p>
   }
 
   <section class="card input-zone" (paste)="onTextPaste($event)">
-    <h2>¿Qué querés analizar?</h2>
+    <h2>{{ i18n.t('jobAnalysis.whatToAnalyze') }}</h2>
     <div class="input-methods">
       <label class="form-field input-text">
-        Pegá el texto de la oferta
+        {{ i18n.t('jobAnalysis.pasteText') }}
         <textarea
           [value]="textInput()"
           (input)="textInput.set($any($event.target).value)"
           rows="6"
-          placeholder="Pegá acá la descripción del puesto…"
+          placeholder="{{ i18n.t('jobAnalysis.pastePlaceholder') }}"
         ></textarea>
       </label>
       <div class="file-buttons">
-        <span class="muted">o</span>
-        <label class="file-button secondary">
-          Subir imagen
-          <input
-            type="file"
-            accept="image/*"
-            (change)="onImageSelected($event)"
-          />
+        <label class="file-button btn btn--secondary">
+          {{ i18n.t('jobAnalysis.uploadImage') }}
+          <input type="file" accept="image/*" (change)="onImageSelected($event)" />
         </label>
-        <span class="muted">o</span>
-        <label class="file-button secondary">
-          Subir PDF / DOCX
+        <label class="file-button btn btn--secondary">
+          {{ i18n.t('jobAnalysis.uploadPdf') }}
           <input
             type="file"
             accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             (change)="onPdfSelected($event)"
           />
         </label>
-        <p class="paste-hint">
-          También podés copiar una captura (Ctrl+C) y pegarla en esta página.
-        </p>
+        <p class="paste-hint">{{ i18n.t('jobAnalysis.pasteHint') }}</p>
       </div>
     </div>
-    <button type="button" [disabled]="analyzing()" (click)="analyzeText()">
-      {{ analyzing() ? 'Analizando…' : 'Analizar oferta' }}
+    <button
+      type="button"
+      class="btn btn--primary"
+      [disabled]="analyzing()"
+      (click)="analyzeText()"
+    >
+      {{ analyzing() ? i18n.t('jobAnalysis.analyzing') : i18n.t('jobAnalysis.analyze') }}
     </button>
   </section>
 
@@ -65,37 +55,37 @@
     <form [formGroup]="form" (ngSubmit)="onSave()" class="offer-form">
       <section class="card">
         <h2>
-          Resultado del análisis
+          {{ i18n.t('jobAnalysis.resultTitle') }}
           @if (editingId()) {
-            <span class="muted">— editando oferta guardada</span>
+            <span class="muted">{{ i18n.t('jobAnalysis.editingOffer') }}</span>
           }
         </h2>
-        <div class="grid">
-          <label class="form-field">
-            Título
+        <div class="form-fields">
+          <label class="form-field field-full">
+{{ i18n.t('jobAnalysis.titleField') }}
             <input formControlName="title" type="text" />
           </label>
-          <label class="form-field">
-            Compañía
+          <label class="form-field field-wide">
+            {{ i18n.t('jobAnalysis.company') }}
             <input formControlName="company" type="text" />
           </label>
-          <label class="form-field">
-            Nivel
+          <label class="form-field field-medium">
+            {{ i18n.t('jobAnalysis.level') }}
             <select formControlName="level">
               @for (level of levelOptions; track level) {
                 <option [ngValue]="level">
-                  {{ level || 'Sin especificar' }}
+                  {{ level || i18n.t('jobAnalysis.unspecified') }}
                 </option>
               }
             </select>
           </label>
-          <label class="form-field">
-            Años de experiencia requeridos
+          <label class="form-field field-small">
+            {{ i18n.t('jobAnalysis.experienceYears') }}
             <input formControlName="experienceYears" type="number" min="0" />
           </label>
         </div>
-        <label class="form-field">
-          Resumen de la experiencia requerida
+        <label class="form-field field-full">
+          {{ i18n.t('jobAnalysis.experienceSummary') }}
           <textarea formControlName="experienceSummary" rows="3"></textarea>
         </label>
       </section>
@@ -103,74 +93,72 @@
       @for (section of listSections; track section.key) {
         <section class="card">
           <header class="section-header">
-            <h2>{{ section.label }}</h2>
+            <h2>{{ i18n.t(section.labelKey) }}</h2>
             <button
               type="button"
-              class="secondary"
+              class="btn btn--secondary btn--small"
               (click)="addItem(section.array)"
             >
-              + Agregar
+              + {{ i18n.t('common.add') }}
             </button>
           </header>
           @for (item of section.array.controls; track $index) {
             <div class="item compact">
               <label class="form-field">
-                {{ section.itemLabel }}
+                {{ i18n.t(section.itemLabelKey) }}
                 <input [formControl]="item" type="text" />
               </label>
               <button
                 type="button"
-                class="danger"
+                class="btn btn--danger btn--small"
                 (click)="removeItem(section.array, $index)"
               >
-                Eliminar
+                {{ i18n.t('common.delete') }}
               </button>
             </div>
           } @empty {
-            <p class="muted">Sin elementos.</p>
+            <p class="muted">{{ i18n.t('jobAnalysis.emptyItems') }}</p>
           }
         </section>
       }
 
-      <div class="sticky-actions match-actions">
+      <div class="sticky-actions">
         <button
           type="button"
-          class="secondary"
+          class="btn btn--secondary"
           [disabled]="matching()"
           (click)="matchWithoutSaving()"
         >
-          {{ matching() ? 'Calculando…' : 'Match sin guardar' }}
+          {{ matching() ? i18n.t('jobAnalysis.calculating') : i18n.t('jobAnalysis.matchNoSave') }}
         </button>
         <button
           type="button"
-          class="secondary"
+          class="btn btn--secondary"
           [disabled]="saving() || matching()"
           (click)="saveAndMatch()"
         >
-          {{ saving() || matching() ? 'Calculando…' : 'Guardar y ver compatibilidad' }}
+          {{ saving() || matching() ? i18n.t('jobAnalysis.calculating') : i18n.t('jobAnalysis.saveAndMatch') }}
         </button>
-        <button type="button" class="secondary" (click)="reset()">
-          Descartar
+        <button type="button" class="btn btn--ghost" (click)="reset()">
+          {{ i18n.t('jobAnalysis.discard') }}
         </button>
-        <button type="submit" [disabled]="saving() || matching()">
-          {{ saving() ? 'Guardando…' : editingId() ? 'Actualizar oferta' : 'Guardar en historial' }}
+        <button type="submit" class="btn btn--primary" [disabled]="saving() || matching()">
+          {{ saving() ? i18n.t('common.saving') : editingId() ? i18n.t('jobAnalysis.updateOffer') : i18n.t('jobAnalysis.saveHistory') }}
         </button>
       </div>
     </form>
   }
 
-  <section class="card history">
+  <section class="card">
     <header class="section-header">
-      <h2>Historial de ofertas</h2>
+      <h2>{{ i18n.t('jobAnalysis.historyTitle') }}</h2>
     </header>
     @if (loadingHistory()) {
-      <p class="muted">Cargando tu historial…</p>
+      <p class="muted">{{ i18n.t('jobAnalysis.loadingHistory') }}</p>
     } @else if (history().length === 0) {
-      <p class="muted">
-        Todavía no guardaste ofertas. Analizá una y guardala para verla acá.
-      </p>
+      <p class="muted">{{ i18n.t('jobAnalysis.emptyHistory') }}</p>
     } @else {
-      <ul class="history-list">
+      <ul class="list-history">
         @for (offer of history(); track offer.id) {
           <li class="history-item">
             <div class="history-main">
@@ -185,41 +173,41 @@
             <div class="history-actions">
               <button
                 type="button"
-                class="secondary"
+                class="btn btn--secondary btn--small"
                 [disabled]="matchForId() === offer.id"
                 (click)="checkCompatibility(offer)"
               >
-                {{ matchForId() === offer.id ? 'Calculando…' : 'Ver compatibilidad' }}
+                {{ matchForId() === offer.id ? i18n.t('jobAnalysis.calculating') : i18n.t('jobAnalysis.viewMatch') }}
               </button>
               <button
                 type="button"
-                class="secondary"
+                class="btn btn--secondary btn--small"
                 [disabled]="adaptingId() === offer.id"
                 (click)="adaptCv(offer)"
               >
-                {{ adaptingId() === offer.id ? 'Generando…' : 'Adaptar CV' }}
+                {{ adaptingId() === offer.id ? i18n.t('jobAnalysis.generating') : i18n.t('jobAnalysis.adaptCv') }}
               </button>
               <button
                 type="button"
-                class="secondary"
+                class="btn btn--secondary btn--small"
                 (click)="newLetter(offer)"
               >
-                Carta de motivación
+                {{ i18n.t('jobAnalysis.coverLetter') }}
               </button>
               <button
                 type="button"
-                class="secondary"
+                class="btn btn--secondary btn--small"
                 (click)="editOffer(offer)"
               >
-                Editar
+                {{ i18n.t('jobAnalysis.edit') }}
               </button>
               <button
                 type="button"
-                class="danger"
+                class="btn btn--danger btn--small"
                 [disabled]="deletingId() === offer.id"
                 (click)="deleteOffer(offer.id)"
               >
-                {{ deletingId() === offer.id ? 'Eliminando…' : 'Eliminar' }}
+                {{ deletingId() === offer.id ? i18n.t('jobAnalysis.deleting') : i18n.t('common.delete') }}
               </button>
             </div>
           </li>

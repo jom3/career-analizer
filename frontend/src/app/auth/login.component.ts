@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject } from '@angular/core';
 import {
   FormControl,
@@ -8,6 +7,8 @@ import {
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../core/auth.service';
+import { httpErrorMessage } from '../core/http-errors';
+import { I18nService } from '../core/i18n/i18n.service';
 
 @Component({
   selector: 'app-login',
@@ -16,6 +17,7 @@ import { AuthService } from '../core/auth.service';
   styleUrl: './login.component.scss',
 })
 export class LoginComponent {
+  readonly i18n = inject(I18nService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
@@ -29,7 +31,7 @@ export class LoginComponent {
 
   async onSubmit(): Promise<void> {
     if (this.form.invalid) {
-      this.errorMessage = 'Completá los campos correctamente';
+      this.errorMessage = this.i18n.t('errors.badRequest');
       return;
     }
     this.submitting = true;
@@ -39,16 +41,11 @@ export class LoginComponent {
       await this.auth.login(email!, password!);
       await this.router.navigate(['/dashboard']);
     } catch (error) {
-      this.errorMessage = this.messageFor(error);
+      this.errorMessage = this.i18n.t(
+        httpErrorMessage(error, 'auth.login.error'),
+      );
     } finally {
       this.submitting = false;
     }
-  }
-
-  private messageFor(error: unknown): string {
-    if (error instanceof HttpErrorResponse && error.status === 401) {
-      return 'Email o contraseña incorrectos';
-    }
-    return 'No se pudo iniciar sesión. Intentalo de nuevo.';
   }
 }

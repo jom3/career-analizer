@@ -1,92 +1,92 @@
 <section class="cover-letter-page">
-  <header class="page-header">
+  <header class="page-head">
     <div>
-      <h1>Carta de motivación</h1>
+      <h1 class="page-title">{{ i18n.t('coverLetter.detailTitle') }}</h1>
       @if (letter(); as current) {
-        <p class="subtitle">
+        <p class="page-sub">
           {{ formatDate(current.createdAt) }} · {{ current.sourceLanguage }}
         </p>
       }
     </div>
     <div class="actions">
-      <a class="link" routerLink="/cover-letter">Ver historial</a>
-      <a class="link" routerLink="/dashboard">Volver al dashboard</a>
+      <a class="btn btn--secondary btn--small" routerLink="/cover-letter">
+        {{ i18n.t('coverLetter.viewHistory') }}
+      </a>
     </div>
   </header>
 
   @if (errorMessage()) {
-    <p class="error" role="alert">{{ errorMessage() }}</p>
+    <p class="alert alert--error" role="alert">{{ errorMessage() }}</p>
   }
 
   @if (loading()) {
-    <p class="muted">Cargando…</p>
+    <p class="muted">{{ i18n.t('common.loading') }}</p>
   }
 
   @if (!loading() && letter(); as current) {
     @if (current.stale) {
-      <div class="stale-banner" role="status">
-        <p>
-          El perfil cambió desde esta carta: genera una nueva para que refleje
-          la información actual.
-        </p>
+      <div class="alert alert--info stale-banner" role="status">
+        <p>{{ i18n.t('coverLetter.staleText') }}</p>
         @if (current.jobOfferId) {
           <a
-            class="button secondary"
+            class="btn btn--primary btn--small"
             routerLink="/cover-letter/new"
             [queryParams]="{ jobOfferId: current.jobOfferId }"
-          >Generar una nueva</a
           >
+            {{ i18n.t('coverLetter.regenerate') }}
+          </a>
         }
       </div>
     }
 
-    <section class="card">
+    <section class="card letter-doc">
       <header class="section-header">
-        <h2>{{ current.recruiterName || 'Equipo de selección' }}</h2>
-        <span class="badge tag-ai">Generada por IA (editada por ti)</span>
+        <h2>{{ current.recruiterName || i18n.t('coverLetter.genericRecipient') }}</h2>
+        <span class="tag tag--ai">{{ i18n.t('coverLetter.editedByYou') }}</span>
       </header>
       @if (current.note) {
-        <p class="muted">Nota: {{ current.note }}</p>
+        <p class="muted">
+          {{ i18n.t('coverLetter.noteLabel') }} {{ current.note }}
+        </p>
       }
       <pre class="letter-text">{{ current.content }}</pre>
     </section>
 
     <section class="card">
       <header class="section-header">
-        <h2>Descargar</h2>
+        <h2>{{ i18n.t('coverLetter.download') }}</h2>
       </header>
       <div class="letter-actions">
         <button
           type="button"
+          class="btn btn--secondary"
           [disabled]="exporting() !== null"
           (click)="exportLetter('pdf')"
         >
-          {{ exporting() === 'pdf' ? 'Generando…' : 'Descargar PDF' }}
+          {{ exporting() === 'pdf' ? i18n.t('coverLetter.generating') : i18n.t('coverLetter.pdf') }}
         </button>
         <button
           type="button"
+          class="btn btn--secondary"
           [disabled]="exporting() !== null"
           (click)="exportLetter('docx')"
         >
-          {{ exporting() === 'docx' ? 'Generando…' : 'Descargar DOCX' }}
+          {{ exporting() === 'docx' ? i18n.t('coverLetter.generating') : i18n.t('coverLetter.docx') }}
         </button>
       </div>
-      <p class="muted">
-        El archivo incluye fecha, asunto de la oferta y tu firma, derivados de
-        tu perfil y de la oferta guardada.
-      </p>
+      <p class="muted">{{ i18n.t('coverLetter.exportNote') }}</p>
     </section>
 
     <div class="danger-zone">
       <button
         type="button"
-        class="danger"
+        class="btn btn--danger btn--small"
         [disabled]="deleting()"
         (click)="deleteLetter()"
       >
-        {{ deleting() ? 'Eliminando…' : 'Eliminar carta' }}
+        {{ deleting() ? i18n.t('coverLetter.deleting') : i18n.t('coverLetter.delete') }}
       </button>
-      <p class="muted">Borrar la carta no elimina la oferta guardada.</p>
+      <p class="muted">{{ i18n.t('coverLetter.deleteHint') }}</p>
     </div>
   }
 </section>

@@ -1,0 +1,101 @@
+<div class="shell">
+  <aside class="shell__rail">
+    <a routerLink="/dashboard" class="brand">
+      Career Analyzer
+    </a>
+
+    <nav class="rail__nav" aria-label="Navegación principal">
+      <a
+        routerLink="/profile"
+        routerLinkActive="is-active"
+        class="rail__link"
+      >
+        <span class="rail__num">01</span>
+        <span class="rail__label">{{ i18n.t('nav.profile') }}</span>
+        <span class="tag rail__tag">{{ i18n.t('nav.profileTag') }}</span>
+      </a>
+
+      <a
+        routerLink="/cv-import"
+        routerLinkActive="is-active"
+        class="rail__link"
+      >
+        <span class="rail__num">02</span>
+        <span class="rail__label">{{ i18n.t('nav.import') }}</span>
+      </a>
+
+      <a
+        routerLink="/job-analysis"
+        routerLinkActive="is-active"
+        class="rail__link"
+      >
+        <span class="rail__num">03</span>
+        <span class="rail__label">{{ i18n.t('nav.offers') }}</span>
+      </a>
+
+      <a
+        routerLink="/job-match"
+        routerLinkActive="is-active"
+        class="rail__link"
+      >
+        <span class="rail__num">04</span>
+        <span class="rail__label">{{ i18n.t('nav.match') }}</span>
+      </a>
+
+      <p class="rail__group">05 · {{ i18n.t('nav.documents') }}</p>
+
+      <a
+        routerLink="/cv-adaptation"
+        routerLinkActive="is-active"
+        class="rail__link rail__link--child"
+      >
+        <span class="rail__label">{{ i18n.t('nav.adaptedCv') }}</span>
+      </a>
+
+      <a
+        routerLink="/cover-letter"
+        routerLinkActive="is-active"
+        class="rail__link rail__link--child"
+      >
+        <span class="rail__label">{{ i18n.t('nav.coverLetter') }}</span>
+      </a>
+    </nav>
+  </aside>
+
+  <div class="shell__main">
+    <header class="shell__topbar">
+      <button
+        type="button"
+        class="lang-switch__btn"
+        [class.is-active]="i18n.is('es')"
+        (click)="i18n.setLang('es')"
+      >
+        ES
+      </button>
+      <span class="lang-switch__sep" aria-hidden="true">/</span>
+      <button
+        type="button"
+        class="lang-switch__btn"
+        [class.is-active]="i18n.is('en')"
+        (click)="i18n.setLang('en')"
+      >
+        EN
+      </button>
+
+      <span class="topbar__user">{{ auth.user()?.name }}</span>
+      <button
+        type="button"
+        class="btn btn--ghost btn--small"
+        (click)="logout()"
+      >
+        {{ i18n.t('shell.logout') }}
+      </button>
+    </header>
+
+    <main class="shell__content">
+      <div class="page">
+        <router-outlet />
+      </div>
+    </main>
+  </div>
+</div>

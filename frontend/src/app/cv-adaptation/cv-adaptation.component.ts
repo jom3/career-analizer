@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CvAdaptationService } from '../core/cv-adaptation.service';
+import { I18nService } from '../core/i18n/i18n.service';
 import type { AdaptedCv, CvExportFormat } from '../core/models/adapted-cv';
 
 @Component({
@@ -11,6 +12,7 @@ import type { AdaptedCv, CvExportFormat } from '../core/models/adapted-cv';
   styleUrl: './cv-adaptation.component.scss',
 })
 export class CvAdaptationComponent implements OnInit {
+  readonly i18n = inject(I18nService);
   private readonly cvAdaptationService = inject(CvAdaptationService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -89,7 +91,7 @@ export class CvAdaptationComponent implements OnInit {
   }
 
   async deleteVersion(id: string): Promise<void> {
-    if (!window.confirm('¿Eliminar este CV adaptado?')) return;
+    if (!window.confirm(this.i18n.t('cvAdapt.confirmDelete'))) return;
     this.deleting.set(true);
     this.errorMessage.set('');
     try {
@@ -104,7 +106,8 @@ export class CvAdaptationComponent implements OnInit {
 
   formatDate(value: string): string {
     const date = new Date(value);
-    return date.toLocaleDateString('es-AR');
+    const locale = this.i18n.is('en') ? 'en-US' : 'es-AR';
+    return date.toLocaleDateString(locale);
   }
 
   private messageFor(error: unknown): string {
@@ -119,10 +122,12 @@ export class CvAdaptationComponent implements OnInit {
         return backendMessage.join(', ');
       }
       if (error.status === 0) {
-        return 'No se pudo conectar con el servidor (posible bloqueo CORS).';
+        return this.i18n.t('cvAdapt.errorCors');
       }
-      return `Error del servidor (${error.status}). Intentalo de nuevo.`;
+      return this.i18n
+        .t('cvAdapt.errorServer')
+        .replace('{status}', String(error.status));
     }
-    return 'No se pudo completar la operación. Intentalo de nuevo.';
+    return this.i18n.t('cvAdapt.errorGeneric');
   }
 }

@@ -30,6 +30,12 @@
               }
             ],
             "styles": [
+              "@fontsource/newsreader/latin-600.css",
+              "@fontsource/newsreader/latin-700.css",
+              "@fontsource/figtree/latin-400.css",
+              "@fontsource/figtree/latin-500.css",
+              "@fontsource/figtree/latin-600.css",
+              "@fontsource/ibm-plex-mono/latin-500.css",
               "src/styles.scss"
             ]
           },

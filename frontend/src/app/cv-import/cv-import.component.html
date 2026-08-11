@@ -1,38 +1,32 @@
 <section class="cv-import-page">
-  <header class="page-header">
+  <header class="page-head">
     <div>
-      <h1>Importar mi CV</h1>
-      <p class="subtitle">
-        Subí tu CV en PDF o DOCX. La IA extrae solo los datos presentes en el
-        archivo: revisá el borrador antes de aplicarlo a tu perfil.
-      </p>
+      <h1 class="page-title">{{ i18n.t('cvImport.title') }}</h1>
+      <p class="page-sub">{{ i18n.t('cvImport.subtitle') }}</p>
     </div>
     <div class="actions">
-      <a class="link" routerLink="/dashboard">Volver al dashboard</a>
       @if (documentId()) {
-        <button type="button" class="secondary" (click)="reset()">
-          Empezar de nuevo
+        <button type="button" class="btn btn--secondary" (click)="reset()">
+          {{ i18n.t('cvImport.restart') }}
         </button>
       }
     </div>
   </header>
 
   @if (errorMessage()) {
-    <p class="error" role="alert">{{ errorMessage() }}</p>
+    <p class="alert alert--error" role="alert">{{ errorMessage() }}</p>
   }
   @if (saved()) {
-    <p class="success" role="status">
-      El borrador se aplicó a tu perfil. Redirigiendo…
-    </p>
+    <p class="alert alert--success" role="status">{{ i18n.t('cvImport.saved') }}</p>
   }
 
   @if (!documentId()) {
     @if (loadingDraft()) {
-      <p class="muted">Recuperando tu borrador…</p>
+      <p class="muted">{{ i18n.t('cvImport.recovering') }}</p>
     } @else {
       <div
         class="drop-zone"
-        [class.drag]="dragOver()"
+        [class.drop-zone--drag]="dragOver()"
         (dragover)="onDragOver($event)"
         (dragleave)="onDragLeave($event)"
         (drop)="onDrop($event)"
@@ -44,29 +38,27 @@
           accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
           (change)="onFileSelected($event)"
         />
-        <label for="cv-file" class="drop-zone-label">
-          <span class="drop-title">
-            {{ uploading() ? 'Procesando archivo…' : 'Arrastrá tu CV acá' }}
+        <label for="cv-file" class="drop-zone__label">
+          <span class="drop-zone__title">
+            {{ uploading() ? i18n.t('cvImport.processing') : i18n.t('cvImport.dragTitle') }}
           </span>
-          <span class="drop-hint">
-            o hacé clic para elegir un archivo (PDF o DOCX, máx. 10 MB)
-          </span>
+          <span class="drop-zone__hint">{{ i18n.t('cvImport.dragHint') }}</span>
         </label>
       </div>
     }
   } @else {
     <div class="import-meta">
       <span class="muted">
-        {{ originalName() }} — revisá los datos antes de confirmar.
+        {{ originalName() }} {{ i18n.t('cvImport.reviewHint') }}
       </span>
     </div>
 
     @if (atsReport().length > 0) {
       <section class="card">
-        <h2>Chequeo ATS</h2>
+        <h2>{{ i18n.t('cvImport.atsTitle') }}</h2>
         <ul class="ats-list">
           @for (check of atsReport(); track check.key) {
-            <li class="ats-item" [class.fail]="!check.ok">
+            <li class="ats-item" [class.ats-item--fail]="!check.ok">
               <span class="ats-icon" aria-hidden="true">
                 {{ check.ok ? '✓' : '✗' }}
               </span>
@@ -84,44 +76,44 @@
 
     <form [formGroup]="form" (ngSubmit)="onConfirm()" class="profile-form">
       <section class="card">
-        <h2>Información personal</h2>
-        <div class="grid">
-          <label class="form-field">
-            Título profesional
+        <h2>{{ i18n.t('profile.personalInfo') }}</h2>
+        <div class="form-fields">
+          <label class="form-field field-full">
+            {{ i18n.t('profile.headline') }}
             <input formControlName="headline" type="text" />
           </label>
-          <label class="form-field">
-            Teléfono
+          <label class="form-field field-small">
+            {{ i18n.t('profile.phone') }}
             <input formControlName="phone" type="tel" />
           </label>
-          <label class="form-field">
-            Ubicación
+          <label class="form-field field-medium">
+            {{ i18n.t('profile.location') }}
             <input formControlName="location" type="text" />
           </label>
-          <label class="form-field">
-            Sitio web
+          <label class="form-field field-medium">
+            {{ i18n.t('profile.website') }}
             <input formControlName="website" type="url" />
           </label>
-          <label class="form-field">
-            LinkedIn
+          <label class="form-field field-medium">
+            {{ i18n.t('profile.linkedin') }}
             <input formControlName="linkedin" type="url" />
           </label>
         </div>
       </section>
 
       <section class="card">
-        <h2>Resumen profesional</h2>
-        <label class="form-field">
-          Contanos en pocas líneas quién sos profesionalmente.
+        <h2>{{ i18n.t('profile.summary') }}</h2>
+        <label class="form-field field-full">
+          {{ i18n.t('profile.summaryHint') }}
           <textarea formControlName="summary" rows="4"></textarea>
         </label>
       </section>
 
       <section class="card">
         <header class="section-header">
-          <h2>Experiencia</h2>
-          <button type="button" class="secondary" (click)="addExperience()">
-            + Agregar experiencia
+          <h2>{{ i18n.t('profile.experience') }}</h2>
+          <button type="button" class="btn btn--secondary btn--small" (click)="addExperience()">
+            + {{ i18n.t('profile.addExperience') }}
           </button>
         </header>
         @for (item of experiences.controls; track $index) {
@@ -130,67 +122,67 @@
               <span class="item-index">{{ $index + 1 }}</span>
               <button
                 type="button"
-                class="danger"
+                class="btn btn--danger btn--small"
                 (click)="removeAt(experiences, $index)"
               >
-                Eliminar
+                {{ i18n.t('common.delete') }}
               </button>
             </div>
-            <div class="grid">
-              <label class="form-field">
-                Empresa
+            <div class="form-fields">
+              <label class="form-field field-full">
+                {{ i18n.t('profile.company') }}
                 <input formControlName="company" type="text" />
               </label>
-              <label class="form-field">
-                Puesto
+              <label class="form-field field-full">
+                {{ i18n.t('profile.position') }}
                 <input formControlName="position" type="text" />
               </label>
-              <label class="form-field">
-                Ubicación
+              <label class="form-field field-medium">
+                {{ i18n.t('profile.location') }}
                 <input formControlName="location" type="text" />
               </label>
-              <label class="form-field">
-                Desde
+              <label class="form-field field-small">
+                {{ i18n.t('profile.from') }}
                 <input formControlName="startDate" type="date" />
               </label>
-              <label class="form-field">
-                Hasta
+              <label class="form-field field-small">
+                {{ i18n.t('profile.to') }}
                 <input formControlName="endDate" type="date" />
               </label>
-              <label class="checkbox">
+              <label class="checkbox field-small">
                 <input
                   formControlName="current"
                   type="checkbox"
                   (change)="onCurrentChange(item, $event)"
                 />
-                Trabajo actual
+                {{ i18n.t('profile.currentJob') }}
               </label>
             </div>
-            <label class="form-field">
-              Descripción
+            <label class="form-field field-full">
+              {{ i18n.t('profile.description') }}
               <textarea formControlName="description" rows="3"></textarea>
             </label>
           </div>
         } @empty {
-          <p class="muted">Todavía no hay experiencias en el borrador.</p>
+          <p class="muted">{{ i18n.t('cvImport.emptyExperience') }}</p>
         }
       </section>
 
       <section class="card">
         <header class="section-header">
-          <h2>Habilidades</h2>
-          <button type="button" class="secondary" (click)="addSkill()">
-            + Agregar habilidad
+          <h2>{{ i18n.t('profile.skills') }}</h2>
+          <button type="button" class="btn btn--secondary btn--small" (click)="addSkill()">
+            + {{ i18n.t('profile.addSkill') }}
           </button>
         </header>
         @for (item of skills.controls; track $index) {
           <div class="item compact" [formGroup]="item">
             <label class="form-field">
-              Habilidad
+              {{ i18n.t('profile.skill') }}
               <input formControlName="name" type="text" />
             </label>
-            <label class="form-field">
-              Nivel
+            <label class="form-field field-value">
+              {{ i18n.t('profile.level') }}
               <select formControlName="level">
                 @for (level of skillLevels; track level) {
                   <option [ngValue]="level">{{ level }}</option>
@@ -199,22 +191,22 @@
             </label>
             <button
               type="button"
-              class="danger"
+              class="btn btn--danger btn--small"
               (click)="removeAt(skills, $index)"
             >
-              Eliminar
+              {{ i18n.t('common.delete') }}
             </button>
           </div>
         } @empty {
-          <p class="muted">Todavía no hay habilidades en el borrador.</p>
+          <p class="muted">{{ i18n.t('cvImport.emptySkills') }}</p>
         }
       </section>
 
       <section class="card">
         <header class="section-header">
-          <h2>Educación</h2>
-          <button type="button" class="secondary" (click)="addEducation()">
-            + Agregar educación
+          <h2>{{ i18n.t('profile.education') }}</h2>
+          <button type="button" class="btn btn--secondary btn--small" (click)="addEducation()">
+            + {{ i18n.t('profile.addEducation') }}
           </button>
         </header>
         @for (item of education.controls; track $index) {
@@ -223,61 +215,57 @@
               <span class="item-index">{{ $index + 1 }}</span>
               <button
                 type="button"
-                class="danger"
+                class="btn btn--danger btn--small"
                 (click)="removeAt(education, $index)"
               >
-                Eliminar
+                {{ i18n.t('common.delete') }}
               </button>
             </div>
-            <div class="grid">
-              <label class="form-field">
-                Título / grado
+            <div class="form-fields">
+              <label class="form-field field-full">
+                {{ i18n.t('profile.degree') }}
                 <input formControlName="degree" type="text" />
               </label>
-              <label class="form-field">
-                Institución
+              <label class="form-field field-wide">
+                {{ i18n.t('profile.institution') }}
                 <input formControlName="institution" type="text" />
               </label>
-              <label class="form-field">
-                Campo de estudio
+              <label class="form-field field-wide">
+                {{ i18n.t('profile.field') }}
                 <input formControlName="field" type="text" />
               </label>
-              <label class="form-field">
-                Desde
+              <label class="form-field field-xsmall">
+                {{ i18n.t('profile.from') }}
                 <input formControlName="startDate" type="date" />
               </label>
-              <label class="form-field">
-                Hasta
+              <label class="form-field field-xsmall">
+                {{ i18n.t('profile.to') }}
                 <input formControlName="endDate" type="date" />
               </label>
-              <label class="checkbox">
+              <label class="checkbox field-small">
                 <input
                   formControlName="current"
                   type="checkbox"
                   (change)="onCurrentChange(item, $event)"
                 />
-                En curso
+                {{ i18n.t('profile.inProgress') }}
               </label>
             </div>
-            <label class="form-field">
-              Descripción
+            <label class="form-field field-full">
+              {{ i18n.t('profile.description') }}
               <textarea formControlName="description" rows="3"></textarea>
             </label>
           </div>
         } @empty {
-          <p class="muted">Todavía no hay educación en el borrador.</p>
+          <p class="muted">{{ i18n.t('cvImport.emptyEducation') }}</p>
         }
       </section>
 
       <section class="card">
         <header class="section-header">
-          <h2>Certificaciones</h2>
-          <button
-            type="button"
-            class="secondary"
-            (click)="addCertification()"
-          >
-            + Agregar certificación
+          <h2>{{ i18n.t('profile.certifications') }}</h2>
+          <button type="button" class="btn btn--secondary btn--small" (click)="addCertification()">
+            + {{ i18n.t('profile.addCertification') }}
           </button>
         </header>
         @for (item of certifications.controls; track $index) {
@@ -286,46 +274,41 @@
               <span class="item-index">{{ $index + 1 }}</span>
               <button
                 type="button"
-                class="danger"
+                class="btn btn--danger btn--small"
                 (click)="removeAt(certifications, $index)"
               >
-                Eliminar
+                {{ i18n.t('common.delete') }}
               </button>
             </div>
-            <div class="grid">
-              <label class="form-field">
-                Nombre
+            <div class="form-fields">
+              <label class="form-field field-full">
+                {{ i18n.t('profile.certName') }}
                 <input formControlName="name" type="text" />
               </label>
-              <label class="form-field">
-                Emisor
+              <label class="form-field field-wide">
+                {{ i18n.t('profile.issuer') }}
                 <input formControlName="issuer" type="text" />
               </label>
-              <label class="form-field">
-                Año
-                <input
-                  formControlName="year"
-                  type="number"
-                  min="1900"
-                  max="2100"
-                />
-              </label>
-              <label class="form-field">
-                URL
+              <label class="form-field field-medium">
+                {{ i18n.t('profile.url') }}
                 <input formControlName="url" type="url" />
+              </label>
+              <label class="form-field field-xsmall">
+                {{ i18n.t('profile.year') }}
+                <input formControlName="year" type="number" min="1900" max="2100" />
               </label>
             </div>
           </div>
         } @empty {
-          <p class="muted">Todavía no hay certificaciones en el borrador.</p>
+          <p class="muted">{{ i18n.t('cvImport.emptyCertifications') }}</p>
         }
       </section>
 
       <section class="card">
         <header class="section-header">
-          <h2>Proyectos</h2>
-          <button type="button" class="secondary" (click)="addProject()">
-            + Agregar proyecto
+          <h2>{{ i18n.t('profile.projects') }}</h2>
+          <button type="button" class="btn btn--secondary btn--small" (click)="addProject()">
+            + {{ i18n.t('profile.addProject') }}
           </button>
         </header>
         @for (item of projects.controls; track $index) {
@@ -334,55 +317,55 @@
               <span class="item-index">{{ $index + 1 }}</span>
               <button
                 type="button"
-                class="danger"
+                class="btn btn--danger btn--small"
                 (click)="removeAt(projects, $index)"
               >
-                Eliminar
+                {{ i18n.t('common.delete') }}
               </button>
             </div>
-            <div class="grid">
-              <label class="form-field">
-                Nombre
+            <div class="form-fields">
+              <label class="form-field field-full">
+                {{ i18n.t('profile.projectName') }}
                 <input formControlName="name" type="text" />
               </label>
-              <label class="form-field">
-                Rol
+              <label class="form-field field-medium">
+                {{ i18n.t('profile.role') }}
                 <input formControlName="role" type="text" />
               </label>
-              <label class="form-field">
-                URL
+              <label class="form-field field-medium">
+                {{ i18n.t('profile.url') }}
                 <input formControlName="url" type="url" />
               </label>
-              <label class="form-field">
-                Stack tecnológico (separado por comas)
+              <label class="form-field field-wide">
+                {{ i18n.t('profile.techStack') }}
                 <input formControlName="techStack" type="text" />
               </label>
             </div>
-            <label class="form-field">
-              Descripción
+            <label class="form-field field-full">
+              {{ i18n.t('profile.description') }}
               <textarea formControlName="description" rows="3"></textarea>
             </label>
           </div>
         } @empty {
-          <p class="muted">Todavía no hay proyectos en el borrador.</p>
+          <p class="muted">{{ i18n.t('cvImport.emptyProjects') }}</p>
         }
       </section>
 
       <section class="card">
         <header class="section-header">
-          <h2>Idiomas</h2>
-          <button type="button" class="secondary" (click)="addLanguage()">
-            + Agregar idioma
+          <h2>{{ i18n.t('profile.languages') }}</h2>
+          <button type="button" class="btn btn--secondary btn--small" (click)="addLanguage()">
+            + {{ i18n.t('profile.addLanguage') }}
           </button>
         </header>
         @for (item of languages.controls; track $index) {
           <div class="item compact" [formGroup]="item">
             <label class="form-field">
-              Idioma
+              {{ i18n.t('profile.language') }}
               <input formControlName="name" type="text" />
             </label>
-            <label class="form-field">
-              Nivel
+            <label class="form-field field-value">
+              {{ i18n.t('profile.level') }}
               <select formControlName="level">
                 @for (level of cefrLevels; track level) {
                   <option [ngValue]="level">{{ level }}</option>
@@ -391,20 +374,20 @@
             </label>
             <button
               type="button"
-              class="danger"
+              class="btn btn--danger btn--small"
               (click)="removeAt(languages, $index)"
             >
-              Eliminar
+              {{ i18n.t('common.delete') }}
             </button>
           </div>
         } @empty {
-          <p class="muted">Todavía no hay idiomas en el borrador.</p>
+          <p class="muted">{{ i18n.t('cvImport.emptyLanguages') }}</p>
         }
       </section>
 
       <div class="sticky-actions">
-        <button type="submit" [disabled]="saving()">
-          {{ saving() ? 'Aplicando…' : 'Confirmar y aplicar a mi perfil' }}
+        <button type="submit" class="btn btn--primary" [disabled]="saving()">
+          {{ saving() ? i18n.t('cvImport.applying') : i18n.t('cvImport.confirm') }}
         </button>
       </div>
     </form>

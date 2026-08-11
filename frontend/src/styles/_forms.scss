@@ -1,0 +1,102 @@
+.form-field {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--fs-small);
+  font-weight: 500;
+}
+
+input[type='text'],
+input[type='tel'],
+input[type='email'],
+input[type='url'],
+input[type='password'],
+input[type='number'],
+input[type='date'],
+select,
+textarea {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-s);
+  background: var(--surface);
+  color: var(--ink);
+  font: 400 0.95rem / 1.4 var(--font-body);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+}
+
+textarea {
+  resize: vertical;
+}
+
+/* grid de 12 columnas: cada campo declara el ancho según su contenido */
+.form-fields {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.field-xsmall {
+  grid-column: span 2;
+}
+
+.field-small {
+  grid-column: span 3;
+}
+
+.field-medium {
+  grid-column: span 4;
+}
+
+.field-wide {
+  grid-column: span 6;
+}
+
+.field-full {
+  grid-column: span 12;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-small);
+  font-weight: 500;
+}
+
+.checkbox input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--accent);
+}
+
+.field-error {
+  color: var(--error);
+}
+
+@media (max-width: 600px) {
+  .form-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .form-field.field-xsmall,
+  .form-field.field-small,
+  .form-field.field-medium,
+  .form-field.field-wide,
+  .form-field.field-full {
+    grid-column: auto;
+  }
+}
