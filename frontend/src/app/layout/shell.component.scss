@@ -1,6 +1,6 @@
 .shell {
   display: grid;
-  grid-template-columns: 16rem minmax(0, 1fr);
+  grid-template-columns: 18rem minmax(0, 1fr);
   min-height: 100dvh;
 }
 
@@ -89,6 +89,7 @@
 }
 
 .rail__tag {
+  background: rgb(21 37 31 / 0.45);
   border-color: rgb(162 118 47 / 0.5);
 }
 
