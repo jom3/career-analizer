@@ -1,0 +1,54 @@
+:root {
+  /* colores */
+  --paper: #f2f5f1;
+  --surface: #ffffff;
+  --ink: #15251f;
+  --muted: #5b6b64;
+  --rule: #e1e6df;
+  --accent: #0e6b62;
+  --accent-strong: #0a554e;
+  --on-accent: #f4f9f6;
+  --on-ink: #e9efea;
+  --amber: #a2762f;
+  --amber-soft: #f7f0e2;
+  --error: #b3261e;
+  --error-soft: #f9ecea;
+  --success: #2e7d4f;
+  --success-soft: #eaf4ec;
+
+  /* tipografía */
+  --font-display: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --font-body: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Helvetica, Arial, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Code', Consolas,
+    monospace;
+  --fs-display: clamp(2rem, 2.6vw, 3.25rem);
+  --fs-h1: clamp(1.75rem, 2.2vw, 2.5rem);
+  --fs-h2: 1.35rem;
+  --fs-h3: 1.05rem;
+  --fs-body: 1rem;
+  --fs-small: 0.875rem;
+  --fs-tiny: 0.75rem;
+  --ls-eyebrow: 0.08em;
+
+  /* espaciado */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  /* forma */
+  --radius-xs: 0.25rem;
+  --radius-s: 0.5rem;
+  --radius-m: 1rem;
+  --radius-pill: 999px;
+  --shadow-s: 0 1px 2px rgb(21 37 31 / 0.06);
+  --shadow-m: 0 4px 16px rgb(21 37 31 / 0.08);
+
+  /* movimiento */
+  --motion: 0.18s ease;
+  --focus-ring: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
+}

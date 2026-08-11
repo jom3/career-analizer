@@ -1,53 +1,46 @@
 <section class="cover-letter-page">
-  <header class="page-header">
+  <header class="page-head">
     <div>
-      <h1>Mis cartas de motivación</h1>
-      <p class="subtitle">
-        Cartas generadas con IA desde tu perfil para cada oferta. Revisás el
-        borrador, lo editás y recién después se guarda.
-      </p>
-    </div>
-    <div class="actions">
-      <a class="link" routerLink="/dashboard">Volver al dashboard</a>
+      <h1 class="page-title">{{ i18n.t('coverLetter.listTitle') }}</h1>
+      <p class="page-sub">{{ i18n.t('coverLetter.subtitle') }}</p>
     </div>
   </header>
 
   @if (errorMessage()) {
-    <p class="error" role="alert">{{ errorMessage() }}</p>
+    <p class="alert alert--error" role="alert">{{ errorMessage() }}</p>
   }
 
   @if (loading()) {
-    <p class="muted">Cargando…</p>
+    <p class="muted">{{ i18n.t('common.loading') }}</p>
   }
 
   @if (!loading() && !errorMessage()) {
     <section class="card">
       <header class="section-header">
-        <h2>Historial de cartas</h2>
+        <h2>{{ i18n.t('coverLetter.historyTitle') }}</h2>
       </header>
       @if (letters().length === 0) {
-        <p class="muted">
-          Todavía no generaste cartas. Andá a
-          <a class="link" routerLink="/job-analysis">analizar ofertas</a>,
-          guardá una y usá el botón "Carta de motivación".
-        </p>
+        <p class="muted">{{ i18n.t('coverLetter.emptyHistory') }}</p>
       } @else {
-        <ul class="letter-list">
+        <ul class="list">
           @for (item of letters(); track item.id) {
-            <li class="letter-item">
-              <a class="letter-link" routerLink="/cover-letter/{{ item.id }}">
-                <div class="letter-main">
+            <li class="list-row list-row--link">
+              <a
+                class="list-row__link"
+                routerLink="/cover-letter/{{ item.id }}"
+              >
+                <span class="list-row__main">
                   <strong>
-                    {{ item.recruiterName || 'Equipo de selección' }}
+                    {{ item.recruiterName || i18n.t('coverLetter.genericRecipient') }}
                   </strong>
                   <span class="muted">
                     {{ formatDate(item.createdAt) }} · {{ item.sourceLanguage }}
                   </span>
-                </div>
-                <span class="badge tag-ai">Generada por IA</span>
+                </span>
+                <span class="tag tag--ai">{{ i18n.t('coverLetter.aiTag') }}</span>
               </a>
               @if (item.stale) {
-                <span class="badge status-missing">Perfil desactualizado</span>
+                <span class="tag tag--stale">{{ i18n.t('coverLetter.staleBadge') }}</span>
               }
             </li>
           }

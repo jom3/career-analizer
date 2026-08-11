@@ -1,16 +1,16 @@
 import { HttpErrorResponse } from '@angular/common/http';
 
-export function httpErrorMessage(error: unknown, fallback: string): string {
+export function httpErrorMessage(error: unknown, fallbackKey: string): string {
   if (error instanceof HttpErrorResponse) {
     if (error.status === 401) {
-      return 'Email o contraseña incorrectos';
+      return 'errors.invalidCredentials';
     }
     if (error.status === 409) {
-      return 'Ya existe una cuenta con ese email';
+      return 'errors.emailTaken';
     }
     if (error.status === 400) {
-      return 'Revisa los datos ingresados';
+      return 'errors.badRequest';
     }
   }
-  return fallback;
+  return fallbackKey;
 }

@@ -7,7 +7,6 @@ import {
   signal,
 } from '@angular/core';
 import { FormArray, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { combineLatest, Subscription } from 'rxjs';
 import type { Profile } from '../core/models/profile';
 import {
@@ -38,16 +37,18 @@ import {
   type ProjectForm,
   type SkillForm,
 } from '../core/profile-form';
+import { I18nService } from '../core/i18n/i18n.service';
 import { ProfileService } from '../core/profile.service';
 import { CvExportService, CvExportFormat } from '../core/cv-export.service';
 
 @Component({
   selector: 'app-profile',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',
 })
 export class ProfileComponent implements OnInit, OnDestroy {
+  readonly i18n = inject(I18nService);
   private readonly profileService = inject(ProfileService);
   private readonly cvExportService = inject(CvExportService);
 
@@ -94,7 +95,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       const profile = await this.profileService.getProfile();
       loadProfileForm(this.form, profile);
     } catch {
-      this.loadError.set('No se pudo cargar tu perfil.');
+      this.loadError.set(this.i18n.t('profile.loadError'));
     } finally {
       this.loading.set(false);
     }
@@ -203,7 +204,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   async onSave(): Promise<void> {
     if (this.form.invalid) {
-      this.errorMessage.set('Completá los campos obligatorios de las secciones.');
+      this.errorMessage.set(this.i18n.t('profile.saveErrorInvalid'));
       return;
     }
     this.saving.set(true);
@@ -228,7 +229,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     try {
       await this.cvExportService.download(format);
     } catch {
-      this.errorMessage.set('No se pudo descargar el CV. Intentalo de nuevo.');
+      this.errorMessage.set(this.i18n.t('profile.downloadError'));
     } finally {
       this.downloading.set(null);
     }
@@ -236,8 +237,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   private messageFor(error: unknown): string {
     if (error instanceof HttpErrorResponse && error.status === 400) {
-      return 'Hay campos inválidos. Revisá los formularios.';
+      return this.i18n.t('profile.saveError400');
     }
-    return 'No se pudo guardar el perfil. Intentalo de nuevo.';
+    return this.i18n.t('profile.saveError');
   }
 }

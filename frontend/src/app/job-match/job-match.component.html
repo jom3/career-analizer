@@ -1,54 +1,50 @@
 <section class="job-match-page">
-  <header class="page-header">
+  <header class="page-head">
     <div>
-      @if (match()) {
-        <h1>Encaje con la oferta</h1>
-      } @else {
-        <h1>Mis análisis de encaje</h1>
-      }
-      <p class="subtitle">
-        Comparación entre tu perfil y cada oferta: puntaje global y por
-        dimensión, gaps de habilidades y recomendaciones para mejorar.
-      </p>
+      <h1 class="page-title">
+        {{ match() ? i18n.t('jobMatch.detailTitle') : i18n.t('jobMatch.listTitle') }}
+      </h1>
+      <p class="page-sub">{{ i18n.t('jobMatch.subtitle') }}</p>
     </div>
     <div class="actions">
       @if (match()) {
-        <a class="link" routerLink="/job-match">Ver historial</a>
+        <a class="btn btn--secondary btn--small" routerLink="/job-match">
+          {{ i18n.t('jobMatch.viewHistory') }}
+        </a>
       }
-      <a class="link" routerLink="/dashboard">Volver al dashboard</a>
     </div>
   </header>
 
   @if (errorMessage()) {
-    <p class="error" role="alert">{{ errorMessage() }}</p>
+    <p class="alert alert--error" role="alert">{{ errorMessage() }}</p>
   }
 
   @if (loading()) {
-    <p class="muted">Cargando…</p>
+    <p class="muted">{{ i18n.t('common.loading') }}</p>
   }
 
   @if (!loading() && match(); as current) {
     <section class="card score-card">
       <div class="score-summary">
-        <div class="score-badge">{{ current.overallScore }}<span>%</span></div>
+        <div class="score-badge">
+          {{ current.overallScore }}<span>%</span>
+        </div>
         <div class="score-text">
-          <h2>Puntaje general</h2>
+          <h2>{{ i18n.t('jobMatch.overallScore') }}</h2>
           <p>{{ current.overallJustification }}</p>
         </div>
       </div>
 
       @if (current.stale) {
-        <div class="stale-banner" role="status">
-          <p>
-            Tu perfil cambió desde que se calculó este resultado. Recalculalo
-            para ver el encaje actual.
-          </p>
+        <div class="alert alert--info stale-banner" role="status">
+          <p>{{ i18n.t('jobMatch.staleText') }}</p>
           <button
             type="button"
+            class="btn btn--primary btn--small"
             [disabled]="recomputing()"
             (click)="recompute()"
           >
-            {{ recomputing() ? 'Recalculando…' : 'Recalcular' }}
+            {{ recomputing() ? i18n.t('jobMatch.recomputing') : i18n.t('jobMatch.recompute') }}
           </button>
         </div>
       }
@@ -56,18 +52,16 @@
       @if (current.jobOfferId) {
         <div class="adapt-row">
           <div>
-            <strong>CV para esta oferta</strong>
-            <p class="muted">
-              Generá una versión de tu CV adaptada a la posición y al idioma de
-              la oferta.
-            </p>
+            <strong>{{ i18n.t('jobMatch.adaptTitle') }}</strong>
+            <p class="muted">{{ i18n.t('jobMatch.adaptHint') }}</p>
           </div>
           <button
             type="button"
+            class="btn btn--primary"
             [disabled]="adapting()"
             (click)="adaptCv()"
           >
-            {{ adapting() ? 'Generando…' : 'Adaptar CV' }}
+            {{ adapting() ? i18n.t('jobMatch.adapting') : i18n.t('jobMatch.adaptCv') }}
           </button>
         </div>
       }
@@ -75,23 +69,20 @@
 
     <section class="card">
       <header class="section-header">
-        <h2>Puntaje por dimensión</h2>
+        <h2>{{ i18n.t('jobMatch.byDimension') }}</h2>
       </header>
       @if (isNullScore(current)) {
-        <p class="muted">
-          No hay datos de habilidades, experiencia, educación ni idiomas en tu
-          perfil para puntuar.
-        </p>
+        <p class="muted">{{ i18n.t('jobMatch.noScoreData') }}</p>
       } @else {
         @for (dimension of current.dimensions; track dimension.key) {
           <div class="dimension">
             <div class="dimension-head">
-              <strong>{{ dimensionLabels[dimension.key] }}</strong>
+              <strong>{{ dimensionLabel(dimension.key) }}</strong>
               <span>
                 @if (dimension.score !== null) {
                   {{ dimension.score }}%
                 } @else {
-                  Sin datos
+                  {{ i18n.t('jobMatch.noData') }}
                 }
               </span>
             </div>
@@ -109,25 +100,25 @@
 
     <section class="card">
       <header class="section-header">
-        <h2>Diferencia de habilidades</h2>
-        <span class="muted">Según la oferta y tu perfil</span>
+        <h2>{{ i18n.t('jobMatch.gapsTitle') }}</h2>
+        <span class="muted">{{ i18n.t('jobMatch.gapsSubtitle') }}</span>
       </header>
       @if (current.gaps.length === 0) {
-        <p class="muted">No se detectaron gaps entre la oferta y tu perfil.</p>
+        <p class="muted">{{ i18n.t('jobMatch.noGaps') }}</p>
       } @else {
         <ul class="gap-list">
           @for (gap of current.gaps; track gap.name) {
             <li class="gap-item">
               <span
-                class="badge"
-                [class.status-have]="gap.status === 'HAVE'"
-                [class.status-missing]="gap.status === 'MISSING'"
-                [class.status-partial]="gap.status === 'PARTIAL'"
+                class="tag"
+                [class.tag--have]="gap.status === 'HAVE'"
+                [class.tag--missing]="gap.status === 'MISSING'"
+                [class.tag--partial]="gap.status === 'PARTIAL'"
               >
-                {{ gapStatusLabels[gap.status] }}
+                {{ gapStatusLabel(gap.status) }}
               </span>
               <strong>{{ gap.name }}</strong>
-              <span class="muted">{{ gapSourceLabels[gap.source] }}</span>
+              <span class="muted">{{ gapSourceLabel(gap.source) }}</span>
               @if (gap.note) {
                 <p class="gap-note">{{ gap.note }}</p>
               }
@@ -139,21 +130,21 @@
 
     <section class="card">
       <header class="section-header">
-        <h2>Recomendaciones</h2>
-        <span class="muted">Sugerencias de la IA, no se aplican solas</span>
+        <h2>{{ i18n.t('jobMatch.recommendationsTitle') }}</h2>
+        <span class="muted">{{ i18n.t('jobMatch.recommendationsSubtitle') }}</span>
       </header>
       @if (current.recommendations.length === 0) {
-        <p class="muted">La IA no generó recomendaciones.</p>
+        <p class="muted">{{ i18n.t('jobMatch.noRecommendations') }}</p>
       } @else {
         <ul class="recommendation-list">
           @for (item of current.recommendations; track $index) {
             <li class="recommendation-item">
               <span
-                class="badge"
-                [class.recommendation-skill]="item.type === 'SKILL'"
-                [class.recommendation-profile]="item.type === 'PROFILE'"
+                class="tag"
+                [class.tag--ai]="item.type === 'SKILL'"
+                [class.tag--profile]="item.type === 'PROFILE'"
               >
-                {{ item.type === 'SKILL' ? 'Habilidad' : 'Perfil' }}
+                {{ recommendationLabel(item.type) }}
               </span>
               <div>
                 <strong>{{ item.target }}</strong>
@@ -166,13 +157,13 @@
       <div class="danger-zone">
         <button
           type="button"
-          class="danger"
+          class="btn btn--danger btn--small"
           [disabled]="deleting()"
           (click)="deleteMatch(current.id)"
         >
-          {{ deleting() ? 'Eliminando…' : 'Eliminar este resultado' }}
+          {{ deleting() ? i18n.t('jobMatch.deleting') : i18n.t('jobMatch.deleteResult') }}
         </button>
-        <p class="muted">Borrar el match no borra la oferta guardada.</p>
+        <p class="muted">{{ i18n.t('jobMatch.deleteHint') }}</p>
       </div>
     </section>
   }
@@ -180,28 +171,30 @@
   @if (!loading() && !match()) {
     <section class="card">
       <header class="section-header">
-        <h2>Historial de análisis</h2>
+        <h2>{{ i18n.t('jobMatch.historyTitle') }}</h2>
       </header>
       @if (matches().length === 0) {
         <p class="muted">
-          Todavía no hay análisis de encaje. Analizá una oferta en
-          <a class="link" routerLink="/job-analysis">analizar ofertas</a> y usá
-          "Ver compatibilidad".
+          {{ i18n.t('jobMatch.emptyHistory') }}
+          <a class="btn-link" routerLink="/job-analysis">{{ i18n.t('nav.offers') }}</a>
         </p>
       } @else {
         <ul class="match-list">
           @for (item of matches(); track item.id) {
             <li class="match-item">
-              <a class="match-link" routerLink="/job-match/{{ item.id }}">
+              <a
+                class="list-row list-row--link"
+                routerLink="/job-match/{{ item.id }}"
+              >
                 <div class="match-main">
                   <strong>{{ formatDate(item.createdAt) }}</strong>
-                  <span class="muted">Puntaje global de encaje</span>
+                  <span class="muted">{{ i18n.t('jobMatch.scoreLabel') }}</span>
                 </div>
+                @if (item.stale) {
+                  <span class="tag tag--stale">{{ i18n.t('jobMatch.staleBadge') }}</span>
+                }
                 <span class="score-badge small">{{ item.overallScore }}%</span>
               </a>
-              @if (item.stale) {
-                <span class="badge status-missing">Perfil desactualizado</span>
-              }
             </li>
           }
         </ul>

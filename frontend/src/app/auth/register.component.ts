@@ -8,6 +8,7 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../core/auth.service';
 import { httpErrorMessage } from '../core/http-errors';
+import { I18nService } from '../core/i18n/i18n.service';
 
 @Component({
   selector: 'app-register',
@@ -16,6 +17,7 @@ import { httpErrorMessage } from '../core/http-errors';
   styleUrl: './register.component.scss',
 })
 export class RegisterComponent {
+  readonly i18n = inject(I18nService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
@@ -33,7 +35,7 @@ export class RegisterComponent {
 
   async onSubmit(): Promise<void> {
     if (this.form.invalid) {
-      this.errorMessage = 'Revisá los campos del formulario';
+      this.errorMessage = this.i18n.t('errors.badRequest');
       return;
     }
     this.submitting = true;
@@ -43,9 +45,8 @@ export class RegisterComponent {
       await this.auth.register(name!, email!, password!);
       await this.router.navigate(['/dashboard']);
     } catch (error) {
-      this.errorMessage = httpErrorMessage(
-        error,
-        'No se pudo crear la cuenta. Intentalo de nuevo.',
+      this.errorMessage = this.i18n.t(
+        httpErrorMessage(error, 'auth.register.error'),
       );
     } finally {
       this.submitting = false;

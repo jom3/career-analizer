@@ -1,24 +1,25 @@
 <section class="auth-page">
   <form [formGroup]="form" (ngSubmit)="onSubmit()" class="auth-card">
-    <h1>Crear cuenta</h1>
-    <p class="subtitle">Empezá a usar Career Analyzer</p>
+    <p class="eyebrow">{{ i18n.t('app.title') }}</p>
+    <h1>{{ i18n.t('auth.register.title') }}</h1>
+    <p class="subtitle">{{ i18n.t('auth.register.subtitle') }}</p>
 
     @if (errorMessage) {
-      <p class="error" role="alert">{{ errorMessage }}</p>
+      <p class="alert alert--error" role="alert">{{ errorMessage }}</p>
     }
 
     <label class="form-field">
-      Nombre
+      {{ i18n.t('auth.name') }}
       <input formControlName="name" type="text" autocomplete="name" />
     </label>
 
     <label class="form-field">
-      Email
+      {{ i18n.t('auth.email') }}
       <input formControlName="email" type="email" autocomplete="email" />
     </label>
 
     <label class="form-field">
-      Contraseña (mínimo 8 caracteres)
+      {{ i18n.t('auth.passwordHint') }}
       <input
         formControlName="password"
         type="password"
@@ -26,13 +27,13 @@
       />
     </label>
 
-    <button type="submit" [disabled]="submitting">
-      {{ submitting ? 'Creando…' : 'Crear cuenta' }}
+    <button type="submit" class="btn btn--primary btn--block" [disabled]="submitting">
+      {{ submitting ? i18n.t('auth.register.submitting') : i18n.t('auth.register.submit') }}
     </button>
 
     <p class="switch">
-      ¿Ya tenés cuenta?
-      <a routerLink="/auth/login">Ingresá</a>
+      {{ i18n.t('auth.register.switchHint') }}
+      <a routerLink="/auth/login">{{ i18n.t('auth.register.switchLink') }}</a>
     </p>
   </form>
 </section>

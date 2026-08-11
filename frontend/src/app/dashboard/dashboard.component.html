@@ -1,16 +1,101 @@
 <section class="dashboard">
-  <header>
-    <h1>Hola, {{ user()?.name }}</h1>
-    <button type="button" (click)="logout()">Cerrar sesión</button>
+  <header class="page-head">
+    <div>
+      <h1 class="page-title">{{ i18n.t('dashboard.title') }}</h1>
+      <p class="page-sub">
+        {{ i18n.t('dashboard.subtitle') }}
+        <strong>{{ user()?.name }}</strong>
+      </p>
+    </div>
   </header>
-  <p class="email">{{ user()?.email }}</p>
-  <p class="muted">Tu sesión está activa.</p>
-  <nav class="nav">
-    <a routerLink="/profile">Editar mi perfil profesional</a>
-    <a routerLink="/cv-import">Importar mi CV</a>
-    <a routerLink="/job-analysis">Analizar ofertas de trabajo</a>
-    <a routerLink="/job-match">Ver análisis de encaje</a>
-    <a routerLink="/cv-adaptation">Ver CV adaptados</a>
-    <a routerLink="/cover-letter">Ver cartas de motivación</a>
-  </nav>
+
+  @if (errorMessage()) {
+    <p class="alert alert--error" role="alert">{{ errorMessage() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="muted">{{ i18n.t('common.loading') }}</p>
+  } @else {
+    <section class="card">
+      <header class="section-header">
+        <h2>{{ i18n.t('dashboard.profileTitle') }}</h2>
+      </header>
+      <div class="completeness">
+        <div class="bar">
+          <div
+            class="bar-fill"
+            [style.width.%]="profileCompleteness()"
+          ></div>
+        </div>
+        <span class="score">
+          {{ profileCompleteness() }}% {{ i18n.t('dashboard.complete') }}
+        </span>
+      </div>
+      @if (profileCompleteness() < 100) {
+        <p class="muted">{{ i18n.t('dashboard.profileHint') }}</p>
+      } @else {
+        <p class="muted">{{ i18n.t('dashboard.profileComplete') }}</p>
+      }
+      <div class="cta">
+        <a class="btn btn--primary" routerLink="/profile">
+          {{ i18n.t('dashboard.editProfile') }}
+        </a>
+        <a class="btn btn--secondary" routerLink="/cv-import">
+          {{ i18n.t('dashboard.importCv') }}
+        </a>
+      </div>
+    </section>
+
+    <section class="card">
+      <header class="section-header">
+        <h2>{{ i18n.t('dashboard.offersTitle') }}</h2>
+        <span class="eyebrow">{{ offersCount() }}</span>
+      </header>
+      @if (offersCount() === 0) {
+        <p class="muted">{{ i18n.t('dashboard.offersEmpty') }}</p>
+        <a class="btn btn--secondary btn--small" routerLink="/job-analysis">
+          {{ i18n.t('dashboard.analyzeOffer') }}
+        </a>
+      } @else {
+        <p class="muted">{{ i18n.t('dashboard.offersCount') }} {{ offersCount() }}</p>
+        <a class="btn-link" routerLink="/job-analysis">{{ i18n.t('nav.offers') }}</a>
+      }
+    </section>
+
+    <section class="card">
+      <header class="section-header">
+        <h2>{{ i18n.t('dashboard.matchesTitle') }}</h2>
+        <span class="eyebrow">{{ matchesCount() }}</span>
+      </header>
+      @if (matchesCount() === 0) {
+        <p class="muted">{{ i18n.t('dashboard.matchesEmpty') }}</p>
+        <a class="btn btn--secondary btn--small" routerLink="/job-analysis">
+          {{ i18n.t('dashboard.checkFit') }}
+        </a>
+      } @else {
+        <p class="muted">{{ i18n.t('dashboard.matchesCount') }} {{ matchesCount() }}</p>
+        <a class="btn-link" routerLink="/job-match">{{ i18n.t('nav.match') }}</a>
+      }
+    </section>
+
+    <section class="card">
+      <header class="section-header">
+        <h2>{{ i18n.t('dashboard.documentsTitle') }}</h2>
+        <span class="eyebrow">{{ adaptedCvsCount() + lettersCount() }}</span>
+      </header>
+      @if (adaptedCvsCount() + lettersCount() === 0) {
+        <p class="muted">{{ i18n.t('dashboard.documentsEmpty') }}</p>
+        <a class="btn btn--secondary btn--small" routerLink="/job-analysis">
+          {{ i18n.t('dashboard.generateCv') }}
+        </a>
+      } @else {
+        <p class="muted">
+          {{ adaptedCvsCount() }} {{ i18n.t('dashboard.adaptedCvs') }} ·
+          {{ lettersCount() }} {{ i18n.t('dashboard.letters') }}
+        </p>
+        <a class="btn-link" routerLink="/cv-adaptation">{{ i18n.t('nav.adaptedCv') }}</a>
+        <a class="btn-link" routerLink="/cover-letter">{{ i18n.t('nav.coverLetter') }}</a>
+      }
+    </section>
+  }
 </section>

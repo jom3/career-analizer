@@ -2,27 +2,21 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CvAdaptationService } from '../core/cv-adaptation.service';
+import { I18nService } from '../core/i18n/i18n.service';
 import { JobMatchService } from '../core/job-match.service';
-import type { JobMatch, JobMatchGap } from '../core/models/job-match';
+import type {
+  DimensionKey,
+  JobMatch,
+  JobMatchGap,
+  JobMatchRecommendation,
+} from '../core/models/job-match';
 
-const DIMENSION_LABELS: Record<string, string> = {
-  skills: 'Habilidades',
-  experience: 'Experiencia',
-  education: 'Educación',
-  languages: 'Idiomas',
-};
-
-const GAP_STATUS_LABELS: Record<JobMatchGap['status'], string> = {
-  HAVE: 'La tenés',
-  MISSING: 'Falta',
-  PARTIAL: 'Parcial',
-};
-
-const GAP_SOURCE_LABELS: Record<JobMatchGap['source'], string> = {
-  REQUIRED: 'Requerida',
-  PREFERRED: 'Preferida',
-  OTHER: 'En la oferta',
-};
+const DIMENSION_KEYS: DimensionKey[] = [
+  'skills',
+  'experience',
+  'education',
+  'languages',
+];
 
 @Component({
   selector: 'app-job-match',
@@ -31,6 +25,7 @@ const GAP_SOURCE_LABELS: Record<JobMatchGap['source'], string> = {
   styleUrl: './job-match.component.scss',
 })
 export class JobMatchComponent implements OnInit {
+  readonly i18n = inject(I18nService);
   private readonly jobMatchService = inject(JobMatchService);
   private readonly cvAdaptationService = inject(CvAdaptationService);
   private readonly route = inject(ActivatedRoute);
@@ -44,9 +39,23 @@ export class JobMatchComponent implements OnInit {
   readonly deleting = signal(false);
   readonly adapting = signal(false);
 
-  readonly dimensionLabels = DIMENSION_LABELS;
-  readonly gapStatusLabels = GAP_STATUS_LABELS;
-  readonly gapSourceLabels = GAP_SOURCE_LABELS;
+  readonly dimensionKeys = DIMENSION_KEYS;
+
+  dimensionLabel(key: DimensionKey): string {
+    return this.i18n.t(`jobMatch.dimension.${key}`);
+  }
+
+  gapStatusLabel(status: JobMatchGap['status']): string {
+    return this.i18n.t(`jobMatch.gap.${status}`);
+  }
+
+  gapSourceLabel(source: JobMatchGap['source']): string {
+    return this.i18n.t(`jobMatch.source.${source}`);
+  }
+
+  recommendationLabel(type: JobMatchRecommendation['type']): string {
+    return this.i18n.t(`jobMatch.recommendation.${type}`);
+  }
 
   async ngOnInit(): Promise<void> {
     const id = this.route.snapshot.paramMap.get('id');
@@ -96,7 +105,7 @@ export class JobMatchComponent implements OnInit {
   }
 
   async deleteMatch(id: string): Promise<void> {
-    if (!window.confirm('¿Eliminar este resultado del historial?')) return;
+    if (!window.confirm(this.i18n.t('jobMatch.confirmDelete'))) return;
     this.deleting.set(true);
     this.errorMessage.set('');
     try {
@@ -133,7 +142,8 @@ export class JobMatchComponent implements OnInit {
 
   formatDate(value: string): string {
     const date = new Date(value);
-    return date.toLocaleDateString('es-AR');
+    const locale = this.i18n.is('en') ? 'en-US' : 'es-AR';
+    return date.toLocaleDateString(locale);
   }
 
   private messageFor(error: unknown): string {
@@ -148,10 +158,12 @@ export class JobMatchComponent implements OnInit {
         return backendMessage.join(', ');
       }
       if (error.status === 0) {
-        return 'No se pudo conectar con el servidor (posible bloqueo CORS).';
+        return this.i18n.t('jobMatch.errorCors');
       }
-      return `Error del servidor (${error.status}). Intentalo de nuevo.`;
+      return this.i18n
+        .t('jobMatch.errorServer')
+        .replace('{status}', String(error.status));
     }
-    return 'No se pudo completar la operación. Intentalo de nuevo.';
+    return this.i18n.t('jobMatch.errorGeneric');
   }
 }

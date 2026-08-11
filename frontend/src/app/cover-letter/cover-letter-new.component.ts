@@ -7,6 +7,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { I18nService } from '../core/i18n/i18n.service';
 import { JobAnalysisService } from '../core/job-analysis.service';
 import type { JobOffer } from '../core/models/job-analysis';
 import { CoverLetterService } from './cover-letter.service';
@@ -18,6 +19,7 @@ import { CoverLetterService } from './cover-letter.service';
   styleUrl: './cover-letter-new.component.scss',
 })
 export class CoverLetterNewComponent implements OnInit {
+  readonly i18n = inject(I18nService);
   private readonly coverLetterService = inject(CoverLetterService);
   private readonly jobAnalysisService = inject(JobAnalysisService);
   private readonly route = inject(ActivatedRoute);
@@ -92,7 +94,7 @@ export class CoverLetterNewComponent implements OnInit {
     const jobOfferId = this.jobOfferId();
     const content = this.draftContent().trim();
     if (!jobOfferId || !content) {
-      this.errorMessage.set('Generá un borrador antes de guardar.');
+      this.errorMessage.set(this.i18n.t('coverLetter.needDraft'));
       return;
     }
     this.saving.set(true);
@@ -129,10 +131,12 @@ export class CoverLetterNewComponent implements OnInit {
         return backendMessage.join(', ');
       }
       if (error.status === 0) {
-        return 'No se pudo conectar con el servidor (posible bloqueo CORS). Abrí el frontend en http://localhost:4200 y verificá que el backend corra en el puerto 3000.';
+        return this.i18n.t('coverLetter.errorCors');
       }
-      return `Error del servidor (${error.status}). Intentalo de nuevo.`;
+      return this.i18n
+        .t('coverLetter.errorServer')
+        .replace('{status}', String(error.status));
     }
-    return 'No se pudo completar la operación. Intentalo de nuevo.';
+    return this.i18n.t('coverLetter.errorGeneric');
   }
 }

@@ -7,8 +7,9 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { CvAdaptationService } from '../core/cv-adaptation.service';
+import { I18nService } from '../core/i18n/i18n.service';
 import { JobAnalysisService } from '../core/job-analysis.service';
 import { JobMatchService } from '../core/job-match.service';
 import type {
@@ -96,11 +97,12 @@ function buildForm(draft?: JobOfferDraft | null): FormGroup<JobOfferForm> {
 
 @Component({
   selector: 'app-job-analysis',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule],
   templateUrl: './job-analysis.component.html',
   styleUrl: './job-analysis.component.scss',
 })
 export class JobAnalysisComponent implements OnInit {
+  readonly i18n = inject(I18nService);
   private readonly jobAnalysisService = inject(JobAnalysisService);
   private readonly jobMatchService = inject(JobMatchService);
   private readonly cvAdaptationService = inject(CvAdaptationService);
@@ -157,44 +159,44 @@ export class JobAnalysisComponent implements OnInit {
 
   readonly listSections: {
     key: keyof DraftArrayFields;
-    label: string;
-    itemLabel: string;
+    labelKey: string;
+    itemLabelKey: string;
     array: FormArray<FormControl<string>>;
   }[] = [
     {
       key: 'responsibilities',
-      label: 'Responsabilidades',
-      itemLabel: 'Responsabilidad',
+      labelKey: 'jobAnalysis.responsibilities',
+      itemLabelKey: 'jobAnalysis.responsibility',
       array: this.responsibilities,
     },
     {
       key: 'requiredSkills',
-      label: 'Habilidades requeridas',
-      itemLabel: 'Habilidad',
+      labelKey: 'jobAnalysis.requiredSkills',
+      itemLabelKey: 'jobAnalysis.skill',
       array: this.requiredSkills,
     },
     {
       key: 'preferredSkills',
-      label: 'Habilidades preferidas',
-      itemLabel: 'Habilidad',
+      labelKey: 'jobAnalysis.preferredSkills',
+      itemLabelKey: 'jobAnalysis.skill',
       array: this.preferredSkills,
     },
     {
       key: 'education',
-      label: 'Educación',
-      itemLabel: 'Requisito',
+      labelKey: 'jobAnalysis.education',
+      itemLabelKey: 'jobAnalysis.educationRequirement',
       array: this.education,
     },
     {
       key: 'languages',
-      label: 'Idiomas',
-      itemLabel: 'Idioma',
+      labelKey: 'jobAnalysis.languages',
+      itemLabelKey: 'jobAnalysis.language',
       array: this.languages,
     },
     {
       key: 'keywords',
-      label: 'Palabras clave',
-      itemLabel: 'Palabra',
+      labelKey: 'jobAnalysis.keywords',
+      itemLabelKey: 'jobAnalysis.keyword',
       array: this.keywords,
     },
   ];
@@ -247,7 +249,7 @@ export class JobAnalysisComponent implements OnInit {
   async analyzeText(): Promise<void> {
     const text = this.textInput().trim();
     if (!text) {
-      this.errorMessage.set('Pegá el texto de la oferta antes de analizar.');
+      this.errorMessage.set(this.i18n.t('jobAnalysis.analyzeError'));
       return;
     }
     await this.runAnalysis(() => this.jobAnalysisService.analyzeText(text));
@@ -255,7 +257,7 @@ export class JobAnalysisComponent implements OnInit {
 
   async onSave(): Promise<void> {
     if (this.form.invalid) {
-      this.errorMessage.set('Completá el título de la oferta antes de guardar.');
+      this.errorMessage.set(this.i18n.t('jobAnalysis.saveErrorTitle'));
       return;
     }
     this.saving.set(true);
@@ -273,8 +275,8 @@ export class JobAnalysisComponent implements OnInit {
       await this.loadHistory();
       this.savedMessage.set(
         editingId
-          ? 'La oferta se actualizó correctamente.'
-          : 'La oferta se guardó en tu historial.',
+          ? this.i18n.t('jobAnalysis.savedUpdated')
+          : this.i18n.t('jobAnalysis.savedCreated'),
       );
     } catch (error) {
       this.errorMessage.set(this.messageFor(error));
@@ -321,7 +323,7 @@ export class JobAnalysisComponent implements OnInit {
 
   async saveAndMatch(): Promise<void> {
     if (this.form.invalid) {
-      this.errorMessage.set('Completá el título de la oferta antes de continuar.');
+      this.errorMessage.set(this.i18n.t('jobAnalysis.continueError'));
       return;
     }
     this.saving.set(true);
@@ -335,7 +337,7 @@ export class JobAnalysisComponent implements OnInit {
         : await this.jobAnalysisService.create(payload);
       this.resetPreview();
       await this.loadHistory();
-      this.savedMessage.set('La oferta se guardó. Calculando compatibilidad…');
+      this.savedMessage.set(this.i18n.t('jobAnalysis.savedMatching'));
       await this.runMatch(() =>
         this.jobMatchService.create({ jobOfferId: saved.id }),
       );
@@ -348,7 +350,7 @@ export class JobAnalysisComponent implements OnInit {
 
   async matchWithoutSaving(): Promise<void> {
     if (this.form.invalid) {
-      this.errorMessage.set('Completá el título de la oferta antes de continuar.');
+      this.errorMessage.set(this.i18n.t('jobAnalysis.continueError'));
       return;
     }
     await this.runMatch(() =>
@@ -373,7 +375,7 @@ export class JobAnalysisComponent implements OnInit {
   }
 
   async deleteOffer(id: string): Promise<void> {
-    if (!window.confirm('¿Eliminar esta oferta de tu historial?')) {
+    if (!window.confirm(this.i18n.t('jobAnalysis.confirmDelete'))) {
       return;
     }
     this.deletingId.set(id);
@@ -511,9 +513,6 @@ export class JobAnalysisComponent implements OnInit {
   private messageFor(error: unknown): string {
     console.error('job-analysis request failed:', error);
     if (error instanceof HttpErrorResponse) {
-      if (error.status === 413) {
-        return 'El archivo supera el límite de 10 MB.';
-      }
       const backendMessage = (error.error as { message?: string | string[] })
         ?.message;
       if (typeof backendMessage === 'string' && backendMessage.length > 0) {
@@ -522,11 +521,16 @@ export class JobAnalysisComponent implements OnInit {
       if (Array.isArray(backendMessage) && backendMessage.length > 0) {
         return backendMessage.join(', ');
       }
-      if (error.status === 0) {
-        return 'No se pudo conectar con el servidor (posible bloqueo CORS). Abrí el frontend en http://localhost:4200 y verificá que el backend corra en el puerto 3000.';
+      if (error.status === 413) {
+        return this.i18n.t('jobAnalysis.error413');
       }
-      return `Error del servidor (${error.status}). Intentalo de nuevo.`;
+      if (error.status === 0) {
+        return this.i18n.t('jobAnalysis.errorCors');
+      }
+      return this.i18n
+        .t('jobAnalysis.errorServer')
+        .replace('{status}', String(error.status));
     }
-    return 'No se pudo completar la operación. Intentalo de nuevo.';
+    return this.i18n.t('jobAnalysis.errorGeneric');
   }
 }

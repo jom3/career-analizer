@@ -1,71 +1,57 @@
 <section class="cv-adaptation-page">
-  <header class="page-header">
+  <header class="page-head">
     <div>
-      @if (version()) {
-        <h1>CV adaptado</h1>
-      } @else {
-        <h1>Mis CV adaptados</h1>
-      }
-      <p class="subtitle">
-        Versiones de tu CV ajustadas a cada oferta, generadas por IA según tu
-        perfil, sin inventar información.
-      </p>
+      <h1 class="page-title">
+        {{ version() ? i18n.t('cvAdapt.detailTitle') : i18n.t('cvAdapt.listTitle') }}
+      </h1>
+      <p class="page-sub">{{ i18n.t('cvAdapt.subtitle') }}</p>
     </div>
     <div class="actions">
       @if (version()) {
-        <a class="link" routerLink="/cv-adaptation">Ver historial</a>
+        <a class="btn btn--secondary btn--small" routerLink="/cv-adaptation">
+          {{ i18n.t('cvAdapt.viewHistory') }}
+        </a>
       }
-      <a class="link" routerLink="/dashboard">Volver al dashboard</a>
     </div>
   </header>
 
   @if (errorMessage()) {
-    <p class="error" role="alert">{{ errorMessage() }}</p>
+    <p class="alert alert--error" role="alert">{{ errorMessage() }}</p>
   }
 
   @if (loading()) {
-    <p class="muted">Cargando…</p>
+    <p class="muted">{{ i18n.t('common.loading') }}</p>
   }
 
   @if (!loading() && version(); as current) {
-    <section class="card cv-section">
+    <article class="card cv-section">
       <header class="section-header">
-        <h2>Tu CV para esta oferta</h2>
-        <span class="badge tag-ai">Adaptado por IA</span>
+        <h2>{{ i18n.t('cvAdapt.offerTitle') }}</h2>
+        <span class="tag tag--ai">{{ i18n.t('cvAdapt.aiTag') }}</span>
       </header>
-      <p class="muted">
-        Adaptado al idioma de la oferta, con foco en lo que pide. Los campos
-        estructurales (empresas, estudios, skills) provienen de tu perfil; la IA
-        solo reformula la redacción.
-      </p>
-    </section>
+      <p class="muted">{{ i18n.t('cvAdapt.aiNote') }}</p>
+    </article>
 
     @if (current.stale) {
-      <div class="stale-banner" role="status">
-        <p>
-          Tu perfil cambió desde que se generó este CV. Regeneralo para que
-          refleje la información actual.
-        </p>
+      <div class="alert alert--info stale-banner" role="status">
+        <p>{{ i18n.t('cvAdapt.staleText') }}</p>
         <button
           type="button"
+          class="btn btn--primary btn--small"
           [disabled]="regenerating() || !current.jobOfferId"
           (click)="regenerate()"
         >
-          {{ regenerating() ? 'Generando…' : 'Generar nueva versión' }}
+          {{ regenerating() ? i18n.t('cvAdapt.generating') : i18n.t('cvAdapt.regenerate') }}
         </button>
       </div>
       @if (!current.jobOfferId) {
-        <p class="muted">
-          La oferta original ya no está disponible, así que no se puede
-          regenerar desde aquí. Creá una nueva desde "Adaptar CV" en el análisis
-          de una oferta.
-        </p>
+        <p class="muted">{{ i18n.t('cvAdapt.staleNoOffer') }}</p>
       }
     }
 
     <section class="card cv-section">
       <header class="section-header">
-        <h2>Perfil</h2>
+        <h2>{{ i18n.t('profile.personalInfo') }}</h2>
       </header>
       @if (current.content.headline) {
         <p class="headline">{{ current.content.headline }}</p>
@@ -88,16 +74,18 @@
         }
       </p>
       @if (current.sourceLanguage) {
-        <p class="muted">Idioma del documento: {{ current.sourceLanguage }}</p>
+        <p class="muted">
+          {{ i18n.t('cvAdapt.documentLang') }} {{ current.sourceLanguage }}
+        </p>
       }
     </section>
 
     <section class="card cv-section">
       <header class="section-header">
-        <h2>Experiencia</h2>
+        <h2>{{ i18n.t('profile.experience') }}</h2>
       </header>
       @if (current.content.experiences.length === 0) {
-        <p class="muted">Sin experiencia registrada.</p>
+        <p class="muted">{{ i18n.t('cvAdapt.emptyExperience') }}</p>
       } @else {
         <ul class="entry-list">
           @for (item of current.content.experiences; track item.originalId) {
@@ -122,10 +110,10 @@
 
     <section class="card cv-section">
       <header class="section-header">
-        <h2>Proyectos</h2>
+        <h2>{{ i18n.t('profile.projects') }}</h2>
       </header>
       @if (current.content.projects.length === 0) {
-        <p class="muted">Sin proyectos registrados.</p>
+        <p class="muted">{{ i18n.t('cvAdapt.emptyProjects') }}</p>
       } @else {
         <ul class="entry-list">
           @for (item of current.content.projects; track item.originalId) {
@@ -138,7 +126,9 @@
                 <p>{{ item.description }}</p>
               }
               @if (item.techStack.length > 0) {
-                <p class="muted">Tecnologías: {{ item.techStack.join(', ') }}</p>
+                <p class="muted">
+                  {{ i18n.t('cvAdapt.techStack') }} {{ item.techStack.join(', ') }}
+                </p>
               }
               @if (item.metrics.length > 0) {
                 <ul class="metric-list">
@@ -155,14 +145,14 @@
 
     <section class="card cv-section">
       <header class="section-header">
-        <h2>Habilidades</h2>
+        <h2>{{ i18n.t('profile.skills') }}</h2>
       </header>
       @if (current.content.skills.length === 0) {
-        <p class="muted">Sin habilidades registradas.</p>
+        <p class="muted">{{ i18n.t('cvAdapt.emptySkills') }}</p>
       } @else {
         <ul class="skill-list">
           @for (item of current.content.skills; track item.name) {
-            <li class="badge">{{ item.name }}</li>
+            <li><span class="tag tag--skill">{{ item.name }}</span></li>
           }
         </ul>
       }
@@ -170,10 +160,10 @@
 
     <section class="card cv-section">
       <header class="section-header">
-        <h2>Educación</h2>
+        <h2>{{ i18n.t('profile.education') }}</h2>
       </header>
       @if (current.content.education.length === 0) {
-        <p class="muted">Sin educación registrada.</p>
+        <p class="muted">{{ i18n.t('cvAdapt.emptyEducation') }}</p>
       } @else {
         <ul class="entry-list">
           @for (item of current.content.education; track item.originalId) {
@@ -194,10 +184,10 @@
 
     <section class="card cv-section">
       <header class="section-header">
-        <h2>Certificaciones</h2>
+        <h2>{{ i18n.t('profile.certifications') }}</h2>
       </header>
       @if (current.content.certifications.length === 0) {
-        <p class="muted">Sin certificaciones registradas.</p>
+        <p class="muted">{{ i18n.t('cvAdapt.emptyCertifications') }}</p>
       } @else {
         <ul class="entry-list">
           @for (item of current.content.certifications; track item.originalId) {
@@ -217,14 +207,18 @@
 
     <section class="card cv-section">
       <header class="section-header">
-        <h2>Idiomas</h2>
+        <h2>{{ i18n.t('profile.languages') }}</h2>
       </header>
       @if (current.content.languages.length === 0) {
-        <p class="muted">Sin idiomas registrados.</p>
+        <p class="muted">{{ i18n.t('cvAdapt.emptyLanguages') }}</p>
       } @else {
         <ul class="skill-list">
           @for (item of current.content.languages; track item.originalId) {
-            <li class="badge">{{ item.name }} · {{ item.level }}</li>
+            <li>
+              <span class="tag tag--skill">
+                {{ item.name }} · {{ item.level }}
+              </span>
+            </li>
           }
         </ul>
       }
@@ -232,77 +226,75 @@
 
     <section class="card cv-section">
       <header class="section-header">
-        <h2>Descargar</h2>
+        <h2>{{ i18n.t('cvAdapt.download') }}</h2>
       </header>
       <div class="download-actions">
         <button
           type="button"
+          class="btn btn--secondary"
           [disabled]="exporting() !== null"
           (click)="exportCv('pdf')"
         >
-          {{ exporting() === 'pdf' ? 'Generando…' : 'Descargar PDF' }}
+          {{ exporting() === 'pdf' ? i18n.t('cvAdapt.generating') : i18n.t('cvAdapt.pdf') }}
         </button>
         <button
           type="button"
+          class="btn btn--secondary"
           [disabled]="exporting() !== null"
           (click)="exportCv('docx')"
         >
-          {{ exporting() === 'docx' ? 'Generando…' : 'Descargar DOCX' }}
+          {{ exporting() === 'docx' ? i18n.t('cvAdapt.generating') : i18n.t('cvAdapt.docx') }}
         </button>
         @if (current.jobOfferId) {
           <button
             type="button"
+            class="btn btn--primary"
             [disabled]="regenerating()"
             (click)="regenerate()"
           >
-            {{ regenerating() ? 'Generando…' : 'Generar nueva versión' }}
+            {{ regenerating() ? i18n.t('cvAdapt.generating') : i18n.t('cvAdapt.regenerate') }}
           </button>
         }
       </div>
-      <p class="muted">
-        Según lo define el producto, el archivo exportado se marca como
-        "Adaptado por IA" para diferenciarlo de tu CV original.
-      </p>
+      <p class="muted">{{ i18n.t('cvAdapt.exportNote') }}</p>
     </section>
 
     <div class="danger-zone">
       <button
         type="button"
-        class="danger"
+        class="btn btn--danger btn--small"
         [disabled]="deleting()"
         (click)="deleteVersion(current.id)"
       >
-        {{ deleting() ? 'Eliminando…' : 'Eliminar este CV adaptado' }}
+        {{ deleting() ? i18n.t('cvAdapt.deleting') : i18n.t('cvAdapt.delete') }}
       </button>
-      <p class="muted">Borrar la versión no modifica tu perfil original.</p>
+      <p class="muted">{{ i18n.t('cvAdapt.deleteHint') }}</p>
     </div>
   }
 
   @if (!loading() && !version()) {
     <section class="card">
       <header class="section-header">
-        <h2>Historial de CV adaptados</h2>
+        <h2>{{ i18n.t('cvAdapt.historyTitle') }}</h2>
       </header>
       @if (versions().length === 0) {
-        <p class="muted">
-          Todavía no hay CV adaptados. Analizá una oferta y usá
-          <a class="link" routerLink="/job-analysis">analizar ofertas</a> o
-          <a class="link" routerLink="/job-match">análisis de encaje</a> para
-          generar uno.
-        </p>
+        <p class="muted">{{ i18n.t('cvAdapt.emptyHistory') }}</p>
       } @else {
-        <ul class="match-list">
+        <ul class="list">
           @for (item of versions(); track item.id) {
-            <li class="match-item">
-              <a class="match-link" routerLink="/cv-adaptation/{{ item.id }}">
-                <div class="match-main">
+            <li class="list-row list-row--link">
+              <a
+                class="list-row__link"
+                routerLink="/cv-adaptation/{{ item.id }}"
+              >
+                <span class="list-row__main">
                   <strong>{{ formatDate(item.createdAt) }}</strong>
-                  <span class="muted">CV adaptado para una oferta</span>
-                </div>
-                <span class="badge tag-ai">Adaptado por IA</span>
+                  <span class="muted">{{ i18n.t('cvAdapt.listLabel') }}</span>
+                </span>
+                <span class="tag tag--ai">{{ i18n.t('cvAdapt.aiTag') }}</span>
               </a>
               @if (item.stale) {
-                <span class="badge status-missing">Perfil desactualizado</span>
+                <span class="tag tag--stale">{{ i18n.t('cvAdapt.staleBadge') }}</span>
               }
             </li>
           }

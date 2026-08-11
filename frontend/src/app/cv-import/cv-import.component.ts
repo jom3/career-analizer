@@ -1,9 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormArray, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CvImportService } from '../core/cv-import.service';
 import type { AtsCheckItem } from '../core/models/cv-import';
+import { I18nService } from '../core/i18n/i18n.service';
 import {
   CEFR_LEVELS,
   SKILL_LEVELS,
@@ -29,11 +30,12 @@ import { ProfileService } from '../core/profile.service';
 
 @Component({
   selector: 'app-cv-import',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule],
   templateUrl: './cv-import.component.html',
   styleUrl: './cv-import.component.scss',
 })
 export class CvImportComponent implements OnInit {
+  readonly i18n = inject(I18nService);
   private readonly cvImportService = inject(CvImportService);
   private readonly profileService = inject(ProfileService);
   private readonly route = inject(ActivatedRoute);
@@ -156,9 +158,7 @@ export class CvImportComponent implements OnInit {
 
   async onConfirm(): Promise<void> {
     if (this.form.invalid) {
-      this.errorMessage.set(
-        'Completá los campos obligatorios marcados antes de confirmar.',
-      );
+      this.errorMessage.set(this.i18n.t('cvImport.confirmError'));
       return;
     }
     this.saving.set(true);
@@ -216,15 +216,6 @@ export class CvImportComponent implements OnInit {
 
   private messageFor(error: unknown): string {
     if (error instanceof HttpErrorResponse) {
-      if (error.status === 404) {
-        return 'El borrador ya no existe. Subí el CV nuevamente.';
-      }
-      if (error.status === 413) {
-        return 'El archivo supera el límite de 10 MB.';
-      }
-      if (error.status === 422) {
-        return 'No se pudo extraer texto del archivo. Puede ser un PDF escaneado sin capa de texto.';
-      }
       const backendMessage = (error.error as { message?: string | string[] })
         ?.message;
       if (typeof backendMessage === 'string' && backendMessage.length > 0) {
@@ -233,10 +224,19 @@ export class CvImportComponent implements OnInit {
       if (Array.isArray(backendMessage) && backendMessage.length > 0) {
         return backendMessage.join(', ');
       }
+      if (error.status === 404) {
+        return this.i18n.t('cvImport.error404');
+      }
+      if (error.status === 422) {
+        return this.i18n.t('cvImport.error422');
+      }
+      if (error.status === 413) {
+        return this.i18n.t('cvImport.error413');
+      }
       if (error.status === 400) {
-        return 'El archivo debe ser PDF o DOCX y pesar menos de 10 MB.';
+        return this.i18n.t('cvImport.error400');
       }
     }
-    return 'No se pudo procesar el archivo. Intentalo de nuevo.';
+    return this.i18n.t('cvImport.errorGeneric');
   }
 }

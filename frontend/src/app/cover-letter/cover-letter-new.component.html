@@ -1,41 +1,35 @@
 <section class="cover-letter-page">
-  <header class="page-header">
+  <header class="page-head">
     <div>
-      <h1>Carta de motivación</h1>
-      <p class="subtitle">
-        Generá un borrador desde tu perfil y la oferta, revísalo y editalo antes
-        de guardarlo.
-      </p>
+      <h1 class="page-title">{{ i18n.t('coverLetter.newTitle') }}</h1>
+      <p class="page-sub">{{ i18n.t('coverLetter.newSubtitle') }}</p>
     </div>
     <div class="actions">
-      <a class="link" routerLink="/cover-letter">Ver historial</a>
-      <a class="link" routerLink="/dashboard">Volver al dashboard</a>
+      <a class="btn btn--secondary btn--small" routerLink="/cover-letter">
+        {{ i18n.t('coverLetter.viewHistory') }}
+      </a>
     </div>
   </header>
 
   @if (errorMessage()) {
-    <p class="error" role="alert">{{ errorMessage() }}</p>
+    <p class="alert alert--error" role="alert">{{ errorMessage() }}</p>
   }
 
   @if (!jobOfferId()) {
     <section class="card">
-      <h2>Elegí una oferta primero</h2>
-      <p class="muted">
-        La carta se genera para una postulación concreta. Guardá una oferta en
-        <a class="link" routerLink="/job-analysis">analizar ofertas</a> y, desde
-        su detalle, tocá "Carta de motivación".
-      </p>
+      <h2>{{ i18n.t('coverLetter.pickOfferTitle') }}</h2>
+      <p class="muted">{{ i18n.t('coverLetter.pickOfferHint') }}</p>
     </section>
   } @else {
     <section class="card">
       <header class="section-header">
-        <h2>Datos de la postulación</h2>
+        <h2>{{ i18n.t('coverLetter.applicationTitle') }}</h2>
         @if (offer(); as current) {
-          <span class="badge">{{ current.sourceLanguage }}</span>
+          <span class="tag">{{ current.sourceLanguage }}</span>
         }
       </header>
       @if (loadingOffer()) {
-        <p class="muted">Cargando la oferta…</p>
+        <p class="muted">{{ i18n.t('coverLetter.loadingOffer') }}</p>
       } @else if (offer(); as current) {
         <p class="muted">
           {{ current.title }}{{ current.company ? ' — ' + current.company : '' }}
@@ -43,32 +37,33 @@
       }
 
       <form [formGroup]="form" class="letter-form">
-        <label class="form-field">
-          Recruiter (opcional — si está vacío, el saludo es genérico)
+        <label class="form-field field-full">
+          {{ i18n.t('coverLetter.recruiter') }}
           <input
             formControlName="recruiterName"
             type="text"
             maxlength="120"
-            placeholder="María Pérez"
+            placeholder="{{ i18n.t('coverLetter.recruiterPlaceholder') }}"
           />
         </label>
-        <label class="form-field">
-          Nota libre (opcional)
+        <label class="form-field field-full">
+          {{ i18n.t('coverLetter.note') }}
           <textarea
             formControlName="note"
             rows="3"
             maxlength="2000"
-            placeholder="Dónde viste la vacante, disponibilidad, aclaraciones…"
+            placeholder="{{ i18n.t('coverLetter.notePlaceholder') }}"
           ></textarea>
         </label>
       </form>
       <div class="letter-actions">
         <button
           type="button"
+          class="btn btn--primary"
           [disabled]="generating() || !offer()"
           (click)="generateDraft()"
         >
-          {{ generating() ? 'Generando…' : 'Generar borrador' }}
+          {{ generating() ? i18n.t('coverLetter.generating') : i18n.t('coverLetter.generate') }}
         </button>
       </div>
     </section>
@@ -76,16 +71,15 @@
     @if (draftContent()) {
       <section class="card">
         <header class="section-header">
-          <h2>Revisá y editá la carta</h2>
-          <span class="badge tag-ai">Borrador por IA</span>
+          <h2>{{ i18n.t('coverLetter.draftTitle') }}</h2>
+          <span class="tag tag--ai">{{ i18n.t('coverLetter.draftAiTag') }}</span>
         </header>
         @if (draftLanguage()) {
-          <p class="muted">Idioma: {{ draftLanguage() }}</p>
+          <p class="muted">
+            {{ i18n.t('coverLetter.draftLanguage') }} {{ draftLanguage() }}
+          </p>
         }
-        <p class="muted">
-          El texto todavía no se guardó. Editá lo que quieras y tocá "Guardar
-          carta" cuando quede lista.
-        </p>
+        <p class="muted">{{ i18n.t('coverLetter.draftHint') }}</p>
         <textarea
           class="letter-editor"
           [value]="draftContent()"
@@ -95,10 +89,11 @@
         <div class="letter-actions">
           <button
             type="button"
+            class="btn btn--primary"
             [disabled]="saving() || !draftContent().trim()"
             (click)="save()"
           >
-            {{ saving() ? 'Guardando…' : 'Guardar carta' }}
+            {{ saving() ? i18n.t('coverLetter.saving') : i18n.t('coverLetter.save') }}
           </button>
         </div>
       </section>
