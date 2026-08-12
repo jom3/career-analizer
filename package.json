@@ -10,6 +10,11 @@
     "lint:all": "npm run lint --workspaces --if-present",
     "test:all": "npm run test --workspaces --if-present",
     "start:backend": "npm run start:dev -w career-analyzer-backend",
-    "start:frontend": "npm run start -w career-analyzer-frontend"
+    "start:frontend": "npm run start -w career-analyzer-frontend",
+    "docker:up": "docker compose -f docker-compose.yml up -d --build",
+    "docker:down": "docker compose -f docker-compose.yml down",
+    "docker:build": "docker compose -f docker-compose.yml build",
+    "docker:prod:up": "docker compose -f docker-compose.prod.yml up -d --build",
+    "docker:prod:down": "docker compose -f docker-compose.prod.yml down"
   }
 }
