@@ -118,6 +118,34 @@ Features should be developed incrementally. Large features should be divided int
 
 The README defines product context and principles; detailed behavior belongs in individual Specs.
 
+## Running with Docker
+
+Copy `.env.example` to `.env` and fill in the real values (secrets are never committed).
+
+**Development** (hot-reload, Postgres + NestJS watch + `ng serve`):
+
+```sh
+npm run docker:up
+# Frontend: http://localhost:4200  (proxy /api -> backend)
+# Backend:  http://localhost:3000
+```
+
+**Production** (multi-stage builds, nginx serving the SPA):
+
+```sh
+npm run docker:prod:up
+# Frontend: http://localhost:8080  (nginx proxies /api -> backend, single origin)
+```
+
+**Database migrations** are applied manually (no auto-migrate in containers):
+
+```sh
+docker compose exec backend npx prisma migrate deploy        # dev
+docker compose -f docker-compose.prod.yml exec backend npx prisma migrate deploy
+```
+
+Named volumes `pgdata` and `uploads` persist across `docker compose down` (without `-v`); `docker compose down -v` removes them explicitly.
+
 ## Technology Stack
 
 ### Backend

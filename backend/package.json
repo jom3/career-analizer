@@ -14,7 +14,7 @@
     "start:prod": "node dist/main",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "up:db": "docker compose -f docker-compose.yml up -d",
+    "up:db": "docker compose -f ../docker-compose.yml --project-directory .. up -d db",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "node --experimental-vm-modules ../node_modules/jest/bin/jest.js",
     "test:watch": "jest --watch",
