@@ -67,6 +67,13 @@ export const es: Record<string, string> = {
   'profile.saveError': 'No se pudo guardar el perfil. Intentalo de nuevo.',
   'profile.downloadError': 'No se pudo descargar el CV. Intentalo de nuevo.',
 
+  'profile.tabEs': 'Español',
+  'profile.tabEn': 'Inglés',
+  'profile.translateToEn': 'Traducir al inglés',
+  'profile.translateToEs': 'Traducir al español',
+  'profile.translating': 'Traduciendo…',
+  'profile.translateError': 'No se pudo traducir el perfil. Intentalo de nuevo.',
+
   'profile.personalInfo': 'Información personal',
   'profile.headline': 'Título profesional',
   'profile.phone': 'Teléfono',

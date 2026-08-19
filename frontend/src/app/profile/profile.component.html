@@ -21,6 +21,14 @@
       >
         {{ downloading() === 'docx' ? i18n.t('profile.generating') : i18n.t('profile.docx') }}
       </button>
+      <button
+        type="button"
+        class="btn btn--secondary"
+        (click)="onTranslate()"
+        [disabled]="translating() || loading()"
+      >
+        {{ translating() ? i18n.t('profile.translating') : i18n.t(translateButtonKey()) }}
+      </button>
       <button type="button" class="btn btn--primary" (click)="onSave()" [disabled]="saving()">
         {{ saving() ? i18n.t('profile.saving') : i18n.t('profile.save') }}
       </button>
@@ -38,6 +46,29 @@
     @if (saved()) {
       <p class="alert alert--success" role="status">{{ i18n.t('profile.saved') }}</p>
     }
+
+    <div class="lang-tabs" role="tablist">
+      <button
+        type="button"
+        class="lang-tab"
+        [class.lang-tab--active]="isActiveLang('es')"
+        role="tab"
+        [attr.aria-selected]="isActiveLang('es')"
+        (click)="onSelectLang('es')"
+      >
+        {{ i18n.t('profile.tabEs') }}
+      </button>
+      <button
+        type="button"
+        class="lang-tab"
+        [class.lang-tab--active]="isActiveLang('en')"
+        role="tab"
+        [attr.aria-selected]="isActiveLang('en')"
+        (click)="onSelectLang('en')"
+      >
+        {{ i18n.t('profile.tabEn') }}
+      </button>
+    </div>
 
     <form [formGroup]="form" (ngSubmit)="onSave()" class="profile-form">
       <section class="card">

@@ -18,6 +18,28 @@ import {
 } from 'class-validator';
 import { Source } from '../../generated/prisma/enums.js';
 
+export class LocalizedStringDto {
+  @IsOptional()
+  @IsString()
+  es?: string;
+
+  @IsOptional()
+  @IsString()
+  en?: string;
+}
+
+export class LocalizedStringArrayDto {
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  es?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  en?: string[];
+}
+
 export class ExperienceDto {
   @IsOptional()
   @IsString()
@@ -32,9 +54,19 @@ export class ExperienceDto {
   position!: string;
 
   @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedStringDto)
+  positionI18n?: LocalizedStringDto;
+
+  @IsOptional()
   @IsString()
   @MaxLength(120)
   location?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedStringDto)
+  locationI18n?: LocalizedStringDto;
 
   @IsOptional()
   @IsISO8601()
@@ -53,10 +85,20 @@ export class ExperienceDto {
   description?: string;
 
   @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedStringDto)
+  descriptionI18n?: LocalizedStringDto;
+
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
   @ArrayMaxSize(5)
   metrics?: string[];
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedStringArrayDto)
+  metricsI18n?: LocalizedStringArrayDto;
 
   @IsOptional()
   @IsEnum(Source)
@@ -97,14 +139,29 @@ export class EducationDto {
   @Length(1, 120)
   degree!: string;
 
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedStringDto)
+  degreeI18n?: LocalizedStringDto;
+
   @IsString()
   @Length(1, 120)
   institution!: string;
 
   @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedStringDto)
+  institutionI18n?: LocalizedStringDto;
+
+  @IsOptional()
   @IsString()
   @MaxLength(120)
   field?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedStringDto)
+  fieldI18n?: LocalizedStringDto;
 
   @IsOptional()
   @IsISO8601()
@@ -121,6 +178,11 @@ export class EducationDto {
   @IsString()
   @MaxLength(2000)
   description?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedStringDto)
+  descriptionI18n?: LocalizedStringDto;
 
   @IsOptional()
   @IsEnum(Source)
@@ -140,9 +202,19 @@ export class CertificationDto {
   name!: string;
 
   @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedStringDto)
+  nameI18n?: LocalizedStringDto;
+
+  @IsOptional()
   @IsString()
   @MaxLength(120)
   issuer?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedStringDto)
+  issuerI18n?: LocalizedStringDto;
 
   @IsOptional()
   @IsInt()
@@ -172,14 +244,29 @@ export class ProjectDto {
   name!: string;
 
   @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedStringDto)
+  nameI18n?: LocalizedStringDto;
+
+  @IsOptional()
   @IsString()
   @MaxLength(120)
   role?: string;
 
   @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedStringDto)
+  roleI18n?: LocalizedStringDto;
+
+  @IsOptional()
   @IsString()
   @MaxLength(2000)
   description?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedStringDto)
+  descriptionI18n?: LocalizedStringDto;
 
   @IsOptional()
   @IsUrl()
@@ -197,6 +284,11 @@ export class ProjectDto {
   metrics?: string[];
 
   @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedStringArrayDto)
+  metricsI18n?: LocalizedStringArrayDto;
+
+  @IsOptional()
   @IsEnum(Source)
   source?: Source;
 
@@ -212,6 +304,11 @@ export class LanguageDto {
   @IsString()
   @Length(1, 60)
   name!: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedStringDto)
+  nameI18n?: LocalizedStringDto;
 
   @IsIn(['A1', 'A2', 'B1', 'B2', 'C1', 'C2'])
   level!: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
@@ -231,6 +328,11 @@ export class ProfileDto {
   headline?: string;
 
   @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedStringDto)
+  headlineI18n?: LocalizedStringDto;
+
+  @IsOptional()
   @IsString()
   @MaxLength(30)
   phone?: string;
@@ -239,6 +341,11 @@ export class ProfileDto {
   @IsString()
   @MaxLength(120)
   location?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedStringDto)
+  locationI18n?: LocalizedStringDto;
 
   @IsOptional()
   @IsUrl()
@@ -252,6 +359,11 @@ export class ProfileDto {
   @IsString()
   @MaxLength(2000)
   summary?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedStringDto)
+  summaryI18n?: LocalizedStringDto;
 
   @IsOptional()
   @IsEnum(Source)

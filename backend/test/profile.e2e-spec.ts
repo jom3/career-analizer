@@ -4,6 +4,12 @@ import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
+import { ProfileTranslatorService } from './../src/profile/profile-translator.service';
+
+const translatorMock = {
+  translate: jest.fn(),
+  modelName: 'test-model',
+};
 
 describe('Profile (e2e)', () => {
   let app: INestApplication<App>;
@@ -13,7 +19,10 @@ describe('Profile (e2e)', () => {
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(ProfileTranslatorService)
+      .useValue(translatorMock)
+      .compile();
 
     app = moduleFixture.createNestApplication();
     app.use(cookieParser());
@@ -235,5 +244,82 @@ describe('Profile (e2e)', () => {
         projects: [],
       })
       .expect(400);
+  });
+
+  it('POST /profile/translate returns the profile with the target language filled without persisting', async () => {
+    const agent = request.agent(app.getHttpServer());
+    await agent.post('/auth/login').send({ email, password }).expect(201);
+
+    const put = await agent
+      .put('/profile')
+      .send({
+        headline: 'Ingeniero de software sénior',
+        summary: 'Especialista en backends ágiles.',
+        experiences: [
+          {
+            company: 'Acme',
+            position: 'Ingeniero backend sénior',
+            startDate: '2020-01-01',
+            current: true,
+            metrics: ['Reduje la latencia un 40%'],
+            sortOrder: 1,
+          },
+        ],
+        skills: [],
+        education: [],
+        certifications: [],
+        projects: [],
+        languages: [],
+      })
+      .expect(200);
+    const putBody = put.body as { experiences: { id: string }[] };
+    const expId = putBody.experiences[0].id;
+
+    translatorMock.translate.mockResolvedValue({
+      profile: {
+        headline: 'Senior Software Engineer',
+        location: null,
+        summary: 'Backend specialist.',
+      },
+      experiences: [
+        {
+          id: expId,
+          position: 'Backend Engineer',
+          location: null,
+          description: null,
+          metrics: ['Reduced latency by 40%'],
+        },
+      ],
+      education: [],
+      certifications: [],
+      projects: [],
+      languages: [],
+    });
+
+    const res = await agent
+      .post('/profile/translate')
+      .send({ lang: 'en' })
+      .expect(200);
+    const body = res.body as {
+      headline: string;
+      headlineEs: string | null;
+      headlineEn: string | null;
+      experiences: { id: string; positionEn: string | null }[];
+    };
+    expect(body.headline).toBe('Ingeniero de software sénior');
+    expect(body.headlineEs).toBe('Ingeniero de software sénior');
+    expect(body.headlineEn).toBe('Senior Software Engineer');
+    expect(body.experiences[0].positionEn).toBe('Backend Engineer');
+
+    const after = await agent.get('/profile').expect(200);
+    const afterBody = after.body as { headlineEn: string | null };
+    expect(afterBody.headlineEn).toBeNull();
+  });
+
+  it('POST /profile/translate with an invalid lang returns 400', async () => {
+    const agent = request.agent(app.getHttpServer());
+    await agent.post('/auth/login').send({ email, password }).expect(201);
+
+    await agent.post('/profile/translate').send({ lang: 'fr' }).expect(400);
   });
 });
