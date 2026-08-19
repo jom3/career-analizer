@@ -18,4 +18,13 @@ export class ProfileService {
       this.http.put<Profile>(`${this.apiUrl}/profile`, profile),
     );
   }
+
+  translateProfile(lang: 'es' | 'en', from?: 'es' | 'en'): Promise<Profile> {
+    return firstValueFrom(
+      this.http.post<Profile>(`${this.apiUrl}/profile/translate`, {
+        lang,
+        from,
+      }),
+    );
+  }
 }

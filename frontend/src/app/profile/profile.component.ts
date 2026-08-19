@@ -27,7 +27,6 @@ import {
   newMetricForm,
   newProjectForm,
   newSkillForm,
-  profileFormToPayload,
   syncEndDate,
   type CertificationForm,
   type EducationForm,
@@ -37,9 +36,18 @@ import {
   type ProjectForm,
   type SkillForm,
 } from '../core/profile-form';
-import { I18nService } from '../core/i18n/i18n.service';
+import { I18nService, type UiLang } from '../core/i18n/i18n.service';
 import { ProfileService } from '../core/profile.service';
 import { CvExportService, CvExportFormat } from '../core/cv-export.service';
+import {
+  applyLangToForm,
+  buildBilingualPayload,
+  emptyLangValues,
+  extractLangFromForm,
+  extractLangValues,
+  hasContent,
+  type LangValues,
+} from '../core/bilingual-form';
 
 @Component({
   selector: 'app-profile',
@@ -66,6 +74,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
     experiences: Set<string>;
   }>({ skills: new Set(), experiences: new Set() });
   readonly overlapIndices = signal<Set<number>>(new Set());
+  readonly activeLang = signal<UiLang>(this.i18n.lang());
+  readonly translating = signal(false);
+
+  private sideStore: LangValues = emptyLangValues();
 
   readonly form: ProfileForm = buildProfileForm();
 
@@ -90,10 +102,24 @@ export class ProfileComponent implements OnInit, OnDestroy {
     return this.form.controls.languages;
   }
 
+  get otherLang(): UiLang {
+    return this.activeLang() === 'es' ? 'en' : 'es';
+  }
+
+  isActiveLang(lang: UiLang): boolean {
+    return this.activeLang() === lang;
+  }
+
+  translateButtonKey(): string {
+    return this.otherLang === 'en'
+      ? 'profile.translateToEn'
+      : 'profile.translateToEs';
+  }
+
   async ngOnInit(): Promise<void> {
     try {
       const profile = await this.profileService.getProfile();
-      loadProfileForm(this.form, profile);
+      this.applyProfile(profile);
     } catch {
       this.loadError.set(this.i18n.t('profile.loadError'));
     } finally {
@@ -105,6 +131,57 @@ export class ProfileComponent implements OnInit, OnDestroy {
       this.skills.valueChanges,
     ]).subscribe(() => this.refreshDuplicates());
     this.experiences.valueChanges.subscribe(() => this.refreshOverlaps());
+  }
+
+  // Aplica un perfil cargado/guardado al editor: determina la pestaña activa
+  // (idioma de la UI si tiene contenido, si no el idioma de origen), llena el
+  // side-store con el idioma inactivo y muestra el idioma activo en el form.
+  private applyProfile(profile: Profile): void {
+    const ui = this.i18n.lang();
+    const uiValues = extractLangValues(profile, ui);
+    const esValues = extractLangValues(profile, 'es');
+    const enValues = extractLangValues(profile, 'en');
+    const active = hasContent(uiValues)
+      ? ui
+      : hasContent(esValues)
+        ? 'es'
+        : hasContent(enValues)
+          ? 'en'
+          : ui;
+    this.activeLang.set(active);
+    this.sideStore = extractLangValues(profile, active === 'es' ? 'en' : 'es');
+    loadProfileForm(this.form, profile);
+    applyLangToForm(this.form, extractLangValues(profile, active));
+  }
+
+  onSelectLang(lang: UiLang): void {
+    if (lang === this.activeLang()) {
+      return;
+    }
+    const currentFormValues = extractLangFromForm(this.form);
+    const incomingValues = this.sideStore;
+    this.sideStore = currentFormValues;
+    this.activeLang.set(lang);
+    applyLangToForm(this.form, incomingValues);
+  }
+
+  async onTranslate(): Promise<void> {
+    const target = this.otherLang;
+    const source = this.activeLang();
+    this.translating.set(true);
+    this.saved.set(false);
+    this.errorMessage.set('');
+    try {
+      const profile = await this.profileService.translateProfile(target, source);
+      const sourceValues = extractLangFromForm(this.form);
+      this.sideStore = sourceValues;
+      this.activeLang.set(target);
+      applyLangToForm(this.form, extractLangValues(profile, target));
+    } catch {
+      this.errorMessage.set(this.i18n.t('profile.translateError'));
+    } finally {
+      this.translating.set(false);
+    }
   }
 
   ngOnDestroy(): void {
@@ -211,10 +288,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.saved.set(false);
     this.errorMessage.set('');
     try {
-      const profile = await this.profileService.putProfile(
-        profileFormToPayload(this.form),
+      const payload = buildBilingualPayload(
+        this.form,
+        this.activeLang(),
+        this.sideStore,
       );
-      loadProfileForm(this.form, profile);
+      const profile = await this.profileService.putProfile(payload);
+      this.applyProfile(profile);
       this.saved.set(true);
     } catch (error) {
       this.errorMessage.set(this.messageFor(error));

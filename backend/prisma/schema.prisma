@@ -43,6 +43,12 @@ model Profile {
   website        String?
   linkedin       String?
   summary        String?
+  headlineEs     String?
+  headlineEn     String?
+  locationEs     String?
+  locationEn     String?
+  summaryEs      String?
+  summaryEn      String?
   source         Source           @default(USER)
   experiences    Experience[]
   skills         Skill[]
@@ -55,21 +61,29 @@ model Profile {
 }
 
 model Experience {
-  id          String    @id @default(cuid())
-  profileId   String
-  profile     Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  company     String
-  position    String
-  location    String?
-  startDate   DateTime?
-  endDate     DateTime?
-  current     Boolean   @default(false)
-  description String?
-  metrics     String[]
-  sortOrder   Int       @default(0)
-  source      Source    @default(USER)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id             String    @id @default(cuid())
+  profileId      String
+  profile        Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  company        String
+  position       String
+  location       String?
+  startDate      DateTime?
+  endDate        DateTime?
+  current        Boolean   @default(false)
+  description    String?
+  metrics        String[]
+  positionEs     String?
+  positionEn     String?
+  locationEs     String?
+  locationEn     String?
+  descriptionEs  String?
+  descriptionEn  String?
+  metricsEs      String[]
+  metricsEn      String[]
+  sortOrder      Int       @default(0)
+  source         Source    @default(USER)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }
 
 model Skill {
@@ -85,20 +99,28 @@ model Skill {
 }
 
 model Education {
-  id          String    @id @default(cuid())
-  profileId   String
-  profile     Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  degree      String
-  institution String
-  field       String?
-  startDate   DateTime?
-  endDate     DateTime?
-  current     Boolean   @default(false)
-  description String?
-  sortOrder   Int       @default(0)
-  source      Source    @default(USER)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id             String    @id @default(cuid())
+  profileId      String
+  profile        Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  degree         String
+  institution    String
+  field          String?
+  startDate      DateTime?
+  endDate        DateTime?
+  current        Boolean   @default(false)
+  description    String?
+  degreeEs       String?
+  degreeEn       String?
+  institutionEs  String?
+  institutionEn  String?
+  fieldEs        String?
+  fieldEn        String?
+  descriptionEs  String?
+  descriptionEn  String?
+  sortOrder      Int       @default(0)
+  source         Source    @default(USER)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }
 
 model Certification {
@@ -109,6 +131,10 @@ model Certification {
   issuer    String?
   year      Int?
   url       String?
+  nameEs    String?
+  nameEn    String?
+  issuerEs  String?
+  issuerEn  String?
   sortOrder Int      @default(0)
   source    Source   @default(USER)
   createdAt DateTime @default(now())
@@ -116,19 +142,27 @@ model Certification {
 }
 
 model Project {
-  id          String   @id @default(cuid())
-  profileId   String
-  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  name        String
-  role        String?
-  description String?
-  url         String?
-  techStack   String[]
-  metrics     String[]
-  sortOrder   Int      @default(0)
-  source      Source   @default(USER)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  profileId    String
+  profile      Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  name         String
+  role         String?
+  description  String?
+  url          String?
+  techStack    String[]
+  metrics      String[]
+  nameEs       String?
+  nameEn       String?
+  roleEs       String?
+  roleEn       String?
+  descriptionEs String?
+  descriptionEn String?
+  metricsEs    String[]
+  metricsEn    String[]
+  sortOrder    Int      @default(0)
+  source       Source   @default(USER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model Language {
@@ -137,6 +171,8 @@ model Language {
   profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
   name      String
   level     String
+  nameEs    String?
+  nameEn    String?
   sortOrder Int      @default(0)
   source    Source   @default(USER)
   createdAt DateTime @default(now())

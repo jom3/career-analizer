@@ -67,6 +67,13 @@ export const en: Record<string, string> = {
   'profile.saveError': 'Could not save the profile. Try again.',
   'profile.downloadError': 'Could not download the CV. Try again.',
 
+  'profile.tabEs': 'Spanish',
+  'profile.tabEn': 'English',
+  'profile.translateToEn': 'Translate to English',
+  'profile.translateToEs': 'Translate to Spanish',
+  'profile.translating': 'Translating…',
+  'profile.translateError': 'Could not translate the profile. Try again.',
+
   'profile.personalInfo': 'Personal information',
   'profile.headline': 'Professional headline',
   'profile.phone': 'Phone',

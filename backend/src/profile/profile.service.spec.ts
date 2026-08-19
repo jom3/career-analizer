@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../prisma/prisma.service';
 import { ProfileService, profileInclude } from './profile.service';
+import { ProfileTranslatorService } from './profile-translator.service';
 
 describe('ProfileService', () => {
   let service: ProfileService;
@@ -14,6 +15,12 @@ describe('ProfileService', () => {
     website: null,
     linkedin: null,
     summary: null,
+    headlineEs: null,
+    headlineEn: null,
+    locationEs: null,
+    locationEn: null,
+    summaryEs: null,
+    summaryEn: null,
     source: 'USER',
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -50,6 +57,9 @@ describe('ProfileService', () => {
     },
     $transaction: jest.fn(),
   };
+  const translatorMock = {
+    translate: jest.fn(),
+  };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -62,6 +72,7 @@ describe('ProfileService', () => {
       providers: [
         ProfileService,
         { provide: PrismaService, useValue: prismaMock },
+        { provide: ProfileTranslatorService, useValue: translatorMock },
       ],
     }).compile();
 
@@ -142,12 +153,20 @@ describe('ProfileService', () => {
         data: {
           company: 'Acme',
           position: 'Engineer',
+          positionEs: null,
+          positionEn: 'Engineer',
           location: null,
+          locationEs: null,
+          locationEn: null,
           startDate: null,
           endDate: null,
           current: false,
           description: null,
+          descriptionEs: null,
+          descriptionEn: null,
           metrics: [],
+          metricsEs: [],
+          metricsEn: [],
           source: 'USER',
           sortOrder: 1,
         },
@@ -157,12 +176,20 @@ describe('ProfileService', () => {
           profileId: 'profile-1',
           company: 'Other',
           position: 'Analyst',
+          positionEs: null,
+          positionEn: 'Analyst',
           location: null,
+          locationEs: null,
+          locationEn: null,
           startDate: null,
           endDate: null,
           current: true,
           description: null,
+          descriptionEs: null,
+          descriptionEn: null,
           metrics: [],
+          metricsEs: [],
+          metricsEn: [],
           source: 'USER',
           sortOrder: 2,
         },
@@ -205,12 +232,20 @@ describe('ProfileService', () => {
           profileId: 'profile-1',
           company: 'Acme',
           position: 'Engineer',
+          positionEs: null,
+          positionEn: 'Engineer',
           location: null,
+          locationEs: null,
+          locationEn: null,
           startDate: null,
           endDate: null,
           current: true,
           description: null,
+          descriptionEs: null,
+          descriptionEn: null,
           metrics: [],
+          metricsEs: [],
+          metricsEn: [],
           source: 'USER',
           sortOrder: 1,
         },
@@ -260,12 +295,20 @@ describe('ProfileService', () => {
           profileId: 'profile-1',
           company: 'Acme',
           position: 'Engineer',
+          positionEs: null,
+          positionEn: 'Engineer',
           location: null,
+          locationEs: null,
+          locationEn: null,
           startDate: null,
           endDate: null,
           current: false,
           description: null,
+          descriptionEs: null,
+          descriptionEn: null,
           metrics: ['Cut latency by 40%'],
+          metricsEs: [],
+          metricsEn: ['Cut latency by 40%'],
           source: 'USER',
           sortOrder: 1,
         },
@@ -274,11 +317,19 @@ describe('ProfileService', () => {
         data: {
           profileId: 'profile-1',
           name: 'Career Analyzer',
+          nameEs: null,
+          nameEn: 'Career Analyzer',
           role: 'Owner',
+          roleEs: null,
+          roleEn: 'Owner',
           description: null,
+          descriptionEs: null,
+          descriptionEn: null,
           url: null,
           techStack: ['NestJS'],
           metrics: ['10k users'],
+          metricsEs: [],
+          metricsEn: ['10k users'],
           source: 'USER',
           sortOrder: 1,
         },
@@ -287,11 +338,19 @@ describe('ProfileService', () => {
         data: {
           profileId: 'profile-1',
           name: 'Project X',
+          nameEs: null,
+          nameEn: 'Project X',
           role: null,
+          roleEs: null,
+          roleEn: null,
           description: null,
+          descriptionEs: null,
+          descriptionEn: null,
           url: null,
           techStack: [],
           metrics: [],
+          metricsEs: [],
+          metricsEn: [],
           source: 'USER',
           sortOrder: 2,
         },
@@ -322,6 +381,212 @@ describe('ProfileService', () => {
 
       expect(txMock.experience.update).not.toHaveBeenCalled();
       expect(txMock.experience.create).toHaveBeenCalledTimes(1);
+    });
+
+    it('writes both languages and syncs the flat column when a bilingual object is provided', async () => {
+      txMock.experience.findMany.mockResolvedValue([]);
+      txMock.skill.findMany.mockResolvedValue([]);
+      txMock.education.findMany.mockResolvedValue([]);
+      txMock.certification.findMany.mockResolvedValue([]);
+      txMock.project.findMany.mockResolvedValue([]);
+      txMock.language.findMany.mockResolvedValue([]);
+
+      await service.replaceForUser('user-1', {
+        experiences: [
+          {
+            company: 'Acme',
+            position: 'Ingeniero',
+            positionI18n: { es: 'Ingeniero', en: 'Engineer' },
+            current: false,
+            metricsI18n: {
+              es: ['Reduje latencia un 40%'],
+              en: ['Cut latency by 40%'],
+            },
+            sortOrder: 1,
+          },
+        ],
+        skills: [],
+        ...emptySections,
+      });
+
+      expect(txMock.experience.create).toHaveBeenCalledWith({
+        data: {
+          profileId: 'profile-1',
+          company: 'Acme',
+          position: 'Ingeniero',
+          positionEs: 'Ingeniero',
+          positionEn: 'Engineer',
+          location: null,
+          locationEs: null,
+          locationEn: null,
+          startDate: null,
+          endDate: null,
+          current: false,
+          description: null,
+          descriptionEs: null,
+          descriptionEn: null,
+          metrics: ['Reduje latencia un 40%'],
+          metricsEs: ['Reduje latencia un 40%'],
+          metricsEn: ['Cut latency by 40%'],
+          source: 'USER',
+          sortOrder: 1,
+        },
+      });
+    });
+
+    it('syncs profile-level bilingual fields and flat columns', async () => {
+      txMock.experience.findMany.mockResolvedValue([]);
+      txMock.skill.findMany.mockResolvedValue([]);
+      txMock.education.findMany.mockResolvedValue([]);
+      txMock.certification.findMany.mockResolvedValue([]);
+      txMock.project.findMany.mockResolvedValue([]);
+      txMock.language.findMany.mockResolvedValue([]);
+
+      await service.replaceForUser('user-1', {
+        headline: 'Ingeniero de software',
+        headlineI18n: { es: 'Ingeniero de software', en: 'Software Engineer' },
+        locationI18n: { es: 'Buenos Aires', en: 'Buenos Aires, Argentina' },
+        summaryI18n: { es: 'Resumen', en: 'Summary' },
+        experiences: [],
+        skills: [],
+        ...emptySections,
+      });
+
+      expect(txMock.profile.update).toHaveBeenCalledWith({
+        where: { id: 'profile-1' },
+        data: {
+          headline: 'Ingeniero de software',
+          headlineEs: 'Ingeniero de software',
+          headlineEn: 'Software Engineer',
+          location: 'Buenos Aires',
+          locationEs: 'Buenos Aires',
+          locationEn: 'Buenos Aires, Argentina',
+          summary: 'Resumen',
+          summaryEs: 'Resumen',
+          summaryEn: 'Summary',
+          phone: null,
+          website: null,
+          linkedin: null,
+          source: 'USER',
+        },
+        include: profileInclude,
+      });
+    });
+  });
+
+  describe('translateForUser', () => {
+    const bilingualProfile = {
+      ...profileRow,
+      headlineEs: 'Ingeniero de software senior',
+      headlineEn: null,
+      locationEs: 'Buenos Aires, Argentina',
+      locationEn: null,
+      summaryEs: 'Especialista backend.',
+      summaryEn: null,
+      experiences: [
+        {
+          id: 'exp-1',
+          profileId: 'profile-1',
+          company: 'Acme',
+          position: 'Ingeniero backend',
+          positionEs: 'Ingeniero backend',
+          positionEn: null,
+          location: 'Buenos Aires',
+          locationEs: 'Buenos Aires',
+          locationEn: null,
+          startDate: new Date('2020-01-01'),
+          endDate: null,
+          current: true,
+          description: 'Construí APIs.',
+          descriptionEs: 'Construí APIs.',
+          descriptionEn: null,
+          metrics: ['Reduje latencia un 40%'],
+          metricsEs: ['Reduje latencia un 40%'],
+          metricsEn: [],
+          sortOrder: 0,
+          source: 'USER',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ],
+      skills: [],
+      education: [],
+      certifications: [],
+      projects: [],
+      languages: [],
+    };
+
+    it('resuelve el idioma de origen, traduce y fusiona sin persistir', async () => {
+      prismaMock.profile.findUnique.mockResolvedValue(bilingualProfile);
+      translatorMock.translate.mockResolvedValue({
+        profile: {
+          headline: 'Senior Software Engineer',
+          location: 'Buenos Aires, Argentina',
+          summary: 'Backend specialist.',
+        },
+        experiences: [
+          {
+            id: 'exp-1',
+            position: 'Backend Engineer',
+            location: 'Buenos Aires',
+            description: 'Built APIs.',
+            metrics: ['Reduced latency by 40%'],
+          },
+        ],
+        education: [],
+        certifications: [],
+        projects: [],
+        languages: [],
+      });
+
+      const result = await service.translateForUser('user-1', 'en');
+
+      expect(translatorMock.translate).toHaveBeenCalledWith({
+        profile: bilingualProfile,
+        sourceLang: 'es',
+        targetLang: 'en',
+      });
+      expect(result.headlineEn).toBe('Senior Software Engineer');
+      expect(result.headlineEs).toBe('Ingeniero de software senior');
+      expect(result.experiences[0].positionEn).toBe('Backend Engineer');
+      expect(result.experiences[0].positionEs).toBe('Ingeniero backend');
+      expect(result.experiences[0].metricsEn).toEqual([
+        'Reduced latency by 40%',
+      ]);
+      expect(prismaMock.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('devuelve el perfil sin traducir cuando el origen coincide con el destino', async () => {
+      prismaMock.profile.findUnique.mockResolvedValue(bilingualProfile);
+
+      const result = await service.translateForUser('user-1', 'es');
+
+      expect(translatorMock.translate).not.toHaveBeenCalled();
+      expect(result).toEqual(bilingualProfile);
+    });
+
+    it('usa el idioma de origen explícito (from) en lugar de la heurística', async () => {
+      prismaMock.profile.findUnique.mockResolvedValue(bilingualProfile);
+      translatorMock.translate.mockResolvedValue({
+        profile: {
+          headline: 'Senior Software Engineer',
+          location: 'Buenos Aires, Argentina',
+          summary: 'Backend specialist.',
+        },
+        experiences: [],
+        education: [],
+        certifications: [],
+        projects: [],
+        languages: [],
+      });
+
+      await service.translateForUser('user-1', 'en', 'es');
+
+      expect(translatorMock.translate).toHaveBeenCalledWith({
+        profile: bilingualProfile,
+        sourceLang: 'es',
+        targetLang: 'en',
+      });
     });
   });
 });
