@@ -513,14 +513,6 @@ export class JobAnalysisComponent implements OnInit {
   private messageFor(error: unknown): string {
     console.error('job-analysis request failed:', error);
     if (error instanceof HttpErrorResponse) {
-      const backendMessage = (error.error as { message?: string | string[] })
-        ?.message;
-      if (typeof backendMessage === 'string' && backendMessage.length > 0) {
-        return backendMessage;
-      }
-      if (Array.isArray(backendMessage) && backendMessage.length > 0) {
-        return backendMessage.join(', ');
-      }
       if (error.status === 413) {
         return this.i18n.t('jobAnalysis.error413');
       }

@@ -34,7 +34,8 @@
                     {{ item.recruiterName || i18n.t('coverLetter.genericRecipient') }}
                   </strong>
                   <span class="muted">
-                    {{ formatDate(item.createdAt) }} · {{ item.sourceLanguage }}
+                    {{ formatDate(item.createdAt) }} ·
+                    {{ i18n.t('coverLetter.documentLang') }} {{ item.sourceLanguage }}
                   </span>
                 </span>
                 <span class="tag tag--ai">{{ i18n.t('coverLetter.aiTag') }}</span>

@@ -26,6 +26,7 @@ export const en: Record<string, string> = {
   'shell.logout': 'Sign out',
   'shell.settings': 'Settings',
   'shell.languageLabel': 'Language',
+  'shell.navAriaLabel': 'Main navigation',
 
   'auth.login.title': 'Sign in',
   'auth.login.subtitle': 'Access your Career Analyzer account',
@@ -223,6 +224,7 @@ export const en: Record<string, string> = {
 
   'jobMatch.detailTitle': 'Fit with the offer',
   'jobMatch.listTitle': 'My fit analyses',
+  'jobMatch.documentLang': 'Analysis language:',
   'jobMatch.subtitle':
     'Comparison between your profile and each offer: overall and per-dimension scores, skill gaps and recommendations to improve.',
   'jobMatch.viewHistory': 'View history',
@@ -359,6 +361,7 @@ export const en: Record<string, string> = {
   'coverLetter.errorGeneric': 'Could not complete the operation. Try again.',
 
   'coverLetter.detailTitle': 'Cover letter',
+  'coverLetter.documentLang': 'Document language:',
   'coverLetter.staleText':
     'Your profile changed since this letter: generate a new one so it reflects the current information.',
   'coverLetter.regenerate': 'Generate a new one',
