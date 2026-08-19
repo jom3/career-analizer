@@ -4,7 +4,8 @@
       <h1 class="page-title">{{ i18n.t('coverLetter.detailTitle') }}</h1>
       @if (letter(); as current) {
         <p class="page-sub">
-          {{ formatDate(current.createdAt) }} · {{ current.sourceLanguage }}
+          {{ formatDate(current.createdAt) }} ·
+          {{ i18n.t('coverLetter.documentLang') }} {{ current.sourceLanguage }}
         </p>
       }
     </div>

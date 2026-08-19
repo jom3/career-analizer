@@ -26,6 +26,7 @@ export const es: Record<string, string> = {
   'shell.logout': 'Cerrar sesión',
   'shell.settings': 'Ajustes',
   'shell.languageLabel': 'Idioma',
+  'shell.navAriaLabel': 'Navegación principal',
 
   'auth.login.title': 'Iniciar sesión',
   'auth.login.subtitle': 'Accedé a tu cuenta de Career Analyzer',
@@ -222,7 +223,7 @@ export const es: Record<string, string> = {
 
   'jobMatch.detailTitle': 'Encaje con la oferta',
   'jobMatch.listTitle': 'Mis análisis de encaje',
-  'jobMatch.subtitle':
+  'jobMatch.documentLang': 'Idioma del análisis:',  'jobMatch.subtitle':
     'Comparación entre tu perfil y cada oferta: puntaje global y por dimensión, gaps de habilidades y recomendaciones para mejorar.',
   'jobMatch.viewHistory': 'Ver historial',
   'jobMatch.overallScore': 'Puntaje general',
@@ -358,6 +359,7 @@ export const es: Record<string, string> = {
   'coverLetter.errorGeneric': 'No se pudo completar la operación. Intentalo de nuevo.',
 
   'coverLetter.detailTitle': 'Carta de motivación',
+  'coverLetter.documentLang': 'Idioma del documento:',
   'coverLetter.staleText':
     'El perfil cambió desde esta carta: genera una nueva para que refleje la información actual.',
   'coverLetter.regenerate': 'Generar una nueva',
