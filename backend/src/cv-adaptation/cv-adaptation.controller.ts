@@ -18,6 +18,7 @@ import {
   CreateCvAdaptationDto,
 } from './dto/cv-adaptation.dto';
 import { CvAdaptationService } from './cv-adaptation.service';
+import { UiLang } from '../i18n/ui-lang';
 
 const DOCX_MIME =
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
@@ -31,10 +32,12 @@ export class CvAdaptationController {
     @Req() req: RequestWithUser,
     @Body() dto: CreateCvAdaptationDto,
   ): Promise<AdaptedCvDto> {
+    const targetLang: UiLang = req.uiLang ?? 'es';
     return this.adaptationService.createForOffer(
       req.user.id,
       dto.jobOfferId,
       dto.jobMatchId,
+      targetLang,
     );
   }
 

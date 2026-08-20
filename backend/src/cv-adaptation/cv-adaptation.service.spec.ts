@@ -213,7 +213,12 @@ describe('CvAdaptationService', () => {
     prismaMock.profile.findUnique.mockResolvedValue(profile);
     prismaMock.adaptedCv.create.mockResolvedValue(versionRow);
 
-    const result = await service.createForOffer('user-1', 'offer-1');
+    const result = await service.createForOffer(
+      'user-1',
+      'offer-1',
+      undefined,
+      'en',
+    );
 
     expect(prismaMock.jobOffer.findFirst).toHaveBeenCalledWith({
       where: { id: 'offer-1', userId: 'user-1' },
@@ -253,6 +258,53 @@ describe('CvAdaptationService', () => {
     ]);
     expect(createCall[0].data.profileFingerprint).toEqual(expect.any(String));
     expect(result.id).toBe('cv-1');
+  });
+
+  it('usa el idioma de la UI (targetLang) para contenido y sourceLanguage', async () => {
+    const bilingualProfile = {
+      ...profile,
+      headlineEs: 'Ingeniera de Software',
+      headlineEn: 'Software Engineer',
+      summaryEs: 'Resumen original.',
+      summaryEn: 'Original summary.',
+      experiences: profile.experiences.map((item) => ({
+        ...item,
+        positionEs: 'Ingeniera Senior',
+        positionEn: 'Senior Engineer',
+        descriptionEs: 'Descripción original.',
+        descriptionEn: 'Original description.',
+      })),
+      projects: profile.projects.map((item) => ({
+        ...item,
+        nameEs: 'Analizador de Carrera',
+        nameEn: 'Career Analyzer',
+      })),
+    };
+    prismaMock.jobOffer.findFirst.mockResolvedValue(offer);
+    prismaMock.profile.findUnique.mockResolvedValue(bilingualProfile);
+    prismaMock.adaptedCv.create.mockResolvedValue(versionRow);
+
+    await service.createForOffer('user-1', 'offer-1', undefined, 'en');
+
+    expect(parserMock.adapt).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceLanguage: 'en' }) as object,
+    );
+    const createCall = prismaMock.adaptedCv.create.mock
+      .calls[0] as unknown as Array<{
+      data: {
+        sourceLanguage: string;
+        content: AdaptedCvContent;
+      };
+    }>;
+    expect(createCall[0].data.sourceLanguage).toBe('en');
+    expect(createCall[0].data.content.headline).toBe('Software Engineer');
+    expect(createCall[0].data.content.summary).toContain(
+      'Software Engineer, with over',
+    );
+    expect(createCall[0].data.content.experiences[0].position).toBe(
+      'Senior Engineer',
+    );
+    expect(createCall[0].data.content.projects[0].name).toBe('Career Analyzer');
   });
 
   it('ignora un originalId desconocido devuelto por la IA', async () => {

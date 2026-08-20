@@ -417,5 +417,81 @@ describe('CvExportService', () => {
         'User not found',
       );
     });
+
+    it('selects the bilingual fields of the target language with fallback', async () => {
+      prismaMock.user.findUnique.mockResolvedValue({
+        name: 'Ana',
+        email: 'ana@test.dev',
+        profile: {
+          headlineEs: 'Ingeniera',
+          headlineEn: 'Engineer',
+          locationEs: 'Buenos Aires',
+          summaryEn: 'English summary',
+          experiences: [
+            {
+              company: 'Acme',
+              position: 'Puesto ES',
+              positionEn: 'Position EN',
+              descriptionEs: 'Descripción ES',
+              descriptionEn: 'Description EN',
+              metricsEs: ['Métrica ES'],
+              metricsEn: ['Metric EN'],
+              current: true,
+            },
+            {
+              company: 'Beta',
+              position: 'Solo ES',
+              positionEn: null,
+              current: false,
+            },
+          ],
+          skills: [],
+          education: [
+            {
+              degree: 'Grado',
+              degreeEn: 'Degree',
+              institution: 'UBA',
+              institutionEn: null,
+              current: false,
+            },
+          ],
+          certifications: [
+            { name: 'Cert', nameEn: null, issuerEs: 'Emisor', issuerEn: null },
+          ],
+          projects: [
+            {
+              name: 'Proyecto',
+              nameEn: 'Project',
+              roleEs: 'Rol',
+              roleEn: null,
+              techStack: ['NestJS'],
+              metricsEs: [],
+              metricsEn: ['Project metric'],
+            },
+          ],
+          languages: [{ name: 'Español', nameEn: 'Spanish', level: 'C2' }],
+        },
+      });
+
+      const en = await service.loadCvData('user-1', 'en');
+
+      expect(en.headline).toBe('Engineer');
+      expect(en.location).toBe('Buenos Aires');
+      expect(en.summary).toBe('English summary');
+      expect(en.experiences[0]).toMatchObject({
+        position: 'Position EN',
+        description: 'Description EN',
+        metrics: ['Metric EN'],
+      });
+      expect(en.experiences[1].position).toBe('Solo ES');
+      expect(en.education[0].degree).toBe('Degree');
+      expect(en.education[0].institution).toBe('UBA');
+      expect(en.certifications[0].name).toBe('Cert');
+      expect(en.certifications[0].issuer).toBe('Emisor');
+      expect(en.projects[0].name).toBe('Project');
+      expect(en.projects[0].role).toBe('Rol');
+      expect(en.projects[0].metrics).toEqual(['Project metric']);
+      expect(en.languages[0].name).toBe('Spanish');
+    });
   });
 });

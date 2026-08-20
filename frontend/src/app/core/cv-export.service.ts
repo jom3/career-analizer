@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { API_BASE_URL } from './api';
+import { I18nService } from './i18n/i18n.service';
 
 export type CvExportFormat = 'pdf' | 'docx';
 
@@ -12,11 +13,13 @@ const DEFAULT_FILENAMES: Record<CvExportFormat, string> = {
 @Injectable({ providedIn: 'root' })
 export class CvExportService {
   private readonly router = inject(Router);
+  private readonly i18n = inject(I18nService);
   private readonly apiUrl = API_BASE_URL;
 
   async download(format: CvExportFormat): Promise<void> {
     const response = await fetch(`${this.apiUrl}/cv-export?format=${format}`, {
       credentials: 'include',
+      headers: { 'Accept-Language': this.i18n.lang() },
     });
     if (!response.ok) {
       if (response.status === 401) {

@@ -5,6 +5,7 @@ import vfsFonts from 'pdfmake/build/vfs_fonts';
 import { Content, TCreatedPdf, TDocumentDefinitions } from 'pdfmake/interfaces';
 import { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { selectLang, selectLangList, UiLang } from '../i18n/ui-lang';
 import {
   CvSkillGroupingService,
   type CvSkillGroup,
@@ -168,7 +169,7 @@ export class CvExportService {
     private readonly skillGrouping: CvSkillGroupingService,
   ) {}
 
-  async loadCvData(userId: string): Promise<CvData> {
+  async loadCvData(userId: string, targetLang: UiLang = 'es'): Promise<CvData> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -184,23 +185,42 @@ export class CvExportService {
     return {
       name: user.name,
       email: user.email,
-      headline: profile?.headline ?? undefined,
+      headline:
+        selectLang(profile?.headlineEs, profile?.headlineEn, targetLang) ??
+        profile?.headline ??
+        undefined,
       phone: profile?.phone ?? undefined,
-      location: profile?.location ?? undefined,
+      location:
+        selectLang(profile?.locationEs, profile?.locationEn, targetLang) ??
+        profile?.location ??
+        undefined,
       website: profile?.website ?? undefined,
       linkedin: profile?.linkedin ?? undefined,
-      summary: profile?.summary ?? undefined,
+      summary:
+        selectLang(profile?.summaryEs, profile?.summaryEn, targetLang) ??
+        profile?.summary ??
+        undefined,
       experiences: (profile?.experiences ?? [])
         .filter((item) => item.company && item.position)
         .map((item) => ({
           company: item.company,
-          position: item.position,
-          location: item.location ?? undefined,
+          position:
+            selectLang(item.positionEs, item.positionEn, targetLang) ??
+            item.position,
+          location:
+            selectLang(item.locationEs, item.locationEn, targetLang) ??
+            item.location ??
+            undefined,
           startDate: item.startDate ?? undefined,
           endDate: item.endDate ?? undefined,
           current: item.current,
-          description: item.description ?? undefined,
-          metrics: item.metrics,
+          description:
+            selectLang(item.descriptionEs, item.descriptionEn, targetLang) ??
+            item.description ??
+            undefined,
+          metrics:
+            selectLangList(item.metricsEs, item.metricsEn, targetLang) ??
+            item.metrics,
         })),
       skills: (profile?.skills ?? [])
         .filter((item) => item.name)
@@ -208,33 +228,56 @@ export class CvExportService {
       education: (profile?.education ?? [])
         .filter((item) => item.degree && item.institution)
         .map((item) => ({
-          degree: item.degree,
-          institution: item.institution,
-          field: item.field ?? undefined,
+          degree:
+            selectLang(item.degreeEs, item.degreeEn, targetLang) ?? item.degree,
+          institution:
+            selectLang(item.institutionEs, item.institutionEn, targetLang) ??
+            item.institution,
+          field:
+            selectLang(item.fieldEs, item.fieldEn, targetLang) ??
+            item.field ??
+            undefined,
           startDate: item.startDate ?? undefined,
           endDate: item.endDate ?? undefined,
           current: item.current,
-          description: item.description ?? undefined,
+          description:
+            selectLang(item.descriptionEs, item.descriptionEn, targetLang) ??
+            item.description ??
+            undefined,
         })),
       certifications: (profile?.certifications ?? [])
         .filter((item) => item.name)
         .map((item) => ({
-          name: item.name,
-          issuer: item.issuer ?? undefined,
+          name: selectLang(item.nameEs, item.nameEn, targetLang) ?? item.name,
+          issuer:
+            selectLang(item.issuerEs, item.issuerEn, targetLang) ??
+            item.issuer ??
+            undefined,
           year: item.year ?? undefined,
         })),
       projects: (profile?.projects ?? [])
         .filter((item) => item.name)
         .map((item) => ({
-          name: item.name,
-          role: item.role ?? undefined,
-          description: item.description ?? undefined,
+          name: selectLang(item.nameEs, item.nameEn, targetLang) ?? item.name,
+          role:
+            selectLang(item.roleEs, item.roleEn, targetLang) ??
+            item.role ??
+            undefined,
+          description:
+            selectLang(item.descriptionEs, item.descriptionEn, targetLang) ??
+            item.description ??
+            undefined,
           techStack: item.techStack,
-          metrics: item.metrics,
+          metrics:
+            selectLangList(item.metricsEs, item.metricsEn, targetLang) ??
+            item.metrics,
         })),
       languages: (profile?.languages ?? [])
         .filter((item) => item.name)
-        .map((item) => ({ name: item.name, level: item.level })),
+        .map((item) => ({
+          name: selectLang(item.nameEs, item.nameEn, targetLang) ?? item.name,
+          level: item.level,
+        })),
     };
   }
 

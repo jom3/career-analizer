@@ -22,7 +22,7 @@ export class JobMatchController {
     @Req() req: RequestWithUser,
     @Body() dto: JobMatchRequestDto,
   ): Promise<JobMatchDto> {
-    const lang = dto.lang ?? 'es';
+    const lang = dto.lang ?? req.uiLang ?? 'es';
     if (dto.jobOfferId) {
       return this.jobMatchService.createForOffer(
         req.user.id,

@@ -7,6 +7,8 @@ import {
   type ProfileWithCollections,
 } from '../profile/profile.service';
 import { profileFingerprint, profileSnapshot } from '../job-match/profile-util';
+import { localizeProfile } from '../profile/localize-profile';
+import { UiLang } from '../i18n/ui-lang';
 import type {
   LetterDocument,
   LetterLang,
@@ -92,8 +94,13 @@ export class CoverLetterService {
     jobOfferId: string,
     recruiterName: string | null,
     note: string | null,
+    targetLang: UiLang = 'es',
   ): Promise<CoverLetterDraftDto> {
-    const { offer, profile, lang } = await this.loadContext(userId, jobOfferId);
+    const { offer, profile, lang } = await this.loadContext(
+      userId,
+      jobOfferId,
+      targetLang,
+    );
     const input: CoverLetterGenerationInput = {
       profile: profileSnapshot(profile),
       offer: this.offerForParser(offer),
@@ -112,10 +119,12 @@ export class CoverLetterService {
     recruiterName: string | null,
     note: string | null,
     content: string,
+    targetLang: UiLang = 'es',
   ): Promise<CoverLetterDto> {
     const { offer, profile, fingerprint, lang } = await this.loadContext(
       userId,
       jobOfferId,
+      targetLang,
     );
     const created = await this.prisma.coverLetter.create({
       data: {
@@ -198,6 +207,7 @@ export class CoverLetterService {
   private async loadContext(
     userId: string,
     jobOfferId: string,
+    targetLang: UiLang,
   ): Promise<{
     offer: {
       id: string;
@@ -220,12 +230,13 @@ export class CoverLetterService {
     if (!offer) {
       throw new NotFoundException('Oferta no encontrada.');
     }
-    const profile = await this.profileForUser(userId);
-    const lang = resolveLetterLanguage(offer.sourceLanguage);
+    const rawProfile = await this.profileForUser(userId);
+    const profile = localizeProfile(rawProfile, targetLang);
+    const lang = targetLang;
     return {
       offer,
       profile,
-      fingerprint: profileFingerprint(profileSnapshot(profile)),
+      fingerprint: profileFingerprint(profileSnapshot(rawProfile)),
       lang,
     };
   }

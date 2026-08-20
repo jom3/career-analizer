@@ -35,6 +35,10 @@ export class ProfileController {
     @Req() req: RequestWithUser,
     @Body() dto: TranslateProfileDto,
   ): Promise<ProfileWithCollections> {
-    return this.profileService.translateForUser(req.user.id, dto.lang, dto.from);
+    return this.profileService.translateForUser(
+      req.user.id,
+      dto.lang,
+      dto.from,
+    );
   }
 }

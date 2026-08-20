@@ -20,6 +20,7 @@ import {
   CreateCoverLetterDto,
 } from './dto/cover-letter.dto';
 import { CoverLetterService } from './cover-letter.service';
+import { UiLang } from '../i18n/ui-lang';
 
 const DOCX_MIME =
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
@@ -34,11 +35,13 @@ export class CoverLetterController {
     @Req() req: RequestWithUser,
     @Body() dto: CreateCoverLetterDraftDto,
   ): Promise<CoverLetterDraftDto> {
+    const targetLang: UiLang = req.uiLang ?? 'es';
     return this.coverLetterService.buildDraft(
       req.user.id,
       dto.jobOfferId,
       dto.recruiterName ?? null,
       dto.note ?? null,
+      targetLang,
     );
   }
 
@@ -47,12 +50,14 @@ export class CoverLetterController {
     @Req() req: RequestWithUser,
     @Body() dto: CreateCoverLetterDto,
   ): Promise<CoverLetterDto> {
+    const targetLang: UiLang = req.uiLang ?? 'es';
     return this.coverLetterService.create(
       req.user.id,
       dto.jobOfferId,
       dto.recruiterName ?? null,
       dto.note ?? null,
       dto.content,
+      targetLang,
     );
   }
 

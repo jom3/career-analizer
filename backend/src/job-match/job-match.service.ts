@@ -13,6 +13,7 @@ import {
 } from '../profile/profile.service';
 import type { JobOfferDraft } from '../job-analysis/job-analysis.types';
 import type { JobOfferDto } from '../job-analysis/dto/job-offer.dto';
+import { localizeProfile } from '../profile/localize-profile';
 import type { JobMatchDto, JobMatchGap, MatchLang } from './dto/job-match.dto';
 import {
   JobMatchParserService,
@@ -166,14 +167,15 @@ export class JobMatchService {
     existingId?: string,
   ): Promise<JobMatchDto> {
     const profile = await this.profileForUser(userId);
-    const snapshot = profileSnapshot(profile);
+    const localized = localizeProfile(profile, lang);
+    const snapshot = profileSnapshot(localized);
     const analysis = await this.matchWithWhitelist(
       draft,
       snapshot,
       offerSource,
       lang,
     );
-    const fingerprint = profileFingerprint(snapshot);
+    const fingerprint = profileFingerprint(profileSnapshot(profile));
     const shared = {
       jobOfferId,
       lang,
