@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
 import { AppController } from './app.controller';
@@ -9,6 +9,8 @@ import { CvExportModule } from './cv-export/cv-export.module';
 import { CvImportModule } from './cv-import/cv-import.module';
 import { CoverLetterModule } from './cover-letter/cover-letter.module';
 import { HealthController } from './health.controller';
+import { I18nModule } from './i18n/i18n.module';
+import { UiLangMiddleware } from './i18n/ui-lang.middleware';
 import { JobAnalysisModule } from './job-analysis/job-analysis.module';
 import { JobMatchModule } from './job-match/job-match.module';
 import { OpenaiModule } from './openai/openai.module';
@@ -28,6 +30,7 @@ import { ProfileModule } from './profile/profile.module';
     }),
     OpenaiModule,
     PrismaModule,
+    I18nModule,
     AuthModule,
     ProfileModule,
     CvImportModule,
@@ -40,4 +43,8 @@ import { ProfileModule } from './profile/profile.module';
   controllers: [AppController, HealthController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(UiLangMiddleware).forRoutes('*');
+  }
+}

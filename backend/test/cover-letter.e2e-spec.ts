@@ -166,6 +166,7 @@ describe('Cover Letter (e2e)', () => {
 
     const draft = await agent
       .post('/cover-letter/draft')
+      .set('Accept-Language', 'en')
       .send({ jobOfferId: offerId, recruiterName: 'Mrs. López' })
       .expect(200);
     const draftBody = draft.body as {
@@ -185,6 +186,7 @@ describe('Cover Letter (e2e)', () => {
 
     const created = await agent
       .post('/cover-letter')
+      .set('Accept-Language', 'en')
       .send({
         jobOfferId: offerId,
         recruiterName: 'Mrs. López',

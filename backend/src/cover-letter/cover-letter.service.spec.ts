@@ -141,6 +141,7 @@ describe('CoverLetterService', () => {
       'offer-1',
       'María López',
       'Vi la vacante en LinkedIn.',
+      'en',
     );
 
     expect(prismaMock.jobOffer.findFirst).toHaveBeenCalledWith({
@@ -219,18 +220,56 @@ describe('CoverLetterService', () => {
     );
   });
 
-  it('resuelve es como idioma cuando la oferta no es inglesa', async () => {
-    prismaMock.jobOffer.findFirst.mockResolvedValue({
-      ...offer,
-      sourceLanguage: 'es',
-    });
+  it('usa el idioma de la interfaz, no el de la oferta', async () => {
+    prismaMock.jobOffer.findFirst.mockResolvedValue(offer);
     prismaMock.profile.findUnique.mockResolvedValue(profile);
     prismaMock.jobMatch.findFirst.mockResolvedValue(null);
 
-    await service.buildDraft('user-1', 'offer-1', null, null);
+    await service.buildDraft('user-1', 'offer-1', null, null, 'es');
 
     expect(parserMock.generate).toHaveBeenCalledWith(
       expect.objectContaining({ lang: 'es' }) as object,
+    );
+  });
+
+  it('selecciona el perfil bilingüe en el idioma de la interfaz', async () => {
+    const bilingualProfile = {
+      ...profile,
+      experiences: [
+        {
+          id: 'exp-1',
+          profileId: 'profile-1',
+          company: 'Acme',
+          position: 'Puesto ES',
+          positionEn: 'Position EN',
+          description: 'Descripción ES',
+          descriptionEn: 'Description EN',
+          location: null,
+          startDate: null,
+          endDate: null,
+          current: true,
+          metrics: [],
+          sortOrder: 1,
+          source: 'USER',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ],
+    };
+    prismaMock.jobOffer.findFirst.mockResolvedValue(offer);
+    prismaMock.profile.findUnique.mockResolvedValue(bilingualProfile);
+    prismaMock.jobMatch.findFirst.mockResolvedValue(null);
+
+    await service.buildDraft('user-1', 'offer-1', null, null, 'en');
+
+    const generateCall = parserMock.generate.mock.calls[0] as unknown as Array<{
+      profile: {
+        experiences: Array<{ position: string; description: string }>;
+      };
+    }>;
+    expect(generateCall[0].profile.experiences[0].position).toBe('Position EN');
+    expect(generateCall[0].profile.experiences[0].description).toBe(
+      'Description EN',
     );
   });
 
@@ -254,6 +293,7 @@ describe('CoverLetterService', () => {
       'María López',
       'Vi la vacante en LinkedIn.',
       'Dear María López, edited content.',
+      'en',
     );
 
     const createCall = prismaMock.coverLetter.create.mock

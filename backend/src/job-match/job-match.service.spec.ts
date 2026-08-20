@@ -159,6 +159,59 @@ describe('JobMatchService', () => {
     expect(parserMock.match).not.toHaveBeenCalled();
   });
 
+  it('pasa el perfil localizado en el idioma del match al parser', async () => {
+    const bilingualProfile = {
+      ...emptyProfile,
+      experiences: [
+        {
+          id: 'exp-1',
+          profileId: 'profile-1',
+          company: 'Acme',
+          position: 'Puesto ES',
+          positionEn: 'Position EN',
+          description: 'Descripción ES',
+          descriptionEn: 'Description EN',
+          location: null,
+          startDate: null,
+          endDate: null,
+          current: true,
+          metrics: [],
+          sortOrder: 1,
+          source: 'USER',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ],
+    };
+    prismaMock.jobOffer.findFirst.mockResolvedValue({
+      id: 'offer-1',
+      title: 'Senior',
+      company: 'Acme',
+      level: 'Senior',
+      responsibilities: [],
+      requiredSkills: ['TypeScript'],
+      preferredSkills: [],
+      experienceYears: null,
+      experienceSummary: null,
+      education: [],
+      languages: [],
+      keywords: [],
+    });
+    prismaMock.profile.findUnique.mockResolvedValue(bilingualProfile);
+    prismaMock.jobMatch.create.mockResolvedValue(matchRow);
+
+    await service.createForOffer('user-1', 'offer-1', 'en');
+
+    const matchCall = parserMock.match.mock.calls[0] as unknown as Array<{
+      snapshot: {
+        experiences: Array<{ position: string; description: string }>;
+      };
+    }>;
+    const snapshot = matchCall[0]?.snapshot ?? matchCall[1];
+    expect(snapshot.experiences[0].position).toBe('Position EN');
+    expect(snapshot.experiences[0].description).toBe('Description EN');
+  });
+
   it('persiste la oferta cuando saveOffer es true en el flujo de draft', async () => {
     prismaMock.profile.findUnique.mockResolvedValue(emptyProfile);
     prismaMock.jobOffer.create.mockResolvedValue({ id: 'offer-new' });

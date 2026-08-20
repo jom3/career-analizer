@@ -147,6 +147,7 @@ describe('CV Adaptation (e2e)', () => {
 
     const created = await agent
       .post('/cv-adaptation')
+      .set('Accept-Language', 'en')
       .send({ jobOfferId: offerId })
       .expect(201);
     const body = created.body as {
@@ -197,6 +198,7 @@ describe('CV Adaptation (e2e)', () => {
     const offerId = await createOffer(agent);
     const created = await agent
       .post('/cv-adaptation')
+      .set('Accept-Language', 'en')
       .send({ jobOfferId: offerId })
       .expect(201);
     const versionId = (created.body as { id: string }).id;
@@ -237,6 +239,57 @@ describe('CV Adaptation (e2e)', () => {
     });
     expect(docxResult.value).toContain('Senior Engineer');
     expect(docxResult.value).toContain('Original description.');
+  });
+
+  it('genera el contenido en el idioma de la interfaz (Accept-Language), no el de la oferta', async () => {
+    const agent = await seedUser();
+    await agent
+      .put('/profile')
+      .send({
+        headlineI18n: { es: 'Ingeniera de Software', en: 'Software Engineer' },
+        summary: 'Resumen original.',
+        experiences: [
+          {
+            company: 'Acme',
+            position: 'Puesto ES',
+            positionI18n: { es: 'Puesto ES', en: 'Position EN' },
+            startDate: '2020-01-01',
+            current: true,
+            description: 'Descripción ES',
+            descriptionI18n: { es: 'Descripción ES', en: 'Description EN' },
+            sortOrder: 1,
+          },
+        ],
+        skills: [
+          { name: 'TypeScript', level: 4, sortOrder: 1 },
+          { name: 'Angular', level: 3, sortOrder: 2 },
+        ],
+        education: [],
+        certifications: [],
+        projects: [],
+        languages: [],
+      })
+      .expect(200);
+
+    const offerId = await createOffer(agent, { sourceLanguage: 'es' });
+
+    const created = await agent
+      .post('/cv-adaptation')
+      .set('Accept-Language', 'en')
+      .send({ jobOfferId: offerId })
+      .expect(201);
+    const body = created.body as {
+      sourceLanguage: string | null;
+      content: {
+        headline?: string;
+        experiences: { position: string; description: string }[];
+      };
+    };
+
+    expect(body.sourceLanguage).toBe('en');
+    expect(body.content.headline).toBe('Software Engineer');
+    expect(body.content.experiences[0].position).toBe('Position EN');
+    expect(body.content.experiences[0].description).toBe('Description EN');
   });
 
   it('rejects an offer and an export of another user with 404', async () => {

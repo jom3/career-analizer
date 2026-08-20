@@ -155,19 +155,18 @@ export class CoverLetterParserService {
         content: content,
       },
     ];
-    const completion =
-      await this.openaiService.client.chat.completions.create({
-        model: this.model,
-        messages,
-        response_format: {
-          type: 'json_schema',
-          json_schema: {
-            name: 'cover_letter_audit',
-            strict: true,
-            schema: this.buildSchema(),
-          },
+    const completion = await this.openaiService.client.chat.completions.create({
+      model: this.model,
+      messages,
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          name: 'cover_letter_audit',
+          strict: true,
+          schema: this.buildSchema(),
         },
-      });
+      },
+    });
     const responseContent = completion.choices[0]?.message?.content;
     if (!responseContent) {
       throw new Error('empty audit response');
@@ -241,12 +240,12 @@ export class CoverLetterParserService {
       'Estoy disponible para una entrevista esta semana."',
       'BAD version of the same content (what NOT to do — notice each red flag):',
       '"Diseñé y construí una plataforma para la Clínica Dental Rivera, lo que demostró mi capacidad para crear soluciones integrales. [names the employer — DELETE the name, generalize to sector; also self-evaluative — DELETE]',
-      'Usé Angular, NestJS y PostgreSQL, tecnologías clave para el desarrollo backend. [forced connection via \'clave para\', and \'clave\' is a banned empty adjective — DELETE the clause, keep only the fact]',
+      "Usé Angular, NestJS y PostgreSQL, tecnologías clave para el desarrollo backend. [forced connection via 'clave para', and 'clave' is a banned empty adjective — DELETE the clause, keep only the fact]",
       'Esta plataforma permite gestionar tareas, facilitando la comunicación del equipo. [mid-sentence gerund clause hanging off a restated fact — DELETE ENTIRELY, adds nothing new]',
       'Implementé autenticación JWT, garantizando la seguridad de la información. [closing gerund justifying the fact — DELETE the gerund clause]',
-      'Mejoré el rendimiento de las consultas, lo que permitió una gestión más eficiente. [mid-sentence \'lo que permitió\' clause + empty adjective \'eficiente\' — apply the MECHANICAL FIX: "Mejoré el rendimiento de las consultas." and stop there]',
-      'Este proyecto optimiza bases de datos, contribuyendo así a la eficiencia del manejo de información. [opens referring back to something already stated AND trails into a \'contribuyendo a\' gerund clause with an empty adjective — DELETE the whole second half]',
-      'Cuento con certificaciones en tecnologías relevantes. [empty adjective \'relevantes\' with no named technology or fact — DELETE or replace with the actual certification names — see SPECIFIC BANNED PHRASE rule below]',
+      "Mejoré el rendimiento de las consultas, lo que permitió una gestión más eficiente. [mid-sentence 'lo que permitió' clause + empty adjective 'eficiente' — apply the MECHANICAL FIX: \"Mejoré el rendimiento de las consultas.\" and stop there]",
+      "Este proyecto optimiza bases de datos, contribuyendo así a la eficiencia del manejo de información. [opens referring back to something already stated AND trails into a 'contribuyendo a' gerund clause with an empty adjective — DELETE the whole second half]",
+      "Cuento con certificaciones en tecnologías relevantes. [empty adjective 'relevantes' with no named technology or fact — DELETE or replace with the actual certification names — see SPECIFIC BANNED PHRASE rule below]",
       'Construí APIs RESTful, facilitando flujos de datos entre frontend y backend. [trailing gerund clause adding no new fact — fold into the main clause instead]',
       'Esto se alinea perfectamente con los requerimientos del puesto. [forced connection, vague, no new fact — DELETE ENTIRELY]"',
       'Notice the GOOD version never explains why a fact matters, never names the employer, never uses "lo que permitió/facilitó" or any other trailing justification gerund or "que" clause, never uses an empty adjective without a fact attached, and never lets a sentence trail off into a clause that restates what was just said — it just states facts back to back, lets the reader connect them to the job requirements on their own, and closes with a plain action.',
@@ -283,7 +282,7 @@ export class CoverLetterParserService {
       '5. GERUND CLAUSE RULE (expanded): trailing clauses that summarize or justify a fact just stated — ANY gerund construction, not only "lo que permitió". This includes "ensuring...", "guaranteeing...", "facilitando...", "permitiendo...", "logrando...", "asegurando...", "contribuyendo a...", "priorizando...", "buscando...", "aportando...", as well as "which/lo que" constructions ("which allowed...", "lo que permitió...", "lo que facilitó...", "lo que me permite..."). This applies MID-SENTENCE too, not only at paragraph endings. Apply the MECHANICAL FIX the moment any such construction appears in a draft. Test: remove the clause — if the sentence still stands as a complete, standalone fact without it, the clause was decorative and must be deleted.',
       '6. TRAILING "QUE" CLAUSE RULE: the trailing-justification pattern also includes "que + verb" constructions attached to a fact just stated, not only gerunds: "que respaldan...", "que certifican...", "que confirman...", "que avalan mis habilidades/conocimientos/formación", "que demuestran...". Treat these identically to the GERUND CLAUSE rule — delete them, don\'t rewrite them, since they add no new fact and only restate that the fact "supports" or "backs" something.',
       '7. Generic closings: see the dedicated CLOSING LINE section above — this rule is treated with zero tolerance since it is the most common failure.',
-      '8. Do not mention the target company\'s name more than once in the whole body, unless it appears organically inside a sentence with real content. Do not mention any past employer or client name at all — see EMPLOYER NAMES section.',
+      "8. Do not mention the target company's name more than once in the whole body, unless it appears organically inside a sentence with real content. Do not mention any past employer or client name at all — see EMPLOYER NAMES section.",
       '9. Sentences that open referring to something already stated ("This project...", "This...", "That experience...") and then interpret or restate it — delete these completely, don\'t rewrite them.',
       '10. One idea per sentence: if a sentence states a fact AND explains its meaning or generic impact, split it and delete the second half.',
       '11. ZERO-TOLERANCE EMPTY-ADJECTIVE LIST: these exact words/forms are banned unless immediately followed by a number, percentage, or a specifically named fact: "clave", "relevante(s)", "eficaz/eficaces", "eficiente(s)", "fundamental(es)", "avanzado(a/s)", "óptimo(a/s)", "sólido(a/s)" (when describing skills in the abstract, e.g. "experiencia sólida en X" — this is a soft-empty adjective too). Before finalizing, scan the draft for each of these words individually: if found without an adjacent number or named specific, delete the word and reword the phrase around it — do not just soften it to a synonym, since synonyms of banned adjectives are still banned.',
@@ -299,10 +298,10 @@ export class CoverLetterParserService {
       '======================================================',
       'Review the letter sentence by sentence and ask these questions:',
       'a) "Would this sentence work for any candidate at any company by changing two words?" If yes → rewrite with a specific fact, or delete.',
-      "b) \"Does this sentence add a NEW fact, or does it interpret/summarize/justify a fact from a previous sentence — anywhere in the sentence, including mid-sentence clauses after a comma?\" If the latter → delete that clause (or the whole sentence), don't rewrite it.",
+      'b) "Does this sentence add a NEW fact, or does it interpret/summarize/justify a fact from a previous sentence — anywhere in the sentence, including mid-sentence clauses after a comma?" If the latter → delete that clause (or the whole sentence), don\'t rewrite it.',
       'c) "Does the closing sentence contain any word referencing team, contribution, growth, or goals?" If yes → replace it with a plain action from the GOOD closings list above.',
       'd) "Does any sentence name a past employer or client?" If yes → remove the name and generalize to the domain/sector, or drop the phrase entirely per the EMPLOYER NAMES section.',
-      'e) "Does any sentence contain a trailing gerund clause, a trailing \'que + verbo\' clause, or a \'lo que permitió/facilitó\' construction, in ANY form (contribuyendo, priorizando, garantizando, que respaldan, que certifican, etc.)?" If yes → apply the MECHANICAL FIX and split or delete it.',
+      "e) \"Does any sentence contain a trailing gerund clause, a trailing 'que + verbo' clause, or a 'lo que permitió/facilitó' construction, in ANY form (contribuyendo, priorizando, garantizando, que respaldan, que certifican, etc.)?\" If yes → apply the MECHANICAL FIX and split or delete it.",
       'f) "Does any sentence contain a word from the ZERO-TOLERANCE EMPTY-ADJECTIVE LIST without a number or named fact next to it?" If yes → delete the word and reword.',
       'FINAL PASS — LITERAL WORD SEARCH (separate from the sentence-by-sentence check above): after finishing the sentence-by-sentence review, do one more pass where you literally search your own draft text for each of these roots: "clave", "relevante", "eficien", "eficaz", "efectivo", "fundamental", "avanzad", "óptim", "sólid". These are a hard filter, not stylistic suggestions — if any match is found, it must be removed, no exceptions, even if the sentence "reads well" without it.',
       'After any deletion or rewrite, re-run the full check on the resulting letter — a fixed sentence can still fail a different rule. Do NOT show the bullets or the review process: output only the final letter.',
@@ -318,7 +317,7 @@ export class CoverLetterParserService {
 
   private buildAuditPrompt(): string {
     return [
-      'You are an editor, not a writer. You receive a cover letter that was already generated by another process. Your ONLY job is to detect and remove specific forbidden patterns, then return the corrected letter. You do NOT rewrite tone, you do NOT add new content, you do NOT rephrase sentences that don\'t violate a rule below. Minimal intervention: touch only what violates a rule, leave everything else exactly as written.',
+      "You are an editor, not a writer. You receive a cover letter that was already generated by another process. Your ONLY job is to detect and remove specific forbidden patterns, then return the corrected letter. You do NOT rewrite tone, you do NOT add new content, you do NOT rephrase sentences that don't violate a rule below. Minimal intervention: touch only what violates a rule, leave everything else exactly as written.",
       'You receive the letter body only (from greeting to closing line). Do not add or remove the greeting or closing line structure — only edit within it.',
       '======================================================',
       'WHAT TO SCAN FOR (apply each rule independently, in this order)',
@@ -346,7 +345,7 @@ export class CoverLetterParserService {
       'RULE 8 — GENERIC CLOSING LINE',
       'The closing sentence must be ONLY a concrete next step (interview, call, availability) with no reference to "equipo", "aportar", "contribuir", "crecimiento", "objetivos", "éxito" tied to the company. If the closing violates this, replace it with one of: "Estoy disponible para una entrevista esta semana." / "Puedo coordinar una llamada en los próximos días." / "Quedo disponible para una entrevista en el horario que les resulte conveniente." Pick whichever fits the surrounding tone best; do not invent a different one.',
       'RULE 9 — COMPANY NAME REPEATED VACUOUSLY',
-      'If the target company\'s name appears more than once and the second mention adds no real content, delete that second mention or replace it with nothing (fold the sentence around it).',
+      "If the target company's name appears more than once and the second mention adds no real content, delete that second mention or replace it with nothing (fold the sentence around it).",
       '======================================================',
       'PROCESS',
       '======================================================',
@@ -357,7 +356,7 @@ export class CoverLetterParserService {
       '======================================================',
       'WHAT YOU MUST NOT DO',
       '======================================================',
-      '- Do not add any fact, skill, project, or number that wasn\'t already in the input letter.',
+      "- Do not add any fact, skill, project, or number that wasn't already in the input letter.",
       '- Do not rephrase sentences that already comply — if a sentence violates no rule, leave it character-for-character identical.',
       '- Do not change the greeting or the overall paragraph structure unless a full paragraph becomes empty after edits (then merge or remove it).',
       '- Do not explain your edits or show your rule-by-rule process.',

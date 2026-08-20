@@ -9,6 +9,8 @@ import {
 } from '../profile/profile.service';
 import { profileFingerprint, profileSnapshot } from '../job-match/profile-util';
 import { CvExportService, type CvData } from '../cv-export/cv-export.service';
+import { UiLang } from '../i18n/ui-lang';
+import { localizeProfile } from '../profile/localize-profile';
 import {
   adaptedProfileSnapshot,
   applyRewrites,
@@ -126,6 +128,7 @@ export class CvAdaptationService {
     userId: string,
     jobOfferId: string,
     jobMatchId?: string,
+    targetLang: UiLang = 'es',
   ): Promise<AdaptedCvDto> {
     const offer = await this.prisma.jobOffer.findFirst({
       where: { id: jobOfferId, userId },
@@ -135,12 +138,13 @@ export class CvAdaptationService {
     }
 
     const profile = await this.profileForUser(userId);
-    const richSnapshot = adaptedProfileSnapshot(profile);
+    const localizedProfile = localizeProfile(profile, targetLang);
+    const richSnapshot = adaptedProfileSnapshot(localizedProfile);
     const fingerprint = profileFingerprint(profileSnapshot(profile));
 
     const draft = this.toDraft(offer);
     const { content: baseContent, matchedSkillNames } = buildBaseContent(
-      profile,
+      localizedProfile,
       offer,
     );
 
@@ -167,7 +171,7 @@ export class CvAdaptationService {
       },
       matchedSkills: matchedSkillNames,
       missingSkills,
-      sourceLanguage: offer.sourceLanguage,
+      sourceLanguage: targetLang,
     };
 
     const result = await this.parser.adapt(input);
@@ -175,7 +179,7 @@ export class CvAdaptationService {
       profile: richSnapshot,
       matchedSkills: matchedSkillNames,
       missingSkills,
-      sourceLanguage: offer.sourceLanguage,
+      sourceLanguage: targetLang,
     });
     const summary = deterministicSummary ?? baseContent.summary;
     const content = applyRewrites({ ...baseContent, summary }, result);
@@ -185,7 +189,7 @@ export class CvAdaptationService {
         userId,
         jobOfferId,
         jobMatchId: jobMatchId ?? null,
-        sourceLanguage: offer.sourceLanguage,
+        sourceLanguage: targetLang,
         content: content as unknown as Prisma.InputJsonValue,
         offerSnapshot: draft as unknown as Prisma.InputJsonValue,
         profileSnapshot: richSnapshot as unknown as Prisma.InputJsonValue,
