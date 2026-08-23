@@ -97,6 +97,50 @@ describe('CV Export (e2e)', () => {
     return agent;
   }
 
+  async function seedBilingualProfile(): Promise<request.Agent> {
+    const agent = request.agent(app.getHttpServer());
+    await agent.post('/auth/login').send({ email, password }).expect(201);
+
+    await agent
+      .put('/profile')
+      .send({
+        headline: 'Líder de Ingeniería',
+        headlineI18n: { es: 'Líder de Ingeniería', en: 'Engineering Lead' },
+        summary: 'Resumen en español.',
+        summaryI18n: { es: 'Resumen en español.', en: 'English summary.' },
+        experiences: [
+          {
+            company: 'Acme',
+            position: 'Desarrollador Senior',
+            positionI18n: { es: 'Desarrollador Senior', en: 'Lead Developer' },
+            startDate: '2020-01-01',
+            current: true,
+            description: 'Descripción en español.',
+            descriptionI18n: {
+              es: 'Descripción en español.',
+              en: 'Built the billing platform in English.',
+            },
+            sortOrder: 1,
+          },
+        ],
+        skills: [{ name: 'TypeScript', level: 4, sortOrder: 1 }],
+        languages: [
+          {
+            name: 'Español',
+            nameI18n: { es: 'Español', en: 'Spanish' },
+            level: 'C2',
+            sortOrder: 1,
+          },
+        ],
+        education: [],
+        certifications: [],
+        projects: [],
+      })
+      .expect(200);
+
+    return agent;
+  }
+
   it('GET /cv-export without a session returns 401', async () => {
     await request(app.getHttpServer()).get('/cv-export?format=pdf').expect(401);
   });
@@ -208,5 +252,45 @@ describe('CV Export (e2e)', () => {
     const enSummary = enResult.value.match(/Summary/);
     expect(esSummary).not.toBeNull();
     expect(enSummary).not.toBeNull();
+  });
+
+  it('Accept-Language drives the content language for a bilingual profile', async () => {
+    const agent = await seedBilingualProfile();
+
+    const en = await agent
+      .get('/cv-export?format=docx')
+      .set('Accept-Language', 'en')
+      .buffer(true)
+      .parse(asBuffer().parse)
+      .expect(200);
+    expect(en.headers['cache-control']).toContain('no-store');
+    expect(en.headers['pragma']).toContain('no-cache');
+    const enText = await mammoth.extractRawText({
+      buffer: Buffer.from(binaryBody(en)),
+    });
+    expect(enText.value).toContain('Engineering Lead');
+    expect(enText.value).toContain('English summary.');
+    expect(enText.value).toContain('Lead Developer');
+    expect(enText.value).toContain('Built the billing platform in English.');
+    expect(enText.value).toContain('Spanish (C2)');
+    expect(enText.value).toContain('Summary');
+    expect(enText.value).not.toContain('Resumen');
+    expect(enText.value).not.toContain('Líder de Ingeniería');
+
+    const es = await agent
+      .get('/cv-export?format=docx')
+      .set('Accept-Language', 'es')
+      .buffer(true)
+      .parse(asBuffer().parse)
+      .expect(200);
+    const esText = await mammoth.extractRawText({
+      buffer: Buffer.from(binaryBody(es)),
+    });
+    expect(esText.value).toContain('Líder de Ingeniería');
+    expect(esText.value).toContain('Resumen en español.');
+    expect(esText.value).toContain('Desarrollador Senior');
+    expect(esText.value).toContain('Descripción en español.');
+    expect(esText.value).toContain('Resumen');
+    expect(esText.value).not.toContain('English summary.');
   });
 });

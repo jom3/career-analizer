@@ -1,4 +1,11 @@
-import { Controller, Get, Query, Req, StreamableFile } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Header,
+  Query,
+  Req,
+  StreamableFile,
+} from '@nestjs/common';
 import type { RequestWithUser } from '../auth/request-with-user';
 import { UiLang } from '../i18n/ui-lang';
 import { CvExportQueryDto } from './dto/cv-export-query.dto';
@@ -12,6 +19,10 @@ export class CvExportController {
   constructor(private readonly cvExportService: CvExportService) {}
 
   @Get()
+  // El idioma viaja por el header Accept-Language y la URL no cambia, así que
+  // las descargas nunca deben servirse desde caché.
+  @Header('Cache-Control', 'no-store')
+  @Header('Pragma', 'no-cache')
   async download(
     @Req() req: RequestWithUser,
     @Query() query: CvExportQueryDto,
