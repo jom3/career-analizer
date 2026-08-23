@@ -268,4 +268,76 @@ describe('Job Analysis (e2e)', () => {
       .expect(404);
     await agent.delete(`/job-analysis/${ownedId}`).expect(404);
   });
+
+  it('creates offers with status PENDING by default', async () => {
+    const agent = request.agent(app.getHttpServer());
+    await agent.post('/auth/login').send({ email, password }).expect(201);
+
+    const created = await agent
+      .post('/job-analysis')
+      .send({ title: 'Status Offer' })
+      .expect(201);
+    expect((created.body as { status: string }).status).toBe('PENDING');
+  });
+
+  it('PATCH /job-analysis/:id/status updates the tracking status and persists', async () => {
+    const agent = request.agent(app.getHttpServer());
+    await agent.post('/auth/login').send({ email, password }).expect(201);
+
+    const created = await agent
+      .post('/job-analysis')
+      .send({ title: 'Trackable Offer' })
+      .expect(201);
+    const offerId = (created.body as { id: string }).id;
+
+    const patched = await agent
+      .patch(`/job-analysis/${offerId}/status`)
+      .send({ status: 'APPLIED' })
+      .expect(200);
+    expect((patched.body as { status: string }).status).toBe('APPLIED');
+
+    const got = await agent.get(`/job-analysis/${offerId}`).expect(200);
+    expect((got.body as { status: string }).status).toBe('APPLIED');
+  });
+
+  it('PATCH rejects an invalid status with 400', async () => {
+    const agent = request.agent(app.getHttpServer());
+    await agent.post('/auth/login').send({ email, password }).expect(201);
+
+    const created = await agent
+      .post('/job-analysis')
+      .send({ title: 'Bad Status' })
+      .expect(201);
+    const offerId = (created.body as { id: string }).id;
+
+    await agent
+      .patch(`/job-analysis/${offerId}/status`)
+      .send({ status: 'ARCHIVED' })
+      .expect(400);
+  });
+
+  it('PATCH returns 404 for another user offer', async () => {
+    const agent = request.agent(app.getHttpServer());
+    await agent.post('/auth/login').send({ email, password }).expect(201);
+
+    const owner = request.agent(app.getHttpServer());
+    await owner
+      .post('/auth/register')
+      .send({
+        name: 'Other2',
+        email: `other2-${Date.now()}@test.dev`,
+        password,
+      })
+      .expect(201);
+    const owned = await owner
+      .post('/job-analysis')
+      .send({ title: 'Owner Status Offer' })
+      .expect(201);
+    const ownedId = (owned.body as { id: string }).id;
+
+    await agent
+      .patch(`/job-analysis/${ownedId}/status`)
+      .send({ status: 'OMITTED' })
+      .expect(404);
+  });
 });

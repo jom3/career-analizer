@@ -158,9 +158,37 @@
     } @else if (history().length === 0) {
       <p class="muted">{{ i18n.t('jobAnalysis.emptyHistory') }}</p>
     } @else {
-      <ul class="list-history">
-        @for (offer of history(); track offer.id) {
-          <li class="history-item">
+      <div class="history-filter">
+        <label class="status-field">
+          <span class="muted history-filter__label">
+            {{ i18n.t('jobAnalysis.filter') }}
+          </span>
+          <select
+            class="status-select"
+            [attr.aria-label]="i18n.t('jobAnalysis.filter')"
+            (change)="onStatusFilter($any($event.target).value)"
+          >
+            <option value="ALL" [selected]="statusFilter() === 'ALL'">
+              {{ i18n.t('jobAnalysis.filterAll') }}
+            </option>
+            @for (option of statusOptions; track option) {
+              <option [value]="option" [selected]="statusFilter() === option">
+                {{ i18n.t(statusLabelKey(option)) }}
+              </option>
+            }
+          </select>
+        </label>
+      </div>
+      @if (filteredHistory().length === 0) {
+        <p class="muted">{{ i18n.t('jobAnalysis.emptyFiltered') }}</p>
+      } @else {
+        <ul class="list-history">
+          @for (offer of filteredHistory(); track offer.id) {
+          <li
+            class="history-item"
+            [class.history-item--applied]="offer.status === 'APPLIED'"
+            [class.history-item--omitted]="offer.status === 'OMITTED'"
+          >
             <div class="history-main">
               <strong>{{ offer.title }}</strong>
               <span class="muted">
@@ -169,8 +197,40 @@
                   · {{ offer.level }}
                 }
               </span>
+              @if (offer.status !== 'PENDING') {
+                <span class="history-status">
+                  @if (offer.status === 'APPLIED') {
+                    <span class="tag tag--status-applied">
+                      ✓ {{ i18n.t('jobAnalysis.statusApplied') }}
+                    </span>
+                  } @else if (offer.status === 'OMITTED') {
+                    <span class="tag tag--status-omitted">
+                      — {{ i18n.t('jobAnalysis.statusOmitted') }}
+                    </span>
+                  }
+                </span>
+              }
             </div>
             <div class="history-actions">
+              <label class="status-field">
+                <select
+                  class="status-select"
+                  [attr.aria-label]="i18n.t('jobAnalysis.status')"
+                  [disabled]="statusSavingId() === offer.id"
+                  (change)="updateOfferStatus(offer, $any($event.target).value)"
+                >
+                  @for (option of statusOptions; track option) {
+                    <option [value]="option" [selected]="offer.status === option">
+                      {{ i18n.t(statusLabelKey(option)) }}
+                    </option>
+                  }
+                </select>
+                @if (statusSavingId() === offer.id) {
+                  <span class="muted status-saving">
+                    {{ i18n.t('jobAnalysis.statusSaving') }}
+                  </span>
+                }
+              </label>
               <button
                 type="button"
                 class="btn btn--secondary btn--small"
@@ -211,8 +271,9 @@
               </button>
             </div>
           </li>
-        }
-      </ul>
+          }
+        </ul>
+      }
     }
   </section>
 </section>

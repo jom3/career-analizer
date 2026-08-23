@@ -113,7 +113,7 @@
           </button>
         </header>
         @for (item of experiences.controls; track $index) {
-          <div class="item" [formGroup]="item">
+          <div class="item" [formGroup]="item" [attr.id]="'experience-item-' + $index">
             <div class="item-head">
               <span class="item-index">{{ $index + 1 }}</span>
               @if (isExperienceDuplicate($index)) {
@@ -205,7 +205,7 @@
           </button>
         </header>
         @for (item of skills.controls; track $index) {
-          <div class="item compact" [formGroup]="item">
+          <div class="item compact" [formGroup]="item" [attr.id]="'skill-item-' + $index">
             @if (isSkillDuplicate($index)) {
               <span class="tag tag--duplicate">{{ i18n.t('profile.duplicate') }}</span>
             }
@@ -242,7 +242,7 @@
           </button>
         </header>
         @for (item of education.controls; track $index) {
-          <div class="item" [formGroup]="item">
+          <div class="item" [formGroup]="item" [attr.id]="'education-item-' + $index">
             <div class="item-head">
               <span class="item-index">{{ $index + 1 }}</span>
               <button
@@ -301,7 +301,7 @@
           </button>
         </header>
         @for (item of certifications.controls; track $index) {
-          <div class="item" [formGroup]="item">
+          <div class="item" [formGroup]="item" [attr.id]="'certification-item-' + $index">
             <div class="item-head">
               <span class="item-index">{{ $index + 1 }}</span>
               <button
@@ -344,7 +344,7 @@
           </button>
         </header>
         @for (item of projects.controls; track $index) {
-          <div class="item" [formGroup]="item">
+          <div class="item" [formGroup]="item" [attr.id]="'project-item-' + $index">
             <div class="item-head">
               <span class="item-index">{{ $index + 1 }}</span>
               <button
@@ -413,7 +413,7 @@
           </button>
         </header>
         @for (item of languages.controls; track $index) {
-          <div class="item compact" [formGroup]="item">
+          <div class="item compact" [formGroup]="item" [attr.id]="'language-item-' + $index">
             <label class="form-field">
               {{ i18n.t('profile.language') }}
               <input formControlName="name" type="text" />

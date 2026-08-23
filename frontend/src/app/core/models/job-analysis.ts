@@ -1,6 +1,7 @@
 export type JobLevel = 'Junior' | 'Mid' | 'Senior' | 'Lead' | 'Executive';
 export type InputType = 'TEXT' | 'PDF' | 'IMAGE';
 export type SourceLanguage = 'es' | 'en' | 'other';
+export type OfferStatus = 'PENDING' | 'APPLIED' | 'OMITTED';
 
 // Borrador relajado del análisis (SPEC 10): los campos pueden venir null cuando
 // la fuente (texto, imagen o PDF) no aporta evidencia.
@@ -39,9 +40,10 @@ export interface JobOfferPayload {
   education: string[];
   languages: string[];
   keywords: string[];
-  sourceLanguage: SourceLanguage | null;
+sourceLanguage: SourceLanguage | null;
   inputType: InputType;
   rawInput: string | null;
+  status: OfferStatus;
 }
 
 export interface JobOffer extends JobOfferDraft {
@@ -49,6 +51,7 @@ export interface JobOffer extends JobOfferDraft {
   sourceLanguage: SourceLanguage | null;
   inputType: InputType;
   rawInput: string | null;
+  status: OfferStatus;
   createdAt: string;
   updatedAt: string;
 }

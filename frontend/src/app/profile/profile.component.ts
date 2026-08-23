@@ -242,22 +242,44 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   addExperience(): void {
+    const index = this.experiences.length;
     this.experiences.push(newExperienceForm());
+    this.scrollToItem('experience', index);
   }
   addSkill(): void {
+    const index = this.skills.length;
     this.skills.push(newSkillForm());
+    this.scrollToItem('skill', index);
   }
   addEducation(): void {
+    const index = this.education.length;
     this.education.push(newEducationForm());
+    this.scrollToItem('education', index);
   }
   addCertification(): void {
+    const index = this.certifications.length;
     this.certifications.push(newCertificationForm());
+    this.scrollToItem('certification', index);
   }
   addProject(): void {
+    const index = this.projects.length;
     this.projects.push(newProjectForm());
+    this.scrollToItem('project', index);
   }
   addLanguage(): void {
+    const index = this.languages.length;
     this.languages.push(newLanguageForm());
+    this.scrollToItem('language', index);
+  }
+
+  // Posiciona la vista en el item recién agregado para completarlo sin bajar
+  // manualmente. El setTimeout espera el render reactivo del nuevo item.
+  private scrollToItem(prefix: string, index: number): void {
+    setTimeout(() => {
+      document
+        .getElementById(`${prefix}-item-${index}`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 0);
   }
 
   addMetric(group: ExperienceForm | ProjectForm): void {
