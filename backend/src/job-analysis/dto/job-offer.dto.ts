@@ -10,7 +10,17 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
-import { InputType, JobLevel } from '../../generated/prisma/enums.js';
+import {
+  InputType,
+  JobLevel,
+  OfferStatus,
+} from '../../generated/prisma/enums.js';
+
+// Actualiza solo el estado de seguimiento de una oferta desde el historial.
+export class UpdateOfferStatusDto {
+  @IsEnum(OfferStatus)
+  status!: OfferStatus;
+}
 
 export class JobOfferDto {
   @IsString()
@@ -88,6 +98,10 @@ export class JobOfferDto {
   @IsOptional()
   @IsEnum(InputType)
   inputType?: InputType;
+
+  @IsOptional()
+  @IsEnum(OfferStatus)
+  status?: OfferStatus;
 
   @IsOptional()
   @IsString()

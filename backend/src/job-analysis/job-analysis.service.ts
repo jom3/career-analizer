@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InputType } from '../generated/prisma/enums.js';
+import { InputType, OfferStatus } from '../generated/prisma/enums.js';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   MIME_TYPE_DOCX,
@@ -129,6 +129,11 @@ export class JobAnalysisService {
     await this.prisma.jobOffer.delete({ where: { id } });
   }
 
+  async updateStatus(userId: string, id: string, status: OfferStatus) {
+    await this.getById(userId, id);
+    return this.prisma.jobOffer.update({ where: { id }, data: { status } });
+  }
+
   private toData(dto: JobOfferDto) {
     return {
       title: dto.title,
@@ -144,6 +149,7 @@ export class JobAnalysisService {
       keywords: dto.keywords ?? [],
       sourceLanguage: dto.sourceLanguage ?? null,
       inputType: dto.inputType ?? InputType.TEXT,
+      status: dto.status ?? OfferStatus.PENDING,
       rawInput: dto.rawInput ?? null,
     };
   }

@@ -227,6 +227,14 @@ export const es: Record<string, string> = {
   'jobAnalysis.errorServer':
     'Error del servidor ({status}). Intentalo de nuevo.',
   'jobAnalysis.errorGeneric': 'No se pudo completar la operación. Intentalo de nuevo.',
+  'jobAnalysis.status': 'Estado de la postulación',
+  'jobAnalysis.statusPending': 'Pendiente',
+  'jobAnalysis.statusApplied': 'Enviada',
+  'jobAnalysis.statusOmitted': 'Omitida',
+  'jobAnalysis.statusSaving': 'Guardando…',
+  'jobAnalysis.filter': 'Filtrar por estado',
+  'jobAnalysis.filterAll': 'Todas',
+  'jobAnalysis.emptyFiltered': 'No hay ofertas con ese estado.',
 
   'jobMatch.detailTitle': 'Encaje con la oferta',
   'jobMatch.listTitle': 'Mis análisis de encaje',

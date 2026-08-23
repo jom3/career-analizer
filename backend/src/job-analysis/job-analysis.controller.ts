@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Put,
   Req,
@@ -14,7 +15,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { RequestWithUser } from '../auth/request-with-user';
-import { JobOfferDto } from './dto/job-offer.dto';
+import { JobOfferDto, UpdateOfferStatusDto } from './dto/job-offer.dto';
 import { JobAnalysisResult, JobAnalysisService } from './job-analysis.service';
 import { JOB_UPLOAD_FIELD, jobUploadOptions } from './job-upload.options';
 
@@ -55,6 +56,15 @@ export class JobAnalysisController {
     @Body() dto: JobOfferDto,
   ) {
     return this.jobAnalysisService.update(req.user.id, id, dto);
+  }
+
+  @Patch(':id/status')
+  updateStatus(
+    @Req() req: RequestWithUser,
+    @Param('id') id: string,
+    @Body() dto: UpdateOfferStatusDto,
+  ) {
+    return this.jobAnalysisService.updateStatus(req.user.id, id, dto.status);
   }
 
   @Delete(':id')

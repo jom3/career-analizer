@@ -228,6 +228,14 @@ export const en: Record<string, string> = {
   'jobAnalysis.errorServer':
     'Server error ({status}). Try again.',
   'jobAnalysis.errorGeneric': 'Could not complete the operation. Try again.',
+  'jobAnalysis.status': 'Application status',
+  'jobAnalysis.statusPending': 'Pending',
+  'jobAnalysis.statusApplied': 'Applied',
+  'jobAnalysis.statusOmitted': 'Omitted',
+  'jobAnalysis.statusSaving': 'Saving…',
+  'jobAnalysis.filter': 'Filter by status',
+  'jobAnalysis.filterAll': 'All',
+  'jobAnalysis.emptyFiltered': 'No offers with that status.',
 
   'jobMatch.detailTitle': 'Fit with the offer',
   'jobMatch.listTitle': 'My fit analyses',

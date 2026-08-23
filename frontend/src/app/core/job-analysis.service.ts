@@ -6,6 +6,7 @@ import type {
   JobAnalysisResult,
   JobOffer,
   JobOfferPayload,
+  OfferStatus,
 } from './models/job-analysis';
 
 @Injectable({ providedIn: 'root' })
@@ -62,6 +63,15 @@ export class JobAnalysisService {
   remove(id: string): Promise<void> {
     return firstValueFrom(
       this.http.delete<void>(`${this.apiUrl}/job-analysis/${id}`),
+    );
+  }
+
+  updateStatus(id: string, status: OfferStatus): Promise<JobOffer> {
+    return firstValueFrom(
+      this.http.patch<JobOffer>(
+        `${this.apiUrl}/job-analysis/${id}/status`,
+        { status },
+      ),
     );
   }
 }

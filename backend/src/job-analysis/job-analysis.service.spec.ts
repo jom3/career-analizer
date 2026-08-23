@@ -5,7 +5,7 @@ import { TextExtractorService } from '../cv-import/text-extractor.service';
 import { JobParserService } from './job-parser.service';
 import { JobAnalysisService } from './job-analysis.service';
 import { JobOfferDto } from './dto/job-offer.dto';
-import { InputType } from '../generated/prisma/enums.js';
+import { InputType, OfferStatus } from '../generated/prisma/enums.js';
 
 describe('JobAnalysisService', () => {
   let service: JobAnalysisService;
@@ -162,6 +162,7 @@ describe('JobAnalysisService', () => {
         keywords: [],
         sourceLanguage: null,
         inputType: InputType.TEXT,
+        status: OfferStatus.PENDING,
         rawInput: null,
       },
     });
@@ -212,6 +213,38 @@ describe('JobAnalysisService', () => {
         title: 'Nuevo título',
       }) as Record<string, unknown>,
     });
+  });
+
+  it('actualiza el estado de una oferta propia tras validar la pertenencia', async () => {
+    prismaMock.jobOffer.findFirst.mockResolvedValue({ id: 'offer-1' });
+    prismaMock.jobOffer.update.mockResolvedValue({
+      id: 'offer-1',
+      status: OfferStatus.APPLIED,
+    });
+
+    const result = await service.updateStatus(
+      'user-1',
+      'offer-1',
+      OfferStatus.APPLIED,
+    );
+
+    expect(prismaMock.jobOffer.findFirst).toHaveBeenCalledWith({
+      where: { id: 'offer-1', userId: 'user-1' },
+    });
+    expect(prismaMock.jobOffer.update).toHaveBeenCalledWith({
+      where: { id: 'offer-1' },
+      data: { status: OfferStatus.APPLIED },
+    });
+    expect(result.status).toBe(OfferStatus.APPLIED);
+  });
+
+  it('no actualiza el estado de una oferta ajena', async () => {
+    prismaMock.jobOffer.findFirst.mockResolvedValue(null);
+
+    await expect(
+      service.updateStatus('user-2', 'offer-1', OfferStatus.OMITTED),
+    ).rejects.toThrow(NotFoundException);
+    expect(prismaMock.jobOffer.update).not.toHaveBeenCalled();
   });
 
   it('borra una oferta propia tras validar la pertenencia', async () => {

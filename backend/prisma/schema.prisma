@@ -33,6 +33,12 @@ enum InputType {
   IMAGE
 }
 
+enum OfferStatus {
+  PENDING
+  APPLIED
+  OMITTED
+}
+
 model Profile {
   id             String           @id @default(cuid())
   userId         String           @unique
@@ -210,6 +216,7 @@ model JobOffer {
   keywords          String[]
   sourceLanguage    String?
   inputType         InputType @default(TEXT)
+  status            OfferStatus @default(PENDING)
   rawInput          String?   @db.Text
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt

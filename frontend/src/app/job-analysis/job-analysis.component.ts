@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import {
   FormArray,
   FormControl,
@@ -18,6 +18,7 @@ import type {
   JobOffer,
   JobOfferDraft,
   JobOfferPayload,
+  OfferStatus,
   SourceLanguage,
 } from '../core/models/job-analysis';
 
@@ -117,13 +118,39 @@ export class JobAnalysisComponent implements OnInit {
     'Executive',
   ];
 
+  readonly statusOptions: OfferStatus[] = [
+    'PENDING',
+    'APPLIED',
+    'OMITTED',
+  ];
+
+  statusLabelKey(status: OfferStatus): string {
+    switch (status) {
+      case 'APPLIED':
+        return 'jobAnalysis.statusApplied';
+      case 'OMITTED':
+        return 'jobAnalysis.statusOmitted';
+      default:
+        return 'jobAnalysis.statusPending';
+    }
+  }
+
   readonly analyzing = signal(false);
   readonly saving = signal(false);
   readonly matching = signal(false);
   readonly matchForId = signal<string | null>(null);
   readonly adaptingId = signal<string | null>(null);
   readonly deletingId = signal<string | null>(null);
+  readonly statusSavingId = signal<string | null>(null);
   readonly loadingHistory = signal(true);
+  readonly statusFilter = signal<OfferStatus | 'ALL'>('ALL');
+  readonly filteredHistory = computed(() => {
+    const filter = this.statusFilter();
+    if (filter === 'ALL') {
+      return this.history();
+    }
+    return this.history().filter((item) => item.status === filter);
+  });
   readonly errorMessage = signal('');
   readonly savedMessage = signal('');
 
@@ -135,6 +162,7 @@ export class JobAnalysisComponent implements OnInit {
   private pendingSourceLanguage: SourceLanguage | null = null;
   private pendingInputType: InputType = 'TEXT';
   private pendingRawInput: string | null = null;
+  private pendingStatus: OfferStatus = 'PENDING';
 
   readonly form: FormGroup<JobOfferForm> = buildForm();
 
@@ -367,6 +395,7 @@ export class JobAnalysisComponent implements OnInit {
     this.pendingSourceLanguage = offer.sourceLanguage;
     this.pendingInputType = offer.inputType;
     this.pendingRawInput = offer.rawInput;
+    this.pendingStatus = offer.status;
     this.form.reset();
     this.setDraftValues(offer);
     this.editingId.set(offer.id);
@@ -388,6 +417,37 @@ export class JobAnalysisComponent implements OnInit {
     } finally {
       this.deletingId.set(null);
     }
+  }
+
+  async updateOfferStatus(
+    offer: JobOffer,
+    raw: string,
+  ): Promise<void> {
+    const status = raw as OfferStatus;
+    if (status === offer.status) {
+      return;
+    }
+    this.statusSavingId.set(offer.id);
+    this.errorMessage.set('');
+    try {
+      const updated = await this.jobAnalysisService.updateStatus(
+        offer.id,
+        status,
+      );
+      this.history.update((items) =>
+        items.map((item) => (item.id === updated.id ? updated : item)),
+      );
+    } catch (error) {
+      this.errorMessage.set(this.messageFor(error));
+      // Revierte al estado persistido en el servidor.
+      await this.loadHistory();
+    } finally {
+      this.statusSavingId.set(null);
+    }
+  }
+
+  onStatusFilter(raw: string): void {
+    this.statusFilter.set(raw === 'ALL' ? 'ALL' : (raw as OfferStatus));
   }
 
   reset(): void {
@@ -427,6 +487,7 @@ export class JobAnalysisComponent implements OnInit {
       this.pendingSourceLanguage = result.sourceLanguage;
       this.pendingInputType = result.inputType;
       this.pendingRawInput = result.rawInput;
+      this.pendingStatus = 'PENDING';
       this.form.reset();
       this.setDraftValues(result.draft);
       this.editingId.set(null);
@@ -458,6 +519,7 @@ export class JobAnalysisComponent implements OnInit {
       sourceLanguage: this.pendingSourceLanguage,
       inputType: this.pendingInputType,
       rawInput: this.pendingRawInput,
+      status: this.pendingStatus,
     };
   }
 
@@ -497,6 +559,7 @@ export class JobAnalysisComponent implements OnInit {
     this.pendingSourceLanguage = null;
     this.pendingInputType = 'TEXT';
     this.pendingRawInput = null;
+    this.pendingStatus = 'PENDING';
   }
 
   private async loadHistory(): Promise<void> {
