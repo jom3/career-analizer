@@ -110,7 +110,8 @@ describe('CoverLetterParserService', () => {
     const calls = createMock.mock.calls as unknown as Array<
       Array<{ messages: { role: string; content: string }[] }>
     >;
-    const lastContent = calls[calls.length - 1][0].messages
+    // El borrador es la primera llamada; el auditor es la segunda.
+    const lastContent = calls[0][0].messages
       .filter((message) => message.role === 'user')
       .map((message) => message.content)
       .join(' ');
@@ -142,7 +143,7 @@ describe('CoverLetterParserService', () => {
     const calls = createMock.mock.calls as unknown as Array<
       Array<{ messages: { role: string; content: string }[] }>
     >;
-    const matchPayload = calls[calls.length - 1][0].messages
+    const matchPayload = calls[0][0].messages
       .map((message) => message.content)
       .join(' ');
     expect(matchPayload).toContain('Job match analysis');
@@ -151,11 +152,10 @@ describe('CoverLetterParserService', () => {
   });
 
   it('instruye escribir en el idioma de lang', async () => {
-    const lastCallSystem = (): string =>
+    // El borrador es la primera llamada; el auditor es la segunda.
+    const draftCallSystem = (): string =>
       (
-        createMock.mock.calls[
-          createMock.mock.calls.length - 1
-        ] as unknown as Array<{
+        createMock.mock.calls[0] as unknown as Array<{
           messages: { role: string; content: string }[];
         }>
       )[0].messages[0].content;
@@ -164,10 +164,13 @@ describe('CoverLetterParserService', () => {
       choices: [{ message: { content: JSON.stringify(validResponse) } }],
     });
     await service.generate({ ...input, lang: 'en' });
-    expect(lastCallSystem()).toContain('in English');
+    expect(draftCallSystem()).toContain('in English');
 
+    // Se limpia el historial de llamadas para que calls[0] sea el borrador
+    // del segundo generate.
+    createMock.mockClear();
     await service.generate({ ...input, lang: 'es' });
-    expect(lastCallSystem()).toContain('in Spanish');
+    expect(draftCallSystem()).toContain('in Spanish');
   });
 
   it('instruye saludo genérico sin recruiter y sin afirmar skills ajenos', async () => {
@@ -180,7 +183,8 @@ describe('CoverLetterParserService', () => {
     const calls = createMock.mock.calls as unknown as Array<
       Array<{ messages: { role: string; content: string }[] }>
     >;
-    const system = calls[calls.length - 1][0].messages[0].content;
+    // El borrador es la primera llamada; el auditor es la segunda.
+    const system = calls[0][0].messages[0].content;
     expect(system).toContain('generic localized greeting');
     expect(system).toContain('NEVER claim');
     expect(system).toContain('profile lacks');
@@ -196,22 +200,18 @@ describe('CoverLetterParserService', () => {
     const calls = createMock.mock.calls as unknown as Array<
       Array<{ messages: { role: string; content: string }[] }>
     >;
-    const system = calls[calls.length - 1][0].messages[0].content;
+    // El borrador es la primera llamada; el auditor es la segunda.
+    const system = calls[0][0].messages[0].content;
     expect(system).toContain('Maximum 180 words');
     expect(system).toContain('Do NOT open with "My name is');
     expect(system).toContain(
-      'would this sentence work for any candidate at any company',
+      'Would this sentence work for any candidate at any company',
     );
-    expect(system).toContain('deliver only the final corrected letter');
     expect(system).toContain('I am passionate about');
-    expect(system).toContain('is key/essential/relevant/fundamental');
+    expect(system).toContain('is key for');
     expect(system).toContain('as a justification');
     expect(system).toContain('not a paragraph appended at the end');
-    expect(system).toContain('DELETE IT COMPLETELY');
-    expect(system).toContain('forced-connection sentence');
-    expect(system).toContain('closing gerunds');
     expect(system).toContain('One idea per sentence');
-    expect(system).toContain('Delete it rather than rewriting it');
   });
 
   it('lanza 502 cuando el JSON de la IA no es parseable', async () => {
