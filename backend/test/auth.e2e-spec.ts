@@ -4,16 +4,24 @@ import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
+import { MailService } from './../src/mail/mail.service';
 
 describe('Auth (e2e)', () => {
   let app: INestApplication<App>;
   const email = `e2e-${Date.now()}@test.dev`;
   const password = 'Password123!';
 
+  const mailMock = {
+    sendPasswordReset: jest.fn<Promise<void>, [string, string]>(),
+  };
+
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(MailService)
+      .useValue(mailMock)
+      .compile();
 
     app = moduleFixture.createNestApplication();
     app.use(cookieParser());
@@ -80,5 +88,75 @@ describe('Auth (e2e)', () => {
     await agent.post('/auth/logout').expect(201);
 
     await agent.get('/auth/me').expect(401);
+  });
+
+  describe('password reset flow', () => {
+    const resetPassword = 'NewPassword123!';
+    let resetToken: string;
+
+    beforeEach(() => {
+      mailMock.sendPasswordReset.mockClear();
+    });
+
+    function extractResetToken(): string {
+      const [emailArg, resetUrl] = mailMock.sendPasswordReset.mock.calls[0];
+      if (!emailArg || !resetUrl) {
+        throw new Error('sendPasswordReset was not called');
+      }
+      const match = resetUrl.match(/token=([0-9a-f]+)/);
+      if (!match) {
+        throw new Error(`No reset token found in url: ${resetUrl}`);
+      }
+      return match[1];
+    }
+
+    it('forgot-password sends the reset link and responds 201 for an existing email', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/auth/forgot-password')
+        .send({ email })
+        .expect(201);
+
+      expect(res.body).toEqual({ ok: true });
+      expect(mailMock.sendPasswordReset).toHaveBeenCalledTimes(1);
+      resetToken = extractResetToken();
+      expect(resetToken.length).toBeGreaterThanOrEqual(64);
+    });
+
+    it('forgot-password with an unknown email returns the same 201 response', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/auth/forgot-password')
+        .send({ email: `ghost-${Date.now()}@test.dev` })
+        .expect(201);
+
+      expect(res.body).toEqual({ ok: true });
+      expect(mailMock.sendPasswordReset).not.toHaveBeenCalled();
+    });
+
+    it('reset-password with the token allows login with the new password', async () => {
+      await request(app.getHttpServer())
+        .post('/auth/reset-password')
+        .send({ token: resetToken, password: resetPassword })
+        .expect(201);
+
+      await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ email, password })
+        .expect(401);
+
+      const agent = request.agent(app.getHttpServer());
+      await agent
+        .post('/auth/login')
+        .send({ email, password: resetPassword })
+        .expect(201);
+      const me = await agent.get('/auth/me').expect(200);
+      expect((me.body as { user: { email: string } }).user.email).toBe(email);
+    });
+
+    it('reusing the same token returns a generic 401', async () => {
+      await request(app.getHttpServer())
+        .post('/auth/reset-password')
+        .send({ token: resetToken, password: 'AnotherPassword123!' })
+        .expect(401);
+    });
   });
 });

@@ -2,8 +2,10 @@ import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
 import type { CookieOptions, Response } from 'express';
 import { AuthService, type SafeUser } from './auth.service';
 import { Public } from './decorators/public.decorator';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import type { RequestWithUser } from './request-with-user';
 
 const COOKIE_NAME = 'access_token';
@@ -39,6 +41,20 @@ export class AuthController {
   @Post('logout')
   logout(@Res({ passthrough: true }) res: Response): { ok: true } {
     res.clearCookie(COOKIE_NAME, this.cookieOptions());
+    return { ok: true };
+  }
+
+  @Public()
+  @Post('forgot-password')
+  async forgotPassword(@Body() dto: ForgotPasswordDto): Promise<{ ok: true }> {
+    await this.authService.forgotPassword(dto);
+    return { ok: true };
+  }
+
+  @Public()
+  @Post('reset-password')
+  async resetPassword(@Body() dto: ResetPasswordDto): Promise<{ ok: true }> {
+    await this.authService.resetPassword(dto);
     return { ok: true };
   }
 

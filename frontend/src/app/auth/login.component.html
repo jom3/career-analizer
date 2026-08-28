@@ -4,6 +4,10 @@
     <h1>{{ i18n.t('auth.login.title') }}</h1>
     <p class="subtitle">{{ i18n.t('auth.login.subtitle') }}</p>
 
+    @if (successMessage) {
+      <p class="alert alert--success" role="status">{{ successMessage }}</p>
+    }
+
     @if (errorMessage) {
       <p class="alert alert--error" role="alert">{{ errorMessage }}</p>
     }
@@ -25,6 +29,10 @@
     <button type="submit" class="btn btn--primary btn--block" [disabled]="submitting">
       {{ submitting ? i18n.t('auth.login.submitting') : i18n.t('auth.login.submit') }}
     </button>
+
+    <p class="forgot-link">
+      <a routerLink="/auth/forgot-password">{{ i18n.t('auth.forgotPassword.link') }}</a>
+    </p>
 
     <p class="switch">
       {{ i18n.t('auth.login.switchHint') }}

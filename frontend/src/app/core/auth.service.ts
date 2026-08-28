@@ -53,4 +53,21 @@ export class AuthService {
     this.user.set(user);
     return user;
   }
+
+  async forgotPassword(email: string): Promise<void> {
+    await firstValueFrom(
+      this.http.post<{ ok: boolean }>(`${this.apiUrl}/auth/forgot-password`, {
+        email,
+      }),
+    );
+  }
+
+  async resetPassword(token: string, password: string): Promise<void> {
+    await firstValueFrom(
+      this.http.post<{ ok: boolean }>(`${this.apiUrl}/auth/reset-password`, {
+        token,
+        password,
+      }),
+    );
+  }
 }
