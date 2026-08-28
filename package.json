@@ -11,7 +11,7 @@
     "test:all": "npm run test --workspaces --if-present",
     "start:backend": "npm run start:dev -w career-analyzer-backend",
     "start:frontend": "npm run start -w career-analyzer-frontend",
-    "docker:up": "docker compose -f docker-compose.yml up -d --build",
+    "docker:up": "node scripts/docker-up.js",
     "docker:down": "docker compose -f docker-compose.yml down",
     "docker:build": "docker compose -f docker-compose.yml build",
     "docker:prod:up": "docker compose -f docker-compose.prod.yml up -d --build",
