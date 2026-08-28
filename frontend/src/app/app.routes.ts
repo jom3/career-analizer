@@ -1,6 +1,8 @@
 import { Routes } from '@angular/router';
+import { ForgotPasswordComponent } from './auth/forgot-password.component';
 import { LoginComponent } from './auth/login.component';
 import { RegisterComponent } from './auth/register.component';
+import { ResetPasswordComponent } from './auth/reset-password.component';
 import { authGuard } from './core/auth.guard';
 import { ShellComponent } from './layout/shell.component';
 import { CoverLetterComponent } from './cover-letter/cover-letter.component';
@@ -16,6 +18,8 @@ import { ProfileComponent } from './profile/profile.component';
 export const routes: Routes = [
   { path: 'auth/login', component: LoginComponent },
   { path: 'auth/register', component: RegisterComponent },
+  { path: 'auth/forgot-password', component: ForgotPasswordComponent },
+  { path: 'auth/reset-password', component: ResetPasswordComponent },
   {
     path: '',
     component: ShellComponent,

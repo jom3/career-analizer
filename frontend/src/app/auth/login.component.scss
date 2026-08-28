@@ -6,3 +6,14 @@
 .auth-card h1 {
   margin-bottom: var(--space-1);
 }
+
+.forgot-link {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-small);
+  text-align: center;
+}
+
+.forgot-link a {
+  color: var(--muted);
+  text-decoration: underline;
+}

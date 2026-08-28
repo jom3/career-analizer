@@ -50,6 +50,28 @@ export const en: Record<string, string> = {
   'auth.login.error': 'Wrong email or password',
   'auth.register.error': 'Could not create the account',
 
+  'auth.forgotPassword.title': 'Reset password',
+  'auth.forgotPassword.subtitle':
+    'Enter your email and we will send you a link to create a new password.',
+  'auth.forgotPassword.submit': 'Send link',
+  'auth.forgotPassword.submitting': 'Sending…',
+  'auth.forgotPassword.confirmation':
+    'If an account exists with that email, we sent you a link to reset your password.',
+  'auth.forgotPassword.backToLogin': 'Back to sign in',
+  'auth.forgotPassword.link': 'Forgot your password?',
+  'auth.forgotPassword.error': 'Could not send the link. Try again.',
+
+  'auth.resetPassword.title': 'New password',
+  'auth.resetPassword.subtitle': 'Set a new password for your account.',
+  'auth.resetPassword.newPassword': 'New password',
+  'auth.resetPassword.confirm': 'Confirm password',
+  'auth.resetPassword.mismatch': 'Passwords do not match.',
+  'auth.resetPassword.submit': 'Save password',
+  'auth.resetPassword.submitting': 'Saving…',
+  'auth.resetPassword.success': 'Password updated. Sign in with your new password.',
+  'auth.resetPassword.invalidToken': 'The link is invalid or has already been used. Request a new one.',
+  'auth.resetPassword.error': 'The link is invalid or has expired. Request a new one.',
+
   'profile.title': 'My professional profile',
   'profile.subtitle':
     'This is the source of truth for your documents. Real information only.',

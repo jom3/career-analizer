@@ -5,7 +5,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../core/auth.service';
 import { httpErrorMessage } from '../core/http-errors';
 import { I18nService } from '../core/i18n/i18n.service';
@@ -20,11 +20,17 @@ export class LoginComponent {
   readonly i18n = inject(I18nService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   readonly form = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email]),
     password: new FormControl('', [Validators.required]),
   });
+
+  successMessage =
+    this.route.snapshot.queryParamMap.get('reset') === 'ok'
+      ? this.i18n.t('auth.resetPassword.success')
+      : '';
 
   errorMessage = '';
   submitting = false;
@@ -36,6 +42,7 @@ export class LoginComponent {
     }
     this.submitting = true;
     this.errorMessage = '';
+    this.successMessage = '';
     try {
       const { email, password } = this.form.value;
       await this.auth.login(email!, password!);

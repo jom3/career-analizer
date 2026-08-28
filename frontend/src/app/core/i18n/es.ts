@@ -50,6 +50,29 @@ export const es: Record<string, string> = {
   'auth.login.error': 'Email o contraseña incorrectos',
   'auth.register.error': 'No se pudo crear la cuenta',
 
+  'auth.forgotPassword.title': 'Recuperar contraseña',
+  'auth.forgotPassword.subtitle':
+    'Ingresá tu email y te enviamos un link para crear una nueva contraseña.',
+  'auth.forgotPassword.submit': 'Enviar link',
+  'auth.forgotPassword.submitting': 'Enviando…',
+  'auth.forgotPassword.confirmation':
+    'Si existe una cuenta con ese email, te enviamos un link para restablecer tu contraseña.',
+  'auth.forgotPassword.backToLogin': 'Volver al inicio de sesión',
+  'auth.forgotPassword.link': '¿Olvidaste tu contraseña?',
+  'auth.forgotPassword.error': 'No se pudo enviar el link. Intentalo de nuevo.',
+
+  'auth.resetPassword.title': 'Nueva contraseña',
+  'auth.resetPassword.subtitle':
+    'Definí una nueva contraseña para tu cuenta.',
+  'auth.resetPassword.newPassword': 'Nueva contraseña',
+  'auth.resetPassword.confirm': 'Confirmar contraseña',
+  'auth.resetPassword.mismatch': 'Las contraseñas no coinciden.',
+  'auth.resetPassword.submit': 'Guardar contraseña',
+  'auth.resetPassword.submitting': 'Guardando…',
+  'auth.resetPassword.success': 'Contraseña actualizada. Ingresá con tu nueva contraseña.',
+  'auth.resetPassword.invalidToken': 'El link no es válido o ya fue usado. Pedí uno nuevo.',
+  'auth.resetPassword.error': 'El link es inválido o expiró. Pedí uno nuevo.',
+
   'profile.title': 'Mi perfil profesional',
   'profile.subtitle':
     'Esta es la fuente de verdad de tus documentos. Solo contenido real.',
