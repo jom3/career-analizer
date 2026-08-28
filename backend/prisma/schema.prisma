@@ -280,16 +280,18 @@ model CoverLetter {
 }
 
 model User {
-  id           String     @id @default(cuid())
-  email        String     @unique
-  passwordHash String
-  name         String
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  profile      Profile?
-  cvDocuments  CvDocument[]
-  jobOffers    JobOffer[]
-  jobMatches   JobMatch[]
-  adaptedCvs   AdaptedCv[]
-  coverLetters CoverLetter[]
+  id               String     @id @default(cuid())
+  email            String     @unique
+  passwordHash     String
+  resetTokenHash   String?
+  resetTokenExpiry DateTime?
+  name             String
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  profile          Profile?
+  cvDocuments      CvDocument[]
+  jobOffers        JobOffer[]
+  jobMatches       JobMatch[]
+  adaptedCvs       AdaptedCv[]
+  coverLetters     CoverLetter[]
 }
