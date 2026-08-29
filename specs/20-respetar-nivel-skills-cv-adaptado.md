@@ -1,6 +1,6 @@
 # SPEC 20 — El CV adaptado respeta el nivel declarado de cada skill
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 05 (niveles de skill 1–5), SPEC 12 (CV adaptado), SPEC 18 (idioma de generación es/en)
 > **Date:** 2026-08-29
 > **Objective:** Que el CV adaptado a una oferta (SPEC 12) respete el nivel 1–5 que el candidato declaró para cada skill en su perfil: el resumen se redacta con prosa natural sobre **hechos reales** (skills solo de nivel ≥ 4, nunca nivel bajo ni "aprendizaje"), y la IA no afirma dominio/expertise por encima del nivel declarado al reescribir las descripciones, sin mostrar el número en el documento.
@@ -54,14 +54,14 @@ Cada paso deja el sistema compilable y funcionando.
 
 ## Acceptance criteria
 
-- [ ] `skill-level.ts` define `LOW_SKILL_MAX = 3`, `HIGH_SKILL_MIN = 4`, `qualifierForLevel` (1 = familiaridad/familiarity, 2 = básico/basic, 3 = intermedio/intermediate; `null` para ≥4) y `FORBIDDEN_EXPERTISE_TERMS` es/en; los unit tests lo cubren.
-- [ ] Con una oferta que pide React (nivel 2 en el perfil) y Angular (nivel 4), el `content.summary` del adaptado es un párrafo redactado por la IA sobre el fact sheet: menciona Angular (nivel ≥ 4) integrado en una acción y **no** menciona React ni calificativos de nivel ("conocimientos básicos de X") ni "compromiso/aprendizaje".
-- [ ] `buildSummaryFacts` selecciona rol, antigüedad solo con fechas reales, modalidad laboral, proyecto destacado con propósito, y skills en este orden: usadas en el proyecto destacado primero y luego de nivel ≥ 4 matcheadas (máx 3, lookup por nombre normalizado); la cualidad transferible solo aparece con evidencia real.
-- [ ] El `buildSystemPrompt` incluye la estructura del resumen del usuario (60-80 palabras, 3-4 oraciones, sin primera persona, sin "learning", sin calificativos, propósito del proyecto en máximo 8-10 palabras, sin oración separada sobre cómo aplica las skills) y la restricción de niveles para descripciones (prohibido dominio/expertise para ≤ 3, verbos de trabajo real, skills 1–2 no como fortaleza central).
-- [ ] La guarda determinista descarta el summary que afirma una skill missing de la oferta o que promete aprender; ante fallo el service cae al summary del perfil (nunca rompe).
-- [ ] No hay cambios en `schema.prisma` ni migraciones nuevas; el nivel no aparece como número ni palabra en el documento exportado.
-- [ ] Los CVs adaptados ya generados se mantienen sin cambios; regenerar aplica la nueva conducta (sin migración automática).
-- [ ] `npm run build:all`, `npm run lint:all` y `npm run test -w career-analyzer-backend` pasan (unit + e2e); el flujo manual verifica resumen natural sin skills de nivel bajo.
+- [x] `skill-level.ts` define `LOW_SKILL_MAX = 3`, `HIGH_SKILL_MIN = 4`, `qualifierForLevel` (1 = familiaridad/familiarity, 2 = básico/basic, 3 = intermedio/intermediate; `null` para ≥4) y `FORBIDDEN_EXPERTISE_TERMS` es/en; los unit tests lo cubren.
+- [x] Con una oferta que pide React (nivel 2 en el perfil) y Angular (nivel 4), el `content.summary` del adaptado es un párrafo redactado por la IA sobre el fact sheet: menciona Angular (nivel ≥ 4) integrado en una acción y **no** menciona React ni calificativos de nivel ("conocimientos básicos de X") ni "compromiso/aprendizaje".
+- [x] `buildSummaryFacts` selecciona rol, antigüedad solo con fechas reales, modalidad laboral, proyecto destacado con propósito, y skills en este orden: usadas en el proyecto destacado primero y luego de nivel ≥ 4 matcheadas (máx 3, lookup por nombre normalizado); la cualidad transferible solo aparece con evidencia real.
+- [x] El `buildSystemPrompt` incluye la estructura del resumen del usuario (60-80 palabras, 3-4 oraciones, sin primera persona, sin "learning", sin calificativos, propósito del proyecto en máximo 8-10 palabras, sin oración separada sobre cómo aplica las skills) y la restricción de niveles para descripciones (prohibido dominio/expertise para ≤ 3, verbos de trabajo real, skills 1–2 no como fortaleza central).
+- [x] La guarda determinista descarta el summary que afirma una skill missing de la oferta o que promete aprender; ante fallo el service cae al summary del perfil (nunca rompe).
+- [x] No hay cambios en `schema.prisma` ni migraciones nuevas; el nivel no aparece como número ni palabra en el documento exportado.
+- [x] Los CVs adaptados ya generados se mantienen sin cambios; regenerar aplica la nueva conducta (sin migración automática).
+- [x] `npm run build:all`, `npm run lint:all` y `npm run test -w career-analyzer-backend` pasan (unit + e2e); el flujo manual verifica resumen natural sin skills de nivel bajo.
 
 ## Decisions
 
