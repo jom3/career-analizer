@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { OpenaiService } from '../openai/openai.service';
 import { JobLevel } from '../generated/prisma/enums.js';
 import { JobOfferDraft, SourceLanguage } from './job-analysis.types';
+import { cleanStringArray } from './token-clean';
 
 const SPANISH_STOPWORDS = [
   'el',
@@ -195,6 +196,7 @@ export class JobParserService {
       'Respond with the content in the same language as the job posting.',
       'Return the level as one of: Junior, Mid, Senior, Lead, Executive. If the posting does not state a level, return null.',
       'requiredSkills: only what the posting requires explicitly (requirements/requisitos). preferredSkills: what is marked as nice-to-have, desired, or preferred. If the posting does not distinguish them, put everything in requiredSkills.',
+      'requiredSkills, preferredSkills, education, languages and keywords must be short noun-phrase tokens (technology or skill names), never full sentences: no trailing periods, no verbs or introductory phrases such as "Experience with", "Years of", "Working with", "Disponibilidad para".',
       'experienceYears: only the number of years the posting requires, if stated. experienceSummary: keep the relevant text as-is.',
       'keywords: the most relevant keywords and tech terms of the posting.',
       'Extract data faithfully; do not correct, paraphrase, or invent.',
@@ -244,13 +246,13 @@ export class JobParserService {
       company: nonEmpty(nullableString(raw.company)),
       level: this.normalizeLevel(nullableString(raw.level)),
       responsibilities: stringArray(raw.responsibilities),
-      requiredSkills: stringArray(raw.requiredSkills),
-      preferredSkills: stringArray(raw.preferredSkills),
+      requiredSkills: cleanStringArray(raw.requiredSkills),
+      preferredSkills: cleanStringArray(raw.preferredSkills),
       experienceYears: nullableInt(raw.experienceYears),
       experienceSummary: nonEmpty(nullableString(raw.experienceSummary)),
-      education: stringArray(raw.education),
-      languages: stringArray(raw.languages),
-      keywords: stringArray(raw.keywords),
+      education: cleanStringArray(raw.education),
+      languages: cleanStringArray(raw.languages),
+      keywords: cleanStringArray(raw.keywords),
     };
   }
 

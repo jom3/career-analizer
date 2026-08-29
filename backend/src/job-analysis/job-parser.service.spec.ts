@@ -179,4 +179,35 @@ describe('JobParserService', () => {
     ).toBe('en');
     expect(detectLanguage('....')).toBe('other');
   });
+
+  it('descarta frases que la IA devuelve como skills y limpia puntuación final', async () => {
+    createMock.mockResolvedValueOnce({
+      choices: [
+        {
+          message: {
+            content: JSON.stringify({
+              ...validResponse,
+              requiredSkills: [
+                'TypeScript',
+                'Más de 3 años desarrollando aplicaciones Full Stack.',
+                'React avanzado.',
+                'Node.js.',
+                'Español fluido.',
+              ],
+              keywords: ['backend', 'Experiencia Fintech', 'GitHub Actions'],
+            }),
+          },
+        },
+      ],
+    });
+
+    const result = await service.parseText('texto');
+
+    expect(result.draft.requiredSkills).toEqual([
+      'TypeScript',
+      'React',
+      'Node.js',
+    ]);
+    expect(result.draft.keywords).toEqual(['backend', 'GitHub Actions']);
+  });
 });
