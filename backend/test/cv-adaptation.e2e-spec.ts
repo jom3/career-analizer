@@ -33,6 +33,7 @@ function binaryBody(res: { body: unknown }): Buffer {
 
 const parserMock = {
   adapt: jest.fn().mockResolvedValue({
+    summary: 'Senior Engineer with over 4 years of experience.',
     experienceDescriptions: [],
   }),
   modelName: 'test-model',

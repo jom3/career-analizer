@@ -8,6 +8,7 @@ import {
   type ProfileWithCollections,
 } from '../profile/profile.service';
 import { profileFingerprint, profileSnapshot } from '../job-match/profile-util';
+import { cleanStringArray } from '../job-analysis/token-clean';
 import { CvExportService, type CvData } from '../cv-export/cv-export.service';
 import { UiLang } from '../i18n/ui-lang';
 import { localizeProfile } from '../profile/localize-profile';
@@ -21,7 +22,7 @@ import {
   CvAdaptationParserService,
   type AdaptationInput,
 } from './cv-adaptation-parser.service';
-import { buildDeterministicSummary } from './cv-adaptation-summary';
+import { buildSummaryFacts } from './cv-adaptation-summary';
 import type { AdaptedCvDto } from './dto/cv-adaptation.dto';
 import type { JobOfferDraft } from '../job-analysis/job-analysis.types';
 import type { JobMatchGap } from '../job-match/dto/job-match.dto';
@@ -172,16 +173,15 @@ export class CvAdaptationService {
       matchedSkills: matchedSkillNames,
       missingSkills,
       sourceLanguage: targetLang,
+      summaryFacts: buildSummaryFacts({
+        profile: richSnapshot,
+        matchedSkills: matchedSkillNames,
+        sourceLanguage: targetLang,
+      }),
     };
 
     const result = await this.parser.adapt(input);
-    const deterministicSummary = buildDeterministicSummary({
-      profile: richSnapshot,
-      matchedSkills: matchedSkillNames,
-      missingSkills,
-      sourceLanguage: targetLang,
-    });
-    const summary = deterministicSummary ?? baseContent.summary;
+    const summary = result.summary ?? baseContent.summary;
     const content = applyRewrites({ ...baseContent, summary }, result);
 
     const created = await this.prisma.adaptedCv.create({
@@ -279,24 +279,39 @@ export class CvAdaptationService {
   // Skills que la oferta declara y el perfil NO tiene. Determinista y basada en
   // la oferta (nunca se inventan). Se unen a los gap MISSING del match (sin
   // duplicar por casing) para alimentar la línea de compromiso del resumen y la
-  // guardia de la IA. Se conserva el casing original de la oferta.
+  // guardia de la IA. Un skill de la oferta no es missing si el perfil lo
+  // declara, incluso por contención ("React avanzado" contiene "react"); se
+  // conserva el casing original de la oferta y se descartan frases completas
+  // (token-clean).
   private offerMissingSkills(
     required: string[],
     preferred: string[],
     profile: ProfileWithCollections,
     matchMissing: string[],
   ): string[] {
-    const profileNames = new Set(
-      profile.skills.map((skill) => skill.name.trim().toLowerCase()),
-    );
+    const profileNames = profile.skills
+      .map((skill) => skill.name.trim().toLowerCase())
+      .filter((name) => name.length >= 3);
     const merged = new Map<string, string>();
     for (const skill of [...required, ...preferred, ...matchMissing]) {
-      const key = skill?.trim().toLowerCase() ?? '';
-      if (key.length > 0 && !profileNames.has(key) && !merged.has(key)) {
-        merged.set(key, skill.trim());
+      const trimmed = skill?.trim() ?? '';
+      const key = trimmed.toLowerCase();
+      if (
+        key.length === 0 ||
+        this.profileHasSkill(profileNames, key) ||
+        merged.has(key)
+      ) {
+        continue;
       }
+      merged.set(key, trimmed);
     }
-    return [...merged.values()];
+    return cleanStringArray([...merged.values()]);
+  }
+
+  private profileHasSkill(profileNames: string[], token: string): boolean {
+    return profileNames.some(
+      (name) => token.includes(name) || name.includes(token),
+    );
   }
 
   private async profileForUser(

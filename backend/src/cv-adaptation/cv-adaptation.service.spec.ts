@@ -246,9 +246,7 @@ describe('CvAdaptationService', () => {
       'TypeScript',
       'Python',
     ]);
-    expect(createCall[0].data.content.summary).toContain(
-      'Software Engineer, with over',
-    );
+    expect(createCall[0].data.content.summary).toBe('Adapted summary.');
     expect(createCall[0].data.content.experiences[0].description).toBe(
       'Adapted description.',
     );
@@ -258,6 +256,39 @@ describe('CvAdaptationService', () => {
     ]);
     expect(createCall[0].data.profileFingerprint).toEqual(expect.any(String));
     expect(result.id).toBe('cv-1');
+  });
+
+  it('no marca un skill de la oferta como missing si el perfil lo contiene', async () => {
+    prismaMock.jobOffer.findFirst.mockResolvedValue({
+      ...offer,
+      requiredSkills: ['TypeScript', 'React avanzado'],
+      preferredSkills: [],
+    });
+    prismaMock.profile.findUnique.mockResolvedValue({
+      ...profile,
+      skills: [
+        ...profile.skills,
+        {
+          id: 's4',
+          profileId: 'profile-1',
+          name: 'React',
+          level: 3,
+          sortOrder: 4,
+          source: 'USER',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ],
+    });
+    prismaMock.adaptedCv.create.mockResolvedValue(versionRow);
+
+    await service.createForOffer('user-1', 'offer-1', undefined, 'en');
+
+    expect(parserMock.adapt).toHaveBeenCalledWith(
+      expect.objectContaining({
+        missingSkills: [],
+      }) as object,
+    );
   });
 
   it('usa el idioma de la UI (targetLang) para contenido y sourceLanguage', async () => {
@@ -298,9 +329,7 @@ describe('CvAdaptationService', () => {
     }>;
     expect(createCall[0].data.sourceLanguage).toBe('en');
     expect(createCall[0].data.content.headline).toBe('Software Engineer');
-    expect(createCall[0].data.content.summary).toContain(
-      'Software Engineer, with over',
-    );
+    expect(createCall[0].data.content.summary).toBe('Adapted summary.');
     expect(createCall[0].data.content.experiences[0].position).toBe(
       'Senior Engineer',
     );
@@ -323,6 +352,24 @@ describe('CvAdaptationService', () => {
     expect(createCall[0].data.content.experiences[0].description).toBe(
       'Original description.',
     );
+  });
+
+  it('cae al summary del perfil cuando el parser no devuelve summary', async () => {
+    parserMock.adapt.mockResolvedValue({
+      summary: null,
+      experienceDescriptions: [
+        { originalId: 'exp-1', text: 'Adapted description.' },
+      ],
+    });
+    prismaMock.jobOffer.findFirst.mockResolvedValue(offer);
+    prismaMock.profile.findUnique.mockResolvedValue(profile);
+    prismaMock.adaptedCv.create.mockResolvedValue(versionRow);
+
+    await service.createForOffer('user-1', 'offer-1', undefined, 'en');
+
+    const createCall = prismaMock.adaptedCv.create.mock
+      .calls[0] as unknown as Array<{ data: { content: AdaptedCvContent } }>;
+    expect(createCall[0].data.content.summary).toBe('Original summary.');
   });
 
   it('lanza 404 con una oferta ajena o inexistente', async () => {

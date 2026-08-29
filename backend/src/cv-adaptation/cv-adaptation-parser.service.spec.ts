@@ -60,9 +60,21 @@ describe('CvAdaptationParserService', () => {
     matchedSkills: ['TypeScript'],
     missingSkills: ['NestJS'],
     sourceLanguage: 'en',
+    summaryFacts: {
+      role: 'Senior Engineer',
+      years: 4,
+      workType: 'salaried',
+      currentCompany: 'Acme',
+      featuredProject: null,
+      featuredSkills: ['TypeScript'],
+      quality: { kind: 'performance', evidence: 'Cut latency by 40%' },
+      lang: 'en',
+    },
   };
 
   const validResponse = {
+    summary:
+      'Senior Engineer with 4 years of experience building backend APIs.',
     experienceDescriptions: [
       {
         originalId: 'exp-1',
@@ -125,6 +137,83 @@ describe('CvAdaptationParserService', () => {
 
     await service.adapt({ ...input, sourceLanguage: 'es' });
     expect(lastCallSystem()).toContain('in Spanish');
+  });
+
+  it('instruye no afirmar dominio sobre skills de nivel bajo (SPEC 20)', async () => {
+    const lastCallSystem = (): string =>
+      (
+        createMock.mock.calls[
+          createMock.mock.calls.length - 1
+        ] as unknown as Array<{
+          messages: { role: string; content: string }[];
+        }>
+      )[0].messages[0].content;
+
+    createMock.mockResolvedValue({
+      choices: [{ message: { content: JSON.stringify(validResponse) } }],
+    });
+    await service.adapt(input);
+
+    expect(lastCallSystem()).toContain('level 3 or below');
+    expect(lastCallSystem()).toContain('expert');
+    expect(lastCallSystem()).toContain('never present a level 1-2 skill');
+  });
+
+  it('instruye generar el resumen con hechos del sistema y estructura del usuario', async () => {
+    const lastCallSystem = (): string =>
+      (
+        createMock.mock.calls[
+          createMock.mock.calls.length - 1
+        ] as unknown as Array<{
+          messages: { role: string; content: string }[];
+        }>
+      )[0].messages[0].content;
+
+    createMock.mockResolvedValue({
+      choices: [{ message: { content: JSON.stringify(validResponse) } }],
+    });
+    await service.adapt(input);
+
+    const system = lastCallSystem();
+    expect(system).toContain('THE SUMMARY');
+    expect(system).toContain('60-80 words');
+    expect(system).toContain('NEVER use first person');
+    expect(system).toContain('NEVER say the candidate is learning');
+    expect(system).toContain('never mention skills below the featured list');
+    expect(system).toContain('at most 8-10 words');
+    expect(system).toContain('do NOT dedicate a separate sentence to it');
+  });
+
+  it('envía los hechos permitidos para el resumen al prompt', async () => {
+    createMock.mockResolvedValue({
+      choices: [{ message: { content: JSON.stringify(validResponse) } }],
+    });
+    await service.adapt(input);
+
+    const call = createMock.mock.calls[0] as unknown as Array<{
+      messages: Array<{ role: string; content: string }>;
+    }>;
+    const userMessages = call[0].messages.filter(
+      (message) => message.role === 'user',
+    );
+    const factsMessage = userMessages.find((message) =>
+      message.content.includes('Hechos reales permitidos para el resumen'),
+    );
+    expect(factsMessage).toBeDefined();
+    expect(factsMessage?.content).toContain('"role":"Senior Engineer"');
+    expect(factsMessage?.content).toContain('TypeScript');
+  });
+
+  it('normaliza el summary de la respuesta de la IA', async () => {
+    createMock.mockResolvedValue({
+      choices: [{ message: { content: JSON.stringify(validResponse) } }],
+    });
+
+    const result = await service.adapt(input);
+
+    expect(result.summary).toBe(
+      'Senior Engineer with 4 years of experience building backend APIs.',
+    );
   });
 
   it('lanza 502 cuando el JSON de la IA no es parseable', async () => {
@@ -208,5 +297,62 @@ describe('CvAdaptationParserService', () => {
     expect(result.experienceDescriptions).toEqual([
       { originalId: 'exp-1', text: 'Built APIs with TypeScript.' },
     ]);
+  });
+
+  it('descarta el summary que afirma una skill faltante de la oferta', async () => {
+    createMock.mockResolvedValue({
+      choices: [
+        {
+          message: {
+            content: JSON.stringify({
+              summary: 'Expert in NestJS building microservices.',
+              experienceDescriptions: [
+                { originalId: 'exp-1', text: 'Built APIs with TypeScript.' },
+              ],
+            }),
+          },
+        },
+      ],
+    });
+
+    const result = await service.adapt(input);
+
+    expect(result.summary).toBeNull();
+    expect(result.experienceDescriptions).toHaveLength(1);
+  });
+
+  it('descarta el summary que promete aprender un skill', async () => {
+    createMock.mockResolvedValue({
+      choices: [
+        {
+          message: {
+            content: JSON.stringify({
+              summary: 'Committed to learning React to contribute to the role.',
+              experienceDescriptions: [
+                { originalId: 'exp-1', text: 'Built APIs with TypeScript.' },
+              ],
+            }),
+          },
+        },
+      ],
+    });
+
+    const result = await service.adapt(input);
+
+    expect(result.summary).toBeNull();
+    expect(result.experienceDescriptions).toHaveLength(1);
+  });
+
+  it('mantiene el summary limpio junto a las descripciones', async () => {
+    createMock.mockResolvedValue({
+      choices: [{ message: { content: JSON.stringify(validResponse) } }],
+    });
+
+    const result = await service.adapt(input);
+
+    expect(result.summary).toBe(validResponse.summary);
+    expect(result.experienceDescriptions).toEqual(
+      validResponse.experienceDescriptions,
+    );
   });
 });
