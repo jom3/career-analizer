@@ -103,8 +103,19 @@
         </header>
         @if (draftLanguage()) {
           <p class="muted">
-            {{ i18n.t('coverLetter.draftLanguage') }} {{ draftLanguage() }}
+            {{ i18n.t('coverLetter.draftLanguage') }} {{ draftLanguage() }} ·
+            {{ i18n.t('coverLetter.wordCount') }} {{ draftWordCount() }}
           </p>
+        }
+        @if (draftWarnings().length > 0) {
+          <div class="alert alert--info" role="status">
+            <p>{{ i18n.t('coverLetter.warningsTitle') }}</p>
+            <ul class="warning-list">
+              @for (warning of draftWarnings(); track warning.code) {
+                <li>{{ warningLabel(warning.code) }}</li>
+              }
+            </ul>
+          </div>
         }
         <p class="muted">{{ i18n.t('coverLetter.draftHint') }}</p>
         <textarea

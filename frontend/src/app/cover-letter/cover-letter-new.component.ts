@@ -11,6 +11,7 @@ import { apiErrorKey } from '../core/http-errors';
 import { I18nService } from '../core/i18n/i18n.service';
 import { JobAnalysisService } from '../core/job-analysis.service';
 import type { JobOffer } from '../core/models/job-analysis';
+import type { CoverLetterWarning } from '../core/models/cover-letter';
 import {
   DocumentLangSelectComponent,
   type DocumentLang,
@@ -38,6 +39,8 @@ export class CoverLetterNewComponent implements OnInit {
   readonly errorMessage = signal('');
   readonly draftContent = signal('');
   readonly draftLanguage = signal<string | null>(null);
+  readonly draftWordCount = signal(0);
+  readonly draftWarnings = signal<CoverLetterWarning[]>([]);
   readonly offers = signal<JobOffer[]>([]);
   readonly loadingOffers = signal(false);
   readonly documentLang = signal<DocumentLang>(this.i18n.lang());
@@ -116,6 +119,8 @@ export class CoverLetterNewComponent implements OnInit {
       const draft = await this.coverLetterService.draft(request);
       this.draftContent.set(draft.content);
       this.draftLanguage.set(draft.sourceLanguage);
+      this.draftWordCount.set(draft.wordCount);
+      this.draftWarnings.set(draft.warnings ?? []);
     } catch (error) {
       this.errorMessage.set(this.messageFor(error));
     } finally {
@@ -150,6 +155,10 @@ export class CoverLetterNewComponent implements OnInit {
     } finally {
       this.saving.set(false);
     }
+  }
+
+  warningLabel(code: CoverLetterWarning['code']): string {
+    return this.i18n.t(`coverLetter.warning.${code}`);
   }
 
   private messageFor(error: unknown): string {
