@@ -1,5 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { JobAnalysisService } from '../job-analysis/job-analysis.service';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   JobMatchParserService,
@@ -26,6 +27,7 @@ describe('JobMatchService', () => {
     };
   };
   let parserMock: { match: jest.Mock };
+  let jobAnalysisMock: { createFromDraft: jest.Mock };
 
   const emptyProfile = {
     id: 'profile-1',
@@ -110,12 +112,14 @@ describe('JobMatchService', () => {
       },
     };
     parserMock = { match: jest.fn().mockResolvedValue(analysis) };
+    jobAnalysisMock = { createFromDraft: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         JobMatchService,
         { provide: PrismaService, useValue: prismaMock },
         { provide: JobMatchParserService, useValue: parserMock },
+        { provide: JobAnalysisService, useValue: jobAnalysisMock },
       ],
     }).compile();
 
@@ -381,5 +385,76 @@ describe('JobMatchService', () => {
       NotFoundException,
     );
     expect(prismaMock.jobMatch.delete).not.toHaveBeenCalled();
+  });
+
+  it('guarda la oferta de un match sin oferta y la vincula', async () => {
+    const unsaved = { ...matchRow, jobOfferId: null };
+    const savedOffer = {
+      id: 'offer-new',
+      title: 'Senior Software Engineer',
+      company: 'Acme',
+      url: null,
+    };
+    prismaMock.jobMatch.findFirst.mockResolvedValue(unsaved);
+    jobAnalysisMock.createFromDraft.mockResolvedValue({ id: 'offer-new' });
+    prismaMock.jobMatch.update.mockResolvedValue({
+      ...unsaved,
+      jobOfferId: 'offer-new',
+      jobOffer: savedOffer,
+    });
+
+    const result = await service.saveOffer('user-1', 'match-1');
+
+    expect(jobAnalysisMock.createFromDraft).toHaveBeenCalledWith(
+      'user-1',
+      matchRow.offerSnapshot,
+    );
+    expect(prismaMock.jobMatch.update).toHaveBeenCalledWith({
+      where: { id: 'match-1' },
+      data: { jobOfferId: 'offer-new' },
+      include: { jobOffer: { select: expect.any(Object) as object } },
+    });
+    expect(result.offer.saved).toBe(true);
+    expect(result.offer.id).toBe('offer-new');
+  });
+
+  it('rechaza guardar la oferta si el match ya la tiene', async () => {
+    prismaMock.jobMatch.findFirst.mockResolvedValue(matchRow);
+
+    await expect(service.saveOffer('user-1', 'match-1')).rejects.toMatchObject({
+      response: { code: 'OFFER_ALREADY_SAVED' },
+    });
+    expect(jobAnalysisMock.createFromDraft).not.toHaveBeenCalled();
+  });
+
+  it('no guarda la oferta de un match ajeno', async () => {
+    prismaMock.jobMatch.findFirst.mockResolvedValue(null);
+
+    await expect(service.saveOffer('user-2', 'match-1')).rejects.toThrow(
+      NotFoundException,
+    );
+  });
+
+  it('expone contexto de oferta con título y empresa en el detalle', async () => {
+    prismaMock.jobMatch.findFirst.mockResolvedValue({
+      ...matchRow,
+      offerSnapshot: { title: 'Fallback', company: 'Snapshot Co' },
+      jobOffer: {
+        id: 'offer-1',
+        title: 'Senior Software Engineer',
+        company: 'Acme',
+        url: 'https://jobs.example.com/1',
+      },
+    });
+
+    const result = await service.getById('user-1', 'match-1');
+
+    expect(result.offer).toEqual({
+      id: 'offer-1',
+      title: 'Senior Software Engineer',
+      company: 'Acme',
+      url: 'https://jobs.example.com/1',
+      saved: true,
+    });
   });
 });
