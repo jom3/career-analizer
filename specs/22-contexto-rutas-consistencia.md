@@ -1,6 +1,6 @@
 # SPEC 22 — Contexto, rutas y consistencia
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 11 (match), SPEC 12 (adaptación de CV), SPEC 13 (carta), SPEC 18 (idioma de interfaz, parcialmente reemplazada en lo que respecta al idioma de generación), SPEC 19 (recuperación de contraseña)
 > **Date:** 2026-10-22
 > **Objective:** Que cada resultado generado indique a qué oferta pertenece, que el usuario elija el idioma del documento de forma independiente a la interfaz, que las rutas no terminen en callejones sin salida, que la sesión expirada se maneje bien, y que los textos sean consistentes.
@@ -17,7 +17,6 @@
 - **Selector de oferta** en `/cover-letter/new` cuando no llega `jobOfferId`.
 - **Sesión expirada:** interceptor 401 que limpia la sesión y redirige a login con retorno.
 - **Dashboard:** completitud del perfil con todas las secciones, errores visibles, documentos separados por tipo, ofertas pendientes.
-- **Formulario de perfil compartido** entre `/profile` y `/cv-import`.
 - **Textos consistentes:** voseo rioplatense en toda la interfaz; errores del backend como códigos traducidos en el frontend.
 
 **Out:**
@@ -84,11 +83,10 @@ Si falta, se usa `req.uiLang` (SPEC 18), y luego `es`.
     - Errores de carga visibles con botón de reintentar (hoy se tragan en `loadProfile`).
     - Documentos separados: "CVs adaptados" y "Cartas" con su propio enlace.
     - Contador de ofertas con estado PENDING.
-13. **Frontend — formulario de perfil compartido:** extraer `ProfileFormComponent` (secciones de experiencia, skills, educación, certificaciones, proyectos, idiomas) usado por `/profile` y `/cv-import`.
-14. **Textos:**
+13. **Textos:**
     - Reemplazar `Intenta`, `Intentalo`, `Revisa`, `Ingresá` por la forma de voseo.
     - Agregar un test en `i18n.templates.spec.ts` que falle si aparecen formas de tuteo en las claves de `es.ts`.
-15. **Errores del backend:** el frontend mapea `code` a `i18n` (`errors.AI_UNAVAILABLE`, etc.). Paridad es/en verificada por `i18n.dictionaries.spec.ts`.
+14. **Errores del backend:** el frontend mapea `code` a `i18n` (`errors.AI_UNAVAILABLE`, etc.). Paridad es/en verificada por `i18n.dictionaries.spec.ts`.
 
 ## Tests
 
@@ -118,7 +116,6 @@ Si falta, se usa `req.uiLang` (SPEC 18), y luego `es`.
 - [ ] `/cover-letter/new` sin `jobOfferId` permite elegir una oferta guardada.
 - [ ] Una sesión expirada lleva a login y vuelve a la ruta original tras autenticarse.
 - [ ] El dashboard marca 100% solo con todas las secciones completas y muestra errores de carga con reintento.
-- [ ] El formulario de perfil existe en un único componente usado en ambas pantallas.
 - [ ] Los textos de la interfaz usan voseo consistente; el test de tuteo pasa.
 - [ ] Los errores del backend incluyen `code`; el frontend los traduce.
 - [ ] `npm run build:all`, `npm run lint:all` y `npm run test:all` pasan.
@@ -129,7 +126,6 @@ Si falta, se usa `req.uiLang` (SPEC 18), y luego `es`.
 | --- | --- |
 | Migrar errores a códigos rompe clientes existentes | Frontend es el único cliente; el campo `message` se mantiene como respaldo durante esta spec. |
 | El selector de idioma confunde al usuario | Default visible y etiquetado; el resultado muestra el idioma del documento (ya existe). |
-| Extraer el formulario de perfil rompe `/cv-import` | Tests de ambas pantallas antes de eliminar el código duplicado. |
 | Redirección 401 en bucle al cargar `/auth/me` | El interceptor ignora `/auth/me` y el guard ya maneja ese caso. |
 | Voseo en claves existentes rompe paridad | Cambio en ambos diccionarios en el mismo commit, con el test de paridad. |
 
@@ -142,3 +138,4 @@ Si falta, se usa `req.uiLang` (SPEC 18), y luego `es`.
 - Nuevos idiomas.
 - Cambios de score o prompts (SPEC 20 y 21).
 - Cambios en autenticación más allá del manejo de 401.
+- **Formulario de perfil compartido** entre `/profile` y `/cv-import`: se movió a **SPEC 23**. Los dos formularios difieren (el perfil tiene pestañas ES/EN y campos bilingües por ítem; la importación no), así que la extracción necesita su propio diseño y verificación visual.
