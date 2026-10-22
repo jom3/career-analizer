@@ -1,6 +1,6 @@
 # SPEC 20 — Match reproducible y explicable
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 10 (análisis de oferta), SPEC 11 (job matching)
 > **Date:** 2026-10-22
 > **Objective:** Que el score de encaje sea reproducible (misma entrada, mismo resultado), explicable (el usuario ve cómo se calculó) y menos dependiente de la interpretación del modelo, combinando una cobertura calculada en código con la evaluación de la IA.
