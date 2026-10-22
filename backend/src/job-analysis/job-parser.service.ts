@@ -109,6 +109,7 @@ export class JobParserService {
       const completion =
         await this.openaiService.client.chat.completions.create({
           model: this.model,
+          temperature: 0,
           messages: [
             { role: 'system', content: this.buildSystemPrompt() },
             { role: 'user', content: `Oferta de trabajo:\n\n${text}` },
@@ -126,9 +127,14 @@ export class JobParserService {
       if (!content) {
         throw new Error('empty response');
       }
+      const raw = JSON.parse(content) as Record<string, unknown>;
       return {
-        draft: this.normalize(JSON.parse(content) as Record<string, unknown>),
-        sourceLanguage,
+        draft: this.normalize(raw),
+        // La IA manda; la heurística queda como respaldo.
+        sourceLanguage: this.normalizeLanguage(
+          raw.sourceLanguage,
+          sourceLanguage,
+        ),
       };
     } catch (error) {
       console.error('OpenAI text parsing failed:', error);
@@ -150,6 +156,7 @@ export class JobParserService {
       const completion =
         await this.openaiService.client.chat.completions.create({
           model: this.model,
+          temperature: 0,
           messages: [
             { role: 'system', content: this.buildSystemPrompt() },
             {
@@ -176,13 +183,18 @@ export class JobParserService {
       if (!content) {
         throw new Error('empty response');
       }
-      const draft = this.normalize(
-        JSON.parse(content) as Record<string, unknown>,
-      );
+      const raw = JSON.parse(content) as Record<string, unknown>;
+      const draft = this.normalize(raw);
       const text = [draft.title, draft.company, draft.experienceSummary].join(
         ' ',
       );
-      return { draft, sourceLanguage: detectLanguage(text) };
+      return {
+        draft,
+        sourceLanguage: this.normalizeLanguage(
+          raw.sourceLanguage,
+          detectLanguage(text),
+        ),
+      };
     } catch (error) {
       console.error('OpenAI image parsing failed:', error);
       throw new BadGatewayException(
@@ -204,8 +216,19 @@ export class JobParserService {
       'requiredSkills: only what the posting requires explicitly (requirements/requisitos). preferredSkills: what is marked as nice-to-have, desired, or preferred. If the posting does not distinguish them, put everything in requiredSkills.',
       'experienceYears: only the number of years the posting requires, if stated. experienceSummary: keep the relevant text as-is.',
       'keywords: the most relevant keywords and tech terms of the posting.',
+      'sourceLanguage: the language the posting is written in: es, en or other.',
       'Extract data faithfully; do not correct, paraphrase, or invent.',
     ].join(' ');
+  }
+
+  private normalizeLanguage(
+    value: unknown,
+    fallback: SourceLanguage,
+  ): SourceLanguage {
+    if (value === 'es' || value === 'en' || value === 'other') {
+      return value;
+    }
+    return fallback;
   }
 
   private buildDraftSchema(): Record<string, unknown> {
@@ -228,6 +251,7 @@ export class JobParserService {
         education: stringArray,
         languages: stringArray,
         keywords: stringArray,
+        sourceLanguage: { type: 'string', enum: ['es', 'en', 'other'] },
       },
       required: [
         'title',
@@ -241,6 +265,7 @@ export class JobParserService {
         'education',
         'languages',
         'keywords',
+        'sourceLanguage',
       ],
     };
   }

@@ -81,6 +81,9 @@ describe('JobMatchService', () => {
     jobOfferId: 'offer-1',
     lang: 'es',
     overallScore: 78,
+    aiScore: 78,
+    coverage: null,
+    scoringVersion: 2,
     overallJustification: 'Sólido encaje.',
     dimensions: analysis.dimensions,
     gaps: analysis.gaps,
@@ -152,6 +155,78 @@ describe('JobMatchService', () => {
     expect(parserMock.match).toHaveBeenCalled();
     expect(prismaMock.jobMatch.create).toHaveBeenCalled();
     expect(result.id).toBe('match-1');
+  });
+
+  it('pondera cobertura y score de IA y persiste la versión de cálculo', async () => {
+    const profileWithSkills = {
+      ...emptyProfile,
+      skills: [
+        { name: 'TypeScript', level: 4 },
+        { name: 'NestJS', level: 4 },
+      ],
+    };
+    prismaMock.jobOffer.findFirst.mockResolvedValue({
+      id: 'offer-1',
+      title: 'Senior Software Engineer',
+      company: 'Acme',
+      level: 'Senior',
+      responsibilities: [],
+      requiredSkills: ['TypeScript', 'NestJS', 'Docker'],
+      preferredSkills: [],
+      experienceYears: null,
+      experienceSummary: null,
+      education: [],
+      languages: [],
+      keywords: [],
+    });
+    prismaMock.profile.findUnique.mockResolvedValue(profileWithSkills);
+    parserMock.match.mockResolvedValue({ ...analysis, overallScore: 60 });
+    prismaMock.jobMatch.create.mockResolvedValue(matchRow);
+
+    await service.createForOffer('user-1', 'offer-1', 'es');
+
+    expect(prismaMock.jobMatch.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        overallScore: 64, // round(0.5 * 67 + 0.5 * 60)
+        aiScore: 60,
+        coverage: 67,
+        scoringVersion: 2,
+      }) as object,
+    });
+  });
+
+  it('marca como recalculable un match de la versión anterior', async () => {
+    prismaMock.jobMatch.findFirst.mockResolvedValue({
+      ...matchRow,
+      coverage: null,
+      scoringVersion: 1,
+    });
+    prismaMock.profile.findUnique.mockResolvedValue(emptyProfile);
+
+    const result = await service.getById('user-1', 'match-1');
+
+    expect(result.needsRecalculation).toBe(true);
+    expect(result.coverage).toBeNull();
+    expect(result.scoringVersion).toBe(1);
+  });
+
+  it('expone la cobertura de un match de la versión actual', async () => {
+    prismaMock.jobMatch.findFirst.mockResolvedValue({
+      ...matchRow,
+      coverage: 50,
+      offerSnapshot: { requiredSkills: ['TypeScript', 'Docker'] },
+      profileSnapshot: { skills: [{ name: 'TypeScript', level: 4 }] },
+    });
+    prismaMock.profile.findUnique.mockResolvedValue(emptyProfile);
+
+    const result = await service.getById('user-1', 'match-1');
+
+    expect(result.needsRecalculation).toBe(false);
+    expect(result.coverage).toEqual({
+      matched: ['TypeScript'],
+      total: 2,
+      percent: 50,
+    });
   });
 
   it('lanza 404 al crear un match de una oferta ajena o inexistente', async () => {

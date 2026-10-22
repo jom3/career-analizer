@@ -29,12 +29,22 @@ export interface JobMatchRecommendation {
   suggestion: string;
 }
 
+export interface JobMatchCoverage {
+  matched: string[];
+  total: number;
+  percent: number | null;
+}
+
 export interface JobMatch {
   id: string;
   jobOfferId: string | null;
   offer: OfferContext;
   lang: MatchLang;
   overallScore: number;
+  aiScore: number;
+  coverage: JobMatchCoverage | null;
+  scoringVersion: number;
+  needsRecalculation: boolean;
   overallJustification: string;
   dimensions: JobMatchDimension[];
   gaps: JobMatchGap[];

@@ -157,6 +157,7 @@ export class JobMatchParserService {
       const completion =
         await this.openaiService.client.chat.completions.create({
           model: this.model,
+          temperature: 0,
           messages: [
             { role: 'system', content: this.buildSystemPrompt(lang) },
             {
@@ -208,6 +209,8 @@ export class JobMatchParserService {
       'Compare the candidate profile against the job offer and score how well the candidate fits.',
       'Scores must be evidence-based: rely only on data present in the candidate profile. Do not invent experience, skills, companies, positions, education, certifications, projects or achievements.',
       'overallScore is the global fit (0-100). dimensions has exactly four entries: skills, experience, education, languages; each with a score (0-100). If a dimension has no data in the profile, use null for score and explain the absence in the justification.',
+      'SCORING RUBRIC — apply these anchors to every score so results are consistent: 0-20 no evidence in the profile; 21-40 indirect or very weak evidence; 41-60 partial evidence (some related experience, not the required level); 61-80 solid evidence but incomplete coverage; 81-100 direct and quantified evidence for most requirements. Use adjacent bands consistently: the same evidence must always produce the same band.',
+      'SCORING CAPS — seniority and required skills are decisive. A candidate whose experience is below the years or seniority the offer asks cannot score above 60 on overallScore, even if skills overlap. A candidate who matches fewer than half of the requiredSkills cannot score above 40. A profile with no experiences and no education cannot score above 40. Adjacent technologies do not count as evidence of a required skill unless the profile states it.',
       'gaps: only list skills that the job offer declares (requiredSkills, preferredSkills, or skills mentioned in experienceSummary). name must be one of those offer skills exactly. status: HAVE when the profile evidences that skill, MISSING when there is no evidence, PARTIAL when there is partial or weak evidence. source: REQUIRED if the skill comes from requiredSkills, PREFERRED from preferredSkills, OTHER otherwise. Never list a skill that is not in the offer.',
       'recommendations: type SKILL when derived from a gap (what to work on and how to demonstrate it in the profile), type PROFILE for suggestions to strengthen the profile (e.g. quantify metrics, add certifications, complete the summary). They are mere suggestions in natural, professional prose; do not invent external resources, courses or links.',
       responseLanguage,

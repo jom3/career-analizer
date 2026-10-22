@@ -9,3 +9,5 @@ Datos **sintéticos**: empresas, instituciones y personas son ficticias. No usar
 - `letter-validation.json`: casos para los validadores de carta (SPEC 21).
 
 Los rangos `aiScoreRange` son orientativos: el score de IA puede variar dentro del rango; la cobertura es exacta.
+
+Los rangos se recalibraron tras la primera corrida de `npm run test:eval` con la rúbrica con topes de senioridad (ningún match perfecto supera ~80, y un perfil sin evidencia no pasa de 40). Expresan la relación esperada, no un valor exacto: cobertura 100 → banda alta, cobertura 0 → banda baja.

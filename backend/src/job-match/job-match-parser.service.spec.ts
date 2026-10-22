@@ -7,6 +7,67 @@ import type { JobOfferDraft } from '../job-analysis/job-analysis.types';
 import type { ProfileSnapshot } from './profile-util';
 
 describe('JobMatchParserService', () => {
+  // El score debe ser reproducible para la misma entrada.
+  it('llama a OpenAI con temperature 0', async () => {
+    createMock.mockResolvedValue({
+      choices: [
+        {
+          message: {
+            content: JSON.stringify({
+              overallScore: 80,
+              overallJustification: 'Buen encaje.',
+              dimensions: [
+                { key: 'skills', score: 80, justification: 'ok' },
+                { key: 'experience', score: 80, justification: 'ok' },
+                { key: 'education', score: 80, justification: 'ok' },
+                { key: 'languages', score: 80, justification: 'ok' },
+              ],
+              gaps: [],
+              recommendations: [],
+            }),
+          },
+        },
+      ],
+    });
+    const module = await Test.createTestingModule({
+      providers: [
+        JobMatchParserService,
+        { provide: ConfigService, useValue: configMock },
+        { provide: OpenaiService, useValue: openaiMock },
+      ],
+    }).compile();
+    const parser = module.get(JobMatchParserService);
+
+    await parser.match(
+      {
+        title: 'Dev',
+        company: null,
+        level: null,
+        responsibilities: [],
+        requiredSkills: [],
+        preferredSkills: [],
+        experienceYears: null,
+        experienceSummary: null,
+        education: [],
+        languages: [],
+        keywords: [],
+      },
+      {
+        skills: [],
+        experiences: [],
+        education: [],
+        certifications: [],
+        projects: [],
+        languages: [],
+      },
+      'es',
+    );
+
+    expect(createMock).toHaveBeenCalledWith(
+      expect.objectContaining({ temperature: 0 }) as object,
+    );
+  });
+
   let service: JobMatchParserService;
   const createMock = jest.fn();
   const openaiMock = {

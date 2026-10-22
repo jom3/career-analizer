@@ -316,6 +316,16 @@ export const es: Record<string, string> = {
   'jobMatch.source.REQUIRED': 'Requerida',
   'jobMatch.source.PREFERRED': 'Preferida',
   'jobMatch.source.OTHER': 'En la oferta',
+  'jobMatch.breakdownTitle': 'Cómo se calculó',
+  'jobMatch.breakdownCoverage':
+    'Cobertura de requisitos: {matched} de {total} ({percent}%).',
+  'jobMatch.breakdownAi': 'Evaluación de IA:',
+  'jobMatch.breakdownFormula':
+    'Score final = 50% cobertura de requisitos + 50% evaluación de IA.',
+  'jobMatch.breakdownNoRequirements':
+    'La oferta no declara requisitos: el score es el de la evaluación IA.',
+  'jobMatch.recalcText':
+    'Este análisis se calculó con una versión anterior del método de puntaje. Recalculalo para ver el desglose.',
   'jobMatch.recommendationsTitle': 'Recomendaciones',
   'jobMatch.recommendationsSubtitle': 'Sugerencias de la IA, no se aplican solas',
   'jobMatch.noRecommendations': 'La IA no generó recomendaciones.',

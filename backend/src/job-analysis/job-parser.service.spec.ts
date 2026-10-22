@@ -64,6 +64,7 @@ describe('JobParserService', () => {
     expect(createMock).toHaveBeenCalledWith(
       expect.objectContaining({
         model: 'test-model',
+        temperature: 0,
         response_format: {
           type: 'json_schema',
           json_schema: {
@@ -87,6 +88,39 @@ describe('JobParserService', () => {
       languages: ['English'],
       keywords: ['backend', 'nodejs'],
     });
+  });
+
+  it('prefiere el idioma que devuelve la IA sobre la heurística', async () => {
+    createMock.mockResolvedValue({
+      choices: [
+        {
+          message: {
+            content: JSON.stringify({
+              ...validResponse,
+              sourceLanguage: 'en',
+            }),
+          },
+        },
+      ],
+    });
+
+    const result = await service.parseText(
+      'Requisitos: experiencia y habilidades en la empresa.',
+    );
+
+    expect(result.sourceLanguage).toBe('en');
+  });
+
+  it('usa la heurística cuando la IA no devuelve idioma', async () => {
+    createMock.mockResolvedValue({
+      choices: [{ message: { content: JSON.stringify(validResponse) } }],
+    });
+
+    const result = await service.parseText(
+      'Requisitos: experiencia y habilidades en la empresa.',
+    );
+
+    expect(result.sourceLanguage).toBe('es');
   });
 
   it('normaliza el nivel a la enum y deja null lo que no es un nivel válido', async () => {

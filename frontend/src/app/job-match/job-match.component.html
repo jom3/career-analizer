@@ -65,6 +65,20 @@
         </div>
       }
 
+      @if (current.needsRecalculation) {
+        <div class="alert alert--info stale-banner" role="status">
+          <p>{{ i18n.t('jobMatch.recalcText') }}</p>
+          <button
+            type="button"
+            class="btn btn--primary btn--small"
+            [disabled]="recomputing()"
+            (click)="recompute()"
+          >
+            {{ recomputing() ? i18n.t('jobMatch.recomputing') : i18n.t('jobMatch.recompute') }}
+          </button>
+        </div>
+      }
+
       @if (current.jobOfferId) {
         <div class="adapt-row">
           <div>
@@ -83,6 +97,29 @@
         </div>
       }
     </section>
+
+    @if (!current.needsRecalculation) {
+      <section class="card">
+        <header class="section-header">
+          <h2>{{ i18n.t('jobMatch.breakdownTitle') }}</h2>
+        </header>
+        @if (current.coverage; as coverage) {
+          <p>{{ coverageLabel(coverage) }}</p>
+          @if (coverage.matched.length > 0) {
+            <ul class="skill-list">
+              @for (skill of coverage.matched; track skill) {
+                <li><span class="tag tag--have">{{ skill }}</span></li>
+              }
+            </ul>
+          }
+          <p>{{ i18n.t('jobMatch.breakdownAi') }} {{ current.aiScore }}%</p>
+          <p class="muted">{{ i18n.t('jobMatch.breakdownFormula') }}</p>
+        } @else {
+          <p class="muted">{{ i18n.t('jobMatch.breakdownNoRequirements') }}</p>
+          <p>{{ i18n.t('jobMatch.breakdownAi') }} {{ current.aiScore }}%</p>
+        }
+      </section>
+    }
 
     <section class="card">
       <header class="section-header">
