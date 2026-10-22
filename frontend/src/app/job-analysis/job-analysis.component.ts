@@ -7,11 +7,16 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CvAdaptationService } from '../core/cv-adaptation.service';
 import { I18nService } from '../core/i18n/i18n.service';
 import { JobAnalysisService } from '../core/job-analysis.service';
+import { apiErrorKey } from '../core/http-errors';
 import { JobMatchService } from '../core/job-match.service';
+import {
+  DocumentLangSelectComponent,
+  type DocumentLang,
+} from '../shared/document-lang-select.component';
 import type {
   InputType,
   JobAnalysisResult,
@@ -101,7 +106,7 @@ function buildForm(draft?: JobOfferDraft | null): FormGroup<JobOfferForm> {
 
 @Component({
   selector: 'app-job-analysis',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, DocumentLangSelectComponent],
   templateUrl: './job-analysis.component.html',
   styleUrl: './job-analysis.component.scss',
 })
@@ -111,6 +116,7 @@ export class JobAnalysisComponent implements OnInit {
   private readonly jobMatchService = inject(JobMatchService);
   private readonly cvAdaptationService = inject(CvAdaptationService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   readonly levelOptions: (JobLevel | '')[] = [
     '',
@@ -148,6 +154,8 @@ export class JobAnalysisComponent implements OnInit {
   readonly loadingHistory = signal(true);
   readonly statusFilter = signal<OfferStatus | 'ALL'>('ALL');
   readonly searchQuery = signal('');
+  readonly documentLang = signal<DocumentLang>(this.i18n.lang());
+  readonly highlightedOfferId = signal<string | null>(null);
   readonly expandedRawId = signal<string | null>(null);
   readonly filteredHistory = computed(() => {
     const filter = this.statusFilter();
@@ -237,7 +245,14 @@ export class JobAnalysisComponent implements OnInit {
   ];
 
   async ngOnInit(): Promise<void> {
+    const offerId = this.route.snapshot.queryParamMap.get('offer');
+    this.highlightedOfferId.set(offerId);
     await this.loadHistory();
+    if (offerId) {
+      document
+        .getElementById(`offer-${offerId}`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   }
 
   addItem(array: FormArray<FormControl<string>>): void {
@@ -341,6 +356,7 @@ export class JobAnalysisComponent implements OnInit {
     try {
       const adapted = await this.cvAdaptationService.create({
         jobOfferId: offer.id,
+        lang: this.documentLang(),
       });
       await this.router.navigate(['/cv-adaptation', adapted.id]);
     } catch (error) {
@@ -352,7 +368,7 @@ export class JobAnalysisComponent implements OnInit {
 
   newLetter(offer: JobOffer): void {
     void this.router.navigate(['/cover-letter/new'], {
-      queryParams: { jobOfferId: offer.id },
+      queryParams: { jobOfferId: offer.id, lang: this.documentLang() },
     });
   }
 
@@ -606,6 +622,8 @@ export class JobAnalysisComponent implements OnInit {
 
   private messageFor(error: unknown): string {
     console.error('job-analysis request failed:', error);
+    const mapped = apiErrorKey(error);
+    if (mapped) return this.i18n.t(mapped);
     if (error instanceof HttpErrorResponse) {
       if (error.status === 413) {
         return this.i18n.t('jobAnalysis.error413');

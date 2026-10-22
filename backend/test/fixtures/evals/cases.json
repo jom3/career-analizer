@@ -1,0 +1,102 @@
+[
+  {
+    "id": "c01",
+    "profile": "P1",
+    "offer": "O1",
+    "expect": {
+      "requiredMatched": ["Node.js", "NestJS", "PostgreSQL", "Docker"],
+      "coverage": 100,
+      "aiScoreRange": [85, 100]
+    }
+  },
+  {
+    "id": "c02",
+    "profile": "P1",
+    "offer": "O2",
+    "expect": {
+      "requiredMatched": ["PostgreSQL"],
+      "coverage": 33,
+      "aiScoreRange": [25, 50]
+    }
+  },
+  {
+    "id": "c03",
+    "profile": "P2",
+    "offer": "O3",
+    "expect": {
+      "requiredMatched": ["Angular", "TypeScript"],
+      "coverage": 67,
+      "aiScoreRange": [55, 75]
+    }
+  },
+  {
+    "id": "c04",
+    "profile": "P3",
+    "offer": "O4",
+    "expect": {
+      "requiredMatched": ["Python", "SQL", "scikit-learn"],
+      "coverage": 100,
+      "aiScoreRange": [80, 100]
+    }
+  },
+  {
+    "id": "c05",
+    "profile": "P4",
+    "offer": "O5",
+    "expect": {
+      "requiredMatched": ["JavaScript"],
+      "coverage": 50,
+      "aiScoreRange": [15, 40]
+    }
+  },
+  {
+    "id": "c06",
+    "profile": "P1",
+    "offer": "O6",
+    "expect": {
+      "requiredMatched": ["Node", "PostgreSQL"],
+      "coverage": 100,
+      "aiScoreRange": [80, 100]
+    }
+  },
+  {
+    "id": "c07",
+    "profile": "P2",
+    "offer": "O1",
+    "expect": {
+      "requiredMatched": [],
+      "coverage": 0,
+      "aiScoreRange": [0, 20]
+    }
+  },
+  {
+    "id": "c08",
+    "profile": "P3",
+    "offer": "O3",
+    "expect": {
+      "requiredMatched": [],
+      "coverage": 0,
+      "aiScoreRange": [0, 20]
+    }
+  },
+  {
+    "id": "c09",
+    "profile": "P4",
+    "offer": "O4",
+    "expect": {
+      "requiredMatched": [],
+      "coverage": 0,
+      "aiScoreRange": [0, 20]
+    }
+  },
+  {
+    "id": "c10",
+    "profile": "P1",
+    "offer": "O5",
+    "expect": {
+      "requiredMatched": [],
+      "coverage": 0,
+      "aiScoreRange": [0, 25]
+    }
+  }
+]

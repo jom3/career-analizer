@@ -23,6 +23,7 @@ describe('CoverLetterService', () => {
       create: jest.Mock;
       findMany: jest.Mock;
       findFirst: jest.Mock;
+      update: jest.Mock;
       delete: jest.Mock;
     };
   };
@@ -106,6 +107,7 @@ describe('CoverLetterService', () => {
         create: jest.fn(),
         findMany: jest.fn(),
         findFirst: jest.fn(),
+        update: jest.fn(),
         delete: jest.fn(),
       },
     };
@@ -391,6 +393,71 @@ describe('CoverLetterService', () => {
     await expect(
       service.exportLetter('user-2', 'letter-1', 'pdf'),
     ).rejects.toThrow(NotFoundException);
+  });
+
+  it('actualiza el contenido y marca la carta como editada por el usuario', async () => {
+    prismaMock.coverLetter.findFirst.mockResolvedValue(letterRow);
+    prismaMock.profile.findUnique.mockResolvedValue(profile);
+    prismaMock.coverLetter.update.mockResolvedValue({
+      ...letterRow,
+      content: 'Texto corregido.',
+      editedByUser: true,
+      jobOffer: {
+        id: 'offer-1',
+        title: 'Senior Fullstack',
+        company: 'TechCorp',
+        url: null,
+      },
+    });
+
+    const result = await service.updateContent(
+      'user-1',
+      'letter-1',
+      'Texto corregido.',
+    );
+
+    expect(prismaMock.coverLetter.update).toHaveBeenCalledWith({
+      where: { id: 'letter-1' },
+      data: { content: 'Texto corregido.', editedByUser: true },
+      include: { jobOffer: { select: expect.any(Object) as object } },
+    });
+    expect(result.content).toBe('Texto corregido.');
+    expect(result.editedByUser).toBe(true);
+    expect(result.offer.title).toBe('Senior Fullstack');
+  });
+
+  it('no actualiza una carta ajena', async () => {
+    prismaMock.coverLetter.findFirst.mockResolvedValue(null);
+
+    await expect(
+      service.updateContent('user-2', 'letter-1', 'Texto'),
+    ).rejects.toThrow(NotFoundException);
+    expect(prismaMock.coverLetter.update).not.toHaveBeenCalled();
+  });
+
+  it('expone el contexto de la oferta en el listado', async () => {
+    prismaMock.profile.findUnique.mockResolvedValue(profile);
+    prismaMock.coverLetter.findMany.mockResolvedValue([
+      {
+        ...letterRow,
+        jobOffer: {
+          id: 'offer-1',
+          title: 'Senior Fullstack',
+          company: 'TechCorp',
+          url: 'https://jobs.example.com/1',
+        },
+      },
+    ]);
+
+    const [result] = await service.list('user-1');
+
+    expect(result.offer).toEqual({
+      id: 'offer-1',
+      title: 'Senior Fullstack',
+      company: 'TechCorp',
+      url: 'https://jobs.example.com/1',
+      saved: true,
+    });
   });
 
   it('borra solo la carta, sin tocar la oferta', async () => {

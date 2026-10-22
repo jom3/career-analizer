@@ -1,4 +1,5 @@
 import type { JobOfferPayload } from './job-analysis';
+import type { OfferContext } from './offer-context';
 
 export type MatchLang = 'es' | 'en';
 export type GapStatus = 'HAVE' | 'MISSING' | 'PARTIAL';
@@ -31,6 +32,7 @@ export interface JobMatchRecommendation {
 export interface JobMatch {
   id: string;
   jobOfferId: string | null;
+  offer: OfferContext;
   lang: MatchLang;
   overallScore: number;
   overallJustification: string;

@@ -40,17 +40,48 @@
       </div>
     }
 
+    <app-offer-context-card [offer]="current.offer" />
+
     <section class="card letter-doc">
       <header class="section-header">
         <h2>{{ current.recruiterName || i18n.t('coverLetter.genericRecipient') }}</h2>
-        <span class="tag tag--ai">{{ i18n.t('coverLetter.editedByYou') }}</span>
+        <span class="tag" [class.tag--ai]="!current.editedByUser">
+          {{ i18n.t(current.editedByUser ? 'coverLetter.editedByYou' : 'coverLetter.aiTag') }}
+        </span>
       </header>
       @if (current.note) {
         <p class="muted">
           {{ i18n.t('coverLetter.noteLabel') }} {{ current.note }}
         </p>
       }
-      <pre class="letter-text">{{ current.content }}</pre>
+      @if (editing()) {
+        <textarea
+          class="letter-editor"
+          rows="16"
+          [value]="editedContent()"
+          (input)="editedContent.set($any($event.target).value)"
+        ></textarea>
+        <div class="letter-actions">
+          <button
+            type="button"
+            class="btn btn--primary"
+            [disabled]="saving() || !editedContent().trim()"
+            (click)="saveContent()"
+          >
+            {{ saving() ? i18n.t('common.saving') : i18n.t('coverLetter.saveChanges') }}
+          </button>
+          <button type="button" class="btn btn--secondary" (click)="cancelEditing()">
+            {{ i18n.t('common.cancel') }}
+          </button>
+        </div>
+      } @else {
+        <pre class="letter-text">{{ current.content }}</pre>
+        <div class="letter-actions">
+          <button type="button" class="btn btn--secondary btn--small" (click)="startEditing()">
+            {{ i18n.t('coverLetter.editContent') }}
+          </button>
+        </div>
+      }
     </section>
 
     <section class="card">

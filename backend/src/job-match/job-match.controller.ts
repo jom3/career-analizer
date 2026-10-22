@@ -51,6 +51,14 @@ export class JobMatchController {
     return this.jobMatchService.getById(req.user.id, id);
   }
 
+  @Post(':id/save-offer')
+  saveOffer(
+    @Req() req: RequestWithUser,
+    @Param('id') id: string,
+  ): Promise<JobMatchDto> {
+    return this.jobMatchService.saveOffer(req.user.id, id);
+  }
+
   @Post(':id/recompute')
   recompute(
     @Req() req: RequestWithUser,

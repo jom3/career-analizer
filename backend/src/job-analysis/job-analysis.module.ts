@@ -9,5 +9,6 @@ import { JobParserService } from './job-parser.service';
   imports: [OpenaiModule, CvImportModule],
   controllers: [JobAnalysisController],
   providers: [JobAnalysisService, JobParserService],
+  exports: [JobAnalysisService],
 })
 export class JobAnalysisModule {}

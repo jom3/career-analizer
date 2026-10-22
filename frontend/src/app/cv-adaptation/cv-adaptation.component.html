@@ -24,6 +24,8 @@
   }
 
   @if (!loading() && version(); as current) {
+    <app-offer-context-card [offer]="current.offer" />
+
     <article class="card cv-section">
       <header class="section-header">
         <h2>{{ i18n.t('cvAdapt.offerTitle') }}</h2>
@@ -288,8 +290,11 @@
                 routerLink="/cv-adaptation/{{ item.id }}"
               >
                 <span class="list-row__main">
-                  <strong>{{ formatDate(item.createdAt) }}</strong>
-                  <span class="muted">{{ i18n.t('cvAdapt.listLabel') }}</span>
+                  <strong>{{ item.offer.title || i18n.t('offerContext.untitled') }}</strong>
+                  <span class="muted">
+                    {{ item.offer.company || '—' }} ·
+                    {{ formatDate(item.createdAt) }}
+                  </span>
                 </span>
                 <span class="tag tag--ai">{{ i18n.t('cvAdapt.aiTag') }}</span>
               </a>

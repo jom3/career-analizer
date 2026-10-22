@@ -1,5 +1,6 @@
 import { BadGatewayException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { apiError } from '../common/api-error-codes';
 import { OpenaiService } from '../openai/openai.service';
 import type { MatchLang } from './dto/job-match.dto';
 import type {
@@ -189,7 +190,10 @@ export class JobMatchParserService {
     } catch (error) {
       console.error('OpenAI job match failed:', error);
       throw new BadGatewayException(
-        'La IA no pudo calcular el encaje. Intenta de nuevo.',
+        apiError(
+          'AI_UNAVAILABLE',
+          'La IA no pudo calcular el encaje. Intentá de nuevo.',
+        ),
       );
     }
   }

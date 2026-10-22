@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { FormArray, ReactiveFormsModule } from '@angular/forms';
 import { combineLatest, Subscription } from 'rxjs';
+import { apiErrorKey } from '../core/http-errors';
 import type { Profile } from '../core/models/profile';
 import {
   experienceDuplicateKey,
@@ -338,6 +339,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   private messageFor(error: unknown): string {
+    const mapped = apiErrorKey(error);
+    if (mapped) return this.i18n.t(mapped);
     if (error instanceof HttpErrorResponse && error.status === 400) {
       return this.i18n.t('profile.saveError400');
     }

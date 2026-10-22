@@ -1,5 +1,6 @@
 import { BadGatewayException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { apiError } from '../common/api-error-codes';
 import { OpenaiService } from '../openai/openai.service';
 import { JobLevel } from '../generated/prisma/enums.js';
 import { JobOfferDraft, SourceLanguage } from './job-analysis.types';
@@ -132,7 +133,10 @@ export class JobParserService {
     } catch (error) {
       console.error('OpenAI text parsing failed:', error);
       throw new BadGatewayException(
-        'La IA no pudo interpretar la oferta. Intenta de nuevo.',
+        apiError(
+          'AI_UNAVAILABLE',
+          'La IA no pudo interpretar la oferta. Intentá de nuevo.',
+        ),
       );
     }
   }
@@ -182,7 +186,10 @@ export class JobParserService {
     } catch (error) {
       console.error('OpenAI image parsing failed:', error);
       throw new BadGatewayException(
-        'La IA no pudo analizar la imagen. Intenta de nuevo.',
+        apiError(
+          'AI_UNAVAILABLE',
+          'La IA no pudo analizar la imagen. Intentá de nuevo.',
+        ),
       );
     }
   }

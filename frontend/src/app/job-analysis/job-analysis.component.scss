@@ -99,6 +99,11 @@
   opacity: 0.62;
 }
 
+.history-item--highlight {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
 .tag--status-applied {
   color: var(--success);
   background: var(--success-soft);

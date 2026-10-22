@@ -1,14 +1,16 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { apiErrorKey } from '../core/http-errors';
 import { I18nService } from '../core/i18n/i18n.service';
 import type { CvExportFormat } from '../core/models/cover-letter';
 import { CoverLetterService } from './cover-letter.service';
 import type { CoverLetter } from '../core/models/cover-letter';
+import { OfferContextCardComponent } from '../shared/offer-context-card.component';
 
 @Component({
   selector: 'app-cover-letter-detail',
-  imports: [RouterLink],
+  imports: [RouterLink, OfferContextCardComponent],
   templateUrl: './cover-letter-detail.component.html',
   styleUrl: './cover-letter-detail.component.scss',
 })
@@ -23,6 +25,9 @@ export class CoverLetterDetailComponent implements OnInit {
   readonly letter = signal<CoverLetter | null>(null);
   readonly exporting = signal<CvExportFormat | null>(null);
   readonly deleting = signal(false);
+  readonly editing = signal(false);
+  readonly saving = signal(false);
+  readonly editedContent = signal('');
 
   async ngOnInit(): Promise<void> {
     const id = this.route.snapshot.paramMap.get('id');
@@ -57,6 +62,31 @@ export class CoverLetterDetailComponent implements OnInit {
     }
   }
 
+  startEditing(): void {
+    this.editedContent.set(this.letter()?.content ?? '');
+    this.editing.set(true);
+  }
+
+  cancelEditing(): void {
+    this.editing.set(false);
+  }
+
+  async saveContent(): Promise<void> {
+    const current = this.letter();
+    const content = this.editedContent().trim();
+    if (!current || !content) return;
+    this.saving.set(true);
+    this.errorMessage.set('');
+    try {
+      this.letter.set(await this.coverLetterService.update(current.id, content));
+      this.editing.set(false);
+    } catch (error) {
+      this.errorMessage.set(this.messageFor(error));
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
   async deleteLetter(): Promise<void> {
     const current = this.letter();
     if (!current) return;
@@ -80,6 +110,8 @@ export class CoverLetterDetailComponent implements OnInit {
 
   private messageFor(error: unknown): string {
     console.error('cover-letter request failed:', error);
+    const mapped = apiErrorKey(error);
+    if (mapped) return this.i18n.t(mapped);
     if (error instanceof HttpErrorResponse) {
       if (error.status === 0) {
         return this.i18n.t('coverLetter.errorCors');

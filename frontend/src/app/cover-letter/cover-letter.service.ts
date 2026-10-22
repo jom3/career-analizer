@@ -42,6 +42,14 @@ export class CoverLetterService {
     );
   }
 
+  update(id: string, content: string): Promise<CoverLetter> {
+    return firstValueFrom(
+      this.http.patch<CoverLetter>(`${this.apiUrl}/cover-letter/${id}`, {
+        content,
+      }),
+    );
+  }
+
   delete(id: string): Promise<void> {
     return firstValueFrom(
       this.http.delete<void>(`${this.apiUrl}/cover-letter/${id}`),

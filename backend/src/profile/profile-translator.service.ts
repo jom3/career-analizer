@@ -1,5 +1,6 @@
 import { BadGatewayException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { apiError } from '../common/api-error-codes';
 import { OpenaiService } from '../openai/openai.service';
 import type { ProfileWithCollections } from './profile.service';
 
@@ -138,7 +139,10 @@ export class ProfileTranslatorService {
     } catch (error) {
       console.error('OpenAI profile translation failed:', error);
       throw new BadGatewayException(
-        'La IA no pudo traducir el perfil. Intenta de nuevo.',
+        apiError(
+          'AI_UNAVAILABLE',
+          'La IA no pudo traducir el perfil. Intentá de nuevo.',
+        ),
       );
     }
   }

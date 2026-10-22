@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormArray, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { apiErrorKey } from '../core/http-errors';
 import { CvImportService } from '../core/cv-import.service';
 import type { AtsCheckItem } from '../core/models/cv-import';
 import { I18nService } from '../core/i18n/i18n.service';
@@ -215,6 +216,8 @@ export class CvImportComponent implements OnInit {
   }
 
   private messageFor(error: unknown): string {
+    const mapped = apiErrorKey(error);
+    if (mapped) return this.i18n.t(mapped);
     if (error instanceof HttpErrorResponse) {
       if (error.status === 404) {
         return this.i18n.t('cvImport.error404');

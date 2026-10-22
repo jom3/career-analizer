@@ -10,7 +10,12 @@
   </header>
 
   @if (errorMessage()) {
-    <p class="alert alert--error" role="alert">{{ errorMessage() }}</p>
+    <div class="alert alert--error" role="alert">
+      <p>{{ errorMessage() }}</p>
+      <button type="button" class="btn btn--secondary btn--small" (click)="loadSummary()">
+        {{ i18n.t('dashboard.retry') }}
+      </button>
+    </div>
   }
 
   @if (loading()) {
@@ -33,6 +38,11 @@
       </div>
       @if (profileCompleteness() < 100) {
         <p class="muted">{{ i18n.t('dashboard.profileHint') }}</p>
+        <ul class="missing-list">
+          @for (key of missingSections(); track key) {
+            <li>{{ i18n.t(key) }}</li>
+          }
+        </ul>
       } @else {
         <p class="muted">{{ i18n.t('dashboard.profileComplete') }}</p>
       }
@@ -58,6 +68,9 @@
         </a>
       } @else {
         <p class="muted">{{ i18n.t('dashboard.offersCount') }} {{ offersCount() }}</p>
+        <p class="muted">
+          {{ i18n.t('dashboard.pendingOffers') }} {{ pendingOffersCount() }}
+        </p>
         <a class="btn-link" routerLink="/job-analysis">{{ i18n.t('nav.offers') }}</a>
       }
     </section>
@@ -89,12 +102,18 @@
           {{ i18n.t('dashboard.generateCv') }}
         </a>
       } @else {
-        <p class="muted">
-          {{ adaptedCvsCount() }} {{ i18n.t('dashboard.adaptedCvs') }} ·
-          {{ lettersCount() }} {{ i18n.t('dashboard.letters') }}
-        </p>
-        <a class="btn-link" routerLink="/cv-adaptation">{{ i18n.t('nav.adaptedCv') }}</a>
-        <a class="btn-link" routerLink="/cover-letter">{{ i18n.t('nav.coverLetter') }}</a>
+        <div class="document-row">
+          <span class="muted">
+            {{ i18n.t('dashboard.adaptedCvs') }}: {{ adaptedCvsCount() }}
+          </span>
+          <a class="btn-link" routerLink="/cv-adaptation">{{ i18n.t('nav.adaptedCv') }}</a>
+        </div>
+        <div class="document-row">
+          <span class="muted">
+            {{ i18n.t('dashboard.letters') }}: {{ lettersCount() }}
+          </span>
+          <a class="btn-link" routerLink="/cover-letter">{{ i18n.t('nav.coverLetter') }}</a>
+        </div>
       }
     </section>
   }

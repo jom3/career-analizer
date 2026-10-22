@@ -1,6 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '../generated/prisma/client';
 import type { CoverLetter } from '../generated/prisma/client';
+import {
+  OFFER_CONTEXT_SELECT,
+  toOfferContext,
+  type OfferContextOffer,
+} from '../common/offer-context';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   profileInclude,
@@ -23,6 +28,10 @@ import type {
   CoverLetterDraftDto,
   CoverLetterDto,
 } from './dto/cover-letter.dto';
+
+type CoverLetterRow = CoverLetter & {
+  jobOffer: OfferContextOffer | null;
+};
 
 interface CoverLetterOfferSnapshot {
   title: string;
@@ -143,7 +152,7 @@ export class CoverLetterService {
         profileFingerprint: fingerprint,
       },
     });
-    return this.toDto(created, false);
+    return this.toDto(created, false, offer);
   }
 
   async list(userId: string): Promise<CoverLetterDto[]> {
@@ -151,16 +160,25 @@ export class CoverLetterService {
     const letters = await this.prisma.coverLetter.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
+      include: { jobOffer: { select: OFFER_CONTEXT_SELECT } },
     });
     return letters.map((letter) =>
-      this.toDto(letter, letter.profileFingerprint !== currentFingerprint),
+      this.toDto(
+        letter,
+        letter.profileFingerprint !== currentFingerprint,
+        letter.jobOffer,
+      ),
     );
   }
 
   async getById(userId: string, id: string): Promise<CoverLetterDto> {
     const letter = await this.findOwned(userId, id);
     const currentFingerprint = await this.currentFingerprint(userId);
-    return this.toDto(letter, letter.profileFingerprint !== currentFingerprint);
+    return this.toDto(
+      letter,
+      letter.profileFingerprint !== currentFingerprint,
+      letter.jobOffer,
+    );
   }
 
   async exportLetter(
@@ -197,6 +215,26 @@ export class CoverLetterService {
     return { buffer, candidateName: user.name };
   }
 
+  // Edición posterior del contenido: la carta deja de ser solo generada.
+  async updateContent(
+    userId: string,
+    id: string,
+    content: string,
+  ): Promise<CoverLetterDto> {
+    const letter = await this.findOwned(userId, id);
+    const updated = await this.prisma.coverLetter.update({
+      where: { id: letter.id },
+      data: { content, editedByUser: true },
+      include: { jobOffer: { select: OFFER_CONTEXT_SELECT } },
+    });
+    const currentFingerprint = await this.currentFingerprint(userId);
+    return this.toDto(
+      updated,
+      letter.profileFingerprint !== currentFingerprint,
+      updated.jobOffer,
+    );
+  }
+
   async remove(userId: string, id: string): Promise<void> {
     const letter = await this.findOwned(userId, id);
     await this.prisma.coverLetter.delete({ where: { id: letter.id } });
@@ -213,6 +251,7 @@ export class CoverLetterService {
       id: string;
       title: string;
       company: string | null;
+      url: string | null;
       sourceLanguage: string | null;
       responsibilities: string[];
       requiredSkills: string[];
@@ -326,9 +365,10 @@ export class CoverLetterService {
     return profileFingerprint(profileSnapshot(profile));
   }
 
-  private async findOwned(userId: string, id: string): Promise<CoverLetter> {
+  private async findOwned(userId: string, id: string): Promise<CoverLetterRow> {
     const letter = await this.prisma.coverLetter.findFirst({
       where: { id, userId },
+      include: { jobOffer: { select: OFFER_CONTEXT_SELECT } },
     });
     if (!letter) {
       throw new NotFoundException('Carta de motivación no encontrada.');
@@ -336,14 +376,27 @@ export class CoverLetterService {
     return letter;
   }
 
-  private toDto(letter: CoverLetter, stale: boolean): CoverLetterDto {
+  private toDto(
+    letter: CoverLetter,
+    stale: boolean,
+    offer: OfferContextOffer | null = null,
+  ): CoverLetterDto {
     return {
       id: letter.id,
       jobOfferId: letter.jobOfferId,
+      offer: toOfferContext({
+        jobOfferId: letter.jobOfferId,
+        offer,
+        snapshot: letter.offerSnapshot as unknown as {
+          title?: string | null;
+          company?: string | null;
+        },
+      }),
       recruiterName: letter.recruiterName,
       note: letter.note,
       sourceLanguage: letter.sourceLanguage,
       content: letter.content,
+      editedByUser: letter.editedByUser,
       stale,
       createdAt: letter.createdAt.toISOString(),
       updatedAt: letter.updatedAt.toISOString(),

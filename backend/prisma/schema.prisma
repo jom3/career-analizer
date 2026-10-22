@@ -274,6 +274,7 @@ model CoverLetter {
   note               String?   @db.Text
   sourceLanguage     String?
   content            String    @db.Text
+  editedByUser       Boolean   @default(false)
   offerSnapshot      Json
   profileSnapshot    Json
   profileFingerprint String

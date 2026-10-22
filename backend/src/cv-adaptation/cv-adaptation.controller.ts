@@ -32,7 +32,7 @@ export class CvAdaptationController {
     @Req() req: RequestWithUser,
     @Body() dto: CreateCvAdaptationDto,
   ): Promise<AdaptedCvDto> {
-    const targetLang: UiLang = req.uiLang ?? 'es';
+    const targetLang: UiLang = dto.lang ?? req.uiLang ?? 'es';
     return this.adaptationService.createForOffer(
       req.user.id,
       dto.jobOfferId,

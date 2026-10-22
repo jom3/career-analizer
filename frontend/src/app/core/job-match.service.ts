@@ -36,6 +36,15 @@ export class JobMatchService {
     );
   }
 
+  saveOffer(id: string): Promise<JobMatch> {
+    return firstValueFrom(
+      this.http.post<JobMatch>(
+        `${this.apiUrl}/job-match/${id}/save-offer`,
+        null,
+      ),
+    );
+  }
+
   remove(id: string): Promise<void> {
     return firstValueFrom(
       this.http.delete<void>(`${this.apiUrl}/job-match/${id}`),

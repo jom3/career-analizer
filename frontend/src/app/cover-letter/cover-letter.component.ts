@@ -1,13 +1,15 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { apiErrorKey } from '../core/http-errors';
 import { CoverLetterService } from './cover-letter.service';
 import { I18nService } from '../core/i18n/i18n.service';
 import type { CoverLetter } from '../core/models/cover-letter';
+import { OfferContextCardComponent } from '../shared/offer-context-card.component';
 
 @Component({
   selector: 'app-cover-letter',
-  imports: [RouterLink],
+  imports: [RouterLink, OfferContextCardComponent],
   templateUrl: './cover-letter.component.html',
   styleUrl: './cover-letter.component.scss',
 })
@@ -42,6 +44,8 @@ export class CoverLetterComponent implements OnInit {
 
   private messageFor(error: unknown): string {
     console.error('cover-letter request failed:', error);
+    const mapped = apiErrorKey(error);
+    if (mapped) return this.i18n.t(mapped);
     if (error instanceof HttpErrorResponse) {
       if (error.status === 0) {
         return this.i18n.t('coverLetter.errorCors');

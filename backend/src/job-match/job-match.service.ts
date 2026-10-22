@@ -1,11 +1,18 @@
 import {
   BadGatewayException,
+  BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma } from '../generated/prisma/client';
 import { JobLevel, InputType } from '../generated/prisma/enums.js';
 import type { JobMatch } from '../generated/prisma/client';
+import { apiError } from '../common/api-error-codes';
+import {
+  OFFER_CONTEXT_SELECT,
+  toOfferContext,
+  type OfferContextOffer,
+} from '../common/offer-context';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   profileInclude,
@@ -13,6 +20,7 @@ import {
 } from '../profile/profile.service';
 import type { JobOfferDraft } from '../job-analysis/job-analysis.types';
 import type { JobOfferDto } from '../job-analysis/dto/job-offer.dto';
+import { JobAnalysisService } from '../job-analysis/job-analysis.service';
 import { localizeProfile } from '../profile/localize-profile';
 import type { JobMatchDto, JobMatchGap, MatchLang } from './dto/job-match.dto';
 import {
@@ -32,6 +40,8 @@ interface OfferSource {
   preferredSkills?: string[] | null;
   experienceSummary?: string | null;
 }
+
+type JobMatchRow = JobMatch & { jobOffer: OfferContextOffer | null };
 
 function emptyProfile(): ProfileWithCollections {
   return {
@@ -69,6 +79,7 @@ export class JobMatchService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly parser: JobMatchParserService,
+    private readonly jobAnalysis: JobAnalysisService,
   ) {}
 
   async createForOffer(
@@ -83,7 +94,15 @@ export class JobMatchService {
       throw new NotFoundException('Oferta no encontrada.');
     }
     const draft = this.toDraft(offer);
-    return this.computeAndPersist(userId, draft, offer, offer.id, lang);
+    return this.computeAndPersist(
+      userId,
+      draft,
+      offer,
+      offer.id,
+      lang,
+      undefined,
+      { offer },
+    );
   }
 
   async createForDraft(
@@ -94,6 +113,7 @@ export class JobMatchService {
   ): Promise<JobMatchDto> {
     const draft = this.toDraft(offer);
     let jobOfferId: string | null = null;
+    let savedOffer: OfferContextOffer | null = null;
     if (saveOffer) {
       const created = await this.prisma.jobOffer.create({
         data: {
@@ -116,8 +136,17 @@ export class JobMatchService {
         },
       });
       jobOfferId = created.id;
+      savedOffer = created;
     }
-    return this.computeAndPersist(userId, draft, draft, jobOfferId, lang);
+    return this.computeAndPersist(
+      userId,
+      draft,
+      draft,
+      jobOfferId,
+      lang,
+      undefined,
+      { offer: savedOffer },
+    );
   }
 
   async list(userId: string): Promise<JobMatchDto[]> {
@@ -125,16 +154,25 @@ export class JobMatchService {
     const matches = await this.prisma.jobMatch.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
+      include: { jobOffer: { select: OFFER_CONTEXT_SELECT } },
     });
     return matches.map((match) =>
-      this.toDto(match, match.profileFingerprint !== currentFingerprint),
+      this.toDto(
+        match,
+        match.profileFingerprint !== currentFingerprint,
+        match.jobOffer,
+      ),
     );
   }
 
   async getById(userId: string, id: string): Promise<JobMatchDto> {
     const match = await this.findOwned(userId, id);
     const currentFingerprint = await this.currentFingerprint(userId);
-    return this.toDto(match, match.profileFingerprint !== currentFingerprint);
+    return this.toDto(
+      match,
+      match.profileFingerprint !== currentFingerprint,
+      match.jobOffer,
+    );
   }
 
   async recompute(userId: string, id: string): Promise<JobMatchDto> {
@@ -150,8 +188,30 @@ export class JobMatchService {
       match.lang as MatchLang,
       // Reemplaza el JobMatch existente: mismo id, sin crear una fila nueva.
       match.id,
+      { offer: match.jobOffer },
     );
     return persisted;
+  }
+
+  // Guarda la oferta de un match calculado sin guardarla y la vincula.
+  async saveOffer(userId: string, id: string): Promise<JobMatchDto> {
+    const match = await this.findOwned(userId, id);
+    if (match.jobOfferId) {
+      throw new BadRequestException(
+        apiError(
+          'OFFER_ALREADY_SAVED',
+          'El match ya tiene una oferta guardada.',
+        ),
+      );
+    }
+    const snapshot = match.offerSnapshot as unknown as JobOfferDraft;
+    const created = await this.jobAnalysis.createFromDraft(userId, snapshot);
+    const updated = await this.prisma.jobMatch.update({
+      where: { id: match.id },
+      data: { jobOfferId: created.id },
+      include: { jobOffer: { select: OFFER_CONTEXT_SELECT } },
+    });
+    return this.toDto(updated, false, updated.jobOffer);
   }
 
   async remove(userId: string, id: string): Promise<void> {
@@ -166,6 +226,7 @@ export class JobMatchService {
     jobOfferId: string | null,
     lang: MatchLang,
     existingId?: string,
+    context: { offer?: OfferContextOffer | null } = {},
   ): Promise<JobMatchDto> {
     const profile = await this.profileForUser(userId);
     const localized = localizeProfile(profile, lang);
@@ -198,7 +259,7 @@ export class JobMatchService {
       : await this.prisma.jobMatch.create({
           data: { ...shared, userId },
         });
-    return this.toDto(match, false);
+    return this.toDto(match, false, context.offer ?? null);
   }
 
   private async matchWithWhitelist(
@@ -242,9 +303,10 @@ export class JobMatchService {
     return profileFingerprint(profileSnapshot(profile));
   }
 
-  private async findOwned(userId: string, id: string): Promise<JobMatch> {
+  private async findOwned(userId: string, id: string): Promise<JobMatchRow> {
     const match = await this.prisma.jobMatch.findFirst({
       where: { id, userId },
+      include: { jobOffer: { select: OFFER_CONTEXT_SELECT } },
     });
     if (!match) {
       throw new NotFoundException('Match no encontrado.');
@@ -298,10 +360,22 @@ export class JobMatchService {
     };
   }
 
-  private toDto(match: JobMatch, stale: boolean): JobMatchDto {
+  private toDto(
+    match: JobMatch,
+    stale: boolean,
+    offer: OfferContextOffer | null = null,
+  ): JobMatchDto {
     return {
       id: match.id,
       jobOfferId: match.jobOfferId,
+      offer: toOfferContext({
+        jobOfferId: match.jobOfferId,
+        offer,
+        snapshot: match.offerSnapshot as unknown as {
+          title?: string | null;
+          company?: string | null;
+        },
+      }),
       lang: match.lang as MatchLang,
       overallScore: match.overallScore,
       overallJustification: match.overallJustification,

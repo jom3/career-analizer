@@ -1,8 +1,10 @@
 import { IsIn, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import type { OfferContext } from '../../common/offer-context';
 
 export interface AdaptedCvDto {
   id: string;
   jobOfferId: string | null;
+  offer: OfferContext;
   jobMatchId: string | null;
   sourceLanguage: string | null;
   content: unknown;
@@ -19,6 +21,11 @@ export class CreateCvAdaptationDto {
   @IsOptional()
   @IsString()
   jobMatchId?: string;
+
+  // Idioma del documento; si falta se usa el de la interfaz (Accept-Language).
+  @IsOptional()
+  @IsIn(['es', 'en'])
+  lang?: 'es' | 'en';
 }
 
 export class AdaptedCvExportQueryDto {
