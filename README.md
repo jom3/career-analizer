@@ -122,7 +122,7 @@ The README defines product context and principles; detailed behavior belongs in 
 
 Copy `.env.example` to `.env` and fill in the real values (secrets are never committed).
 
-**Development** (hot-reload, Postgres + NestJS watch + `ng serve`):
+**Development** (hot-reload, NestJS watch + `ng serve`). PostgreSQL is not in Docker: the app uses the host's `local-postgres` container (see `.env.example`):
 
 ```sh
 npm run docker:up
