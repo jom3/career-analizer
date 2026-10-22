@@ -24,6 +24,19 @@
   }
 
   @if (!loading() && match(); as current) {
+    <app-offer-context-card [offer]="current.offer">
+      @if (!current.offer.saved) {
+        <button
+          type="button"
+          class="btn btn--secondary btn--small"
+          [disabled]="savingOffer()"
+          (click)="saveOffer()"
+        >
+          {{ savingOffer() ? i18n.t('offerContext.saving') : i18n.t('offerContext.saveOffer') }}
+        </button>
+      }
+    </app-offer-context-card>
+
     <section class="card score-card">
       <div class="score-summary">
         <div class="score-badge">
@@ -57,6 +70,7 @@
           <div>
             <strong>{{ i18n.t('jobMatch.adaptTitle') }}</strong>
             <p class="muted">{{ i18n.t('jobMatch.adaptHint') }}</p>
+            <app-document-lang-select [(value)]="documentLang" />
           </div>
           <button
             type="button"
@@ -190,8 +204,11 @@
                 routerLink="/job-match/{{ item.id }}"
               >
                 <div class="match-main">
-                  <strong>{{ formatDate(item.createdAt) }}</strong>
-                  <span class="muted">{{ i18n.t('jobMatch.scoreLabel') }}</span>
+                  <strong>{{ item.offer.title || i18n.t('offerContext.untitled') }}</strong>
+                  <span class="muted">
+                    {{ item.offer.company || '—' }} ·
+                    {{ formatDate(item.createdAt) }}
+                  </span>
                 </div>
                 @if (item.stale) {
                   <span class="tag tag--stale">{{ i18n.t('jobMatch.staleBadge') }}</span>

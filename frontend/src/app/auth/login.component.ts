@@ -35,6 +35,15 @@ export class LoginComponent {
   errorMessage = '';
   submitting = false;
 
+  // Vuelve a la ruta que provocó el 401; nunca a una ruta de auth.
+  private returnUrl(): string {
+    const requested = this.route.snapshot.queryParamMap.get('returnUrl');
+    if (!requested || !requested.startsWith('/') || requested.startsWith('/auth/')) {
+      return '/dashboard';
+    }
+    return requested;
+  }
+
   async onSubmit(): Promise<void> {
     if (this.form.invalid) {
       this.errorMessage = this.i18n.t('errors.badRequest');
@@ -46,7 +55,7 @@ export class LoginComponent {
     try {
       const { email, password } = this.form.value;
       await this.auth.login(email!, password!);
-      await this.router.navigate(['/dashboard']);
+      await this.router.navigateByUrl(this.returnUrl());
     } catch (error) {
       this.errorMessage = this.i18n.t(
         httpErrorMessage(error, 'auth.login.error'),

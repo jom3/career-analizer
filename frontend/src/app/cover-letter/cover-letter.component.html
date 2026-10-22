@@ -30,10 +30,9 @@
                 routerLink="/cover-letter/{{ item.id }}"
               >
                 <span class="list-row__main">
-                  <strong>
-                    {{ item.recruiterName || i18n.t('coverLetter.genericRecipient') }}
-                  </strong>
+                  <strong>{{ item.offer.title || i18n.t('offerContext.untitled') }}</strong>
                   <span class="muted">
+                    {{ item.offer.company || '—' }} ·
                     {{ formatDate(item.createdAt) }} ·
                     {{ i18n.t('coverLetter.documentLang') }} {{ item.sourceLanguage }}
                   </span>

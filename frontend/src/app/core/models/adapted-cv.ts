@@ -1,3 +1,5 @@
+import type { OfferContext } from './offer-context';
+
 export type CvExportFormat = 'pdf' | 'docx';
 
 // Versión de CV adaptada a una oferta (SPEC 12): contenido derivado del
@@ -71,6 +73,7 @@ export interface AdaptedCvContent {
 export interface AdaptedCv {
   id: string;
   jobOfferId: string | null;
+  offer: OfferContext;
   jobMatchId: string | null;
   sourceLanguage: string | null;
   content: AdaptedCvContent;
@@ -82,4 +85,5 @@ export interface AdaptedCv {
 export interface CreateAdaptationRequest {
   jobOfferId: string;
   jobMatchId?: string;
+  lang?: 'es' | 'en';
 }

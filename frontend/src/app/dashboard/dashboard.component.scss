@@ -52,3 +52,18 @@
 .btn-link + .btn-link {
   margin-left: var(--space-4);
 }
+
+.missing-list {
+  margin: var(--space-2) 0 0;
+  padding-left: var(--space-4);
+  color: var(--muted);
+  font-size: var(--fs-small);
+}
+
+.document-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+}

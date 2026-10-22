@@ -156,6 +156,7 @@
   <section class="card">
     <header class="section-header">
       <h2>{{ i18n.t('jobAnalysis.historyTitle') }}</h2>
+      <app-document-lang-select [(value)]="documentLang" />
     </header>
     @if (loadingHistory()) {
       <p class="muted">{{ i18n.t('jobAnalysis.loadingHistory') }}</p>
@@ -200,8 +201,10 @@
           @for (offer of filteredHistory(); track offer.id) {
           <li
             class="history-item"
+            [id]="'offer-' + offer.id"
             [class.history-item--applied]="offer.status === 'APPLIED'"
             [class.history-item--omitted]="offer.status === 'OMITTED'"
+            [class.history-item--highlight]="highlightedOfferId() === offer.id"
           >
             <div class="history-main">
               <strong>{{ offer.title }}</strong>

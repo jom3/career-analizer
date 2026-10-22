@@ -19,6 +19,32 @@
     <section class="card">
       <h2>{{ i18n.t('coverLetter.pickOfferTitle') }}</h2>
       <p class="muted">{{ i18n.t('coverLetter.pickOfferHint') }}</p>
+      @if (loadingOffers()) {
+        <p class="muted">{{ i18n.t('common.loading') }}</p>
+      } @else if (offers().length === 0) {
+        <p class="muted">{{ i18n.t('coverLetter.pickOfferEmpty') }}</p>
+        <a class="btn btn--secondary btn--small" routerLink="/job-analysis">
+          {{ i18n.t('coverLetter.pickOfferGoToOffers') }}
+        </a>
+      } @else {
+        <ul class="list">
+          @for (offer of offers(); track offer.id) {
+            <li class="list-row">
+              <span class="list-row__main">
+                <strong>{{ offer.title }}</strong>
+                <span class="muted">{{ offer.company || '—' }}</span>
+              </span>
+              <button
+                type="button"
+                class="btn btn--secondary btn--small"
+                (click)="selectOffer(offer.id)"
+              >
+                {{ i18n.t('coverLetter.pickOfferAction') }}
+              </button>
+            </li>
+          }
+        </ul>
+      }
     </section>
   } @else {
     <section class="card">
@@ -57,6 +83,7 @@
         </label>
       </form>
       <div class="letter-actions">
+        <app-document-lang-select [(value)]="documentLang" />
         <button
           type="button"
           class="btn btn--primary"

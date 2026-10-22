@@ -11,7 +11,23 @@ export const es: Record<string, string> = {
 
   'errors.invalidCredentials': 'Email o contraseña incorrectos',
   'errors.emailTaken': 'Ya existe una cuenta con ese email',
-  'errors.badRequest': 'Revisa los datos ingresados',
+  'errors.badRequest': 'Revisá los datos ingresados',
+  'errors.aiUnavailable':
+    'El servicio de IA no está disponible en este momento. Intentá de nuevo.',
+  'errors.invalidInput': 'Revisá los datos ingresados.',
+  'errors.offerAlreadySaved': 'Esta oferta ya está guardada en tu historial.',
+
+  'offerContext.label': 'Oferta',
+  'offerContext.untitled': 'Oferta sin título',
+  'offerContext.notSaved': 'No guardada',
+  'offerContext.openPosting': 'Abrir publicación original',
+  'offerContext.viewInOffers': 'Ver en ofertas',
+  'offerContext.saveOffer': 'Guardar oferta',
+  'offerContext.saving': 'Guardando oferta…',
+
+  'documentLang.label': 'Idioma del documento',
+  'documentLang.es': 'Español',
+  'documentLang.en': 'Inglés',
 
   'nav.workflow': 'Flujo de trabajo',
   'nav.profile': 'Perfil',
@@ -59,7 +75,7 @@ export const es: Record<string, string> = {
     'Si existe una cuenta con ese email, te enviamos un link para restablecer tu contraseña.',
   'auth.forgotPassword.backToLogin': 'Volver al inicio de sesión',
   'auth.forgotPassword.link': '¿Olvidaste tu contraseña?',
-  'auth.forgotPassword.error': 'No se pudo enviar el link. Intentalo de nuevo.',
+  'auth.forgotPassword.error': 'No se pudo enviar el link. Intentá de nuevo.',
 
   'auth.resetPassword.title': 'Nueva contraseña',
   'auth.resetPassword.subtitle':
@@ -87,15 +103,15 @@ export const es: Record<string, string> = {
   'profile.saveErrorInvalid':
     'Completá los campos obligatorios de las secciones.',
   'profile.saveError400': 'Hay campos inválidos. Revisá los formularios.',
-  'profile.saveError': 'No se pudo guardar el perfil. Intentalo de nuevo.',
-  'profile.downloadError': 'No se pudo descargar el CV. Intentalo de nuevo.',
+  'profile.saveError': 'No se pudo guardar el perfil. Intentá de nuevo.',
+  'profile.downloadError': 'No se pudo descargar el CV. Intentá de nuevo.',
 
   'profile.tabEs': 'Español',
   'profile.tabEn': 'Inglés',
   'profile.translateToEn': 'Traducir al inglés',
   'profile.translateToEs': 'Traducir al español',
   'profile.translating': 'Traduciendo…',
-  'profile.translateError': 'No se pudo traducir el perfil. Intentalo de nuevo.',
+  'profile.translateError': 'No se pudo traducir el perfil. Intentá de nuevo.',
 
   'profile.personalInfo': 'Información personal',
   'profile.headline': 'Título profesional',
@@ -179,7 +195,7 @@ export const es: Record<string, string> = {
   'cvImport.error422':
     'No se pudo extraer texto del archivo. Puede ser un PDF escaneado sin capa de texto.',
   'cvImport.error400': 'El archivo debe ser PDF o DOCX y pesar menos de 10 MB.',
-  'cvImport.errorGeneric': 'No se pudo procesar el archivo. Intentalo de nuevo.',
+  'cvImport.errorGeneric': 'No se pudo procesar el archivo. Intentá de nuevo.',
   'cvImport.emptyExperience': 'Todavía no hay experiencias en el borrador.',
   'cvImport.emptySkills': 'Todavía no hay habilidades en el borrador.',
   'cvImport.emptyEducation': 'Todavía no hay educación en el borrador.',
@@ -248,8 +264,8 @@ export const es: Record<string, string> = {
   'jobAnalysis.errorCors':
     'No se pudo conectar con el servidor (posible bloqueo CORS). Abrí el frontend en http://localhost:4200 y verificá que el backend corra en el puerto 3000.',
   'jobAnalysis.errorServer':
-    'Error del servidor ({status}). Intentalo de nuevo.',
-  'jobAnalysis.errorGeneric': 'No se pudo completar la operación. Intentalo de nuevo.',
+    'Error del servidor ({status}). Intentá de nuevo.',
+  'jobAnalysis.errorGeneric': 'No se pudo completar la operación. Intentá de nuevo.',
   'jobAnalysis.status': 'Estado de la postulación',
   'jobAnalysis.statusPending': 'Pendiente',
   'jobAnalysis.statusApplied': 'Enviada',
@@ -317,8 +333,8 @@ export const es: Record<string, string> = {
   'jobMatch.errorCors':
     'No se pudo conectar con el servidor (posible bloqueo CORS). Abrí el frontend en http://localhost:4200 y verificá que el backend corra en el puerto 3000.',
   'jobMatch.errorServer':
-    'Error del servidor ({status}). Intentalo de nuevo.',
-  'jobMatch.errorGeneric': 'No se pudo completar la operación. Intentalo de nuevo.',
+    'Error del servidor ({status}). Intentá de nuevo.',
+  'jobMatch.errorGeneric': 'No se pudo completar la operación. Intentá de nuevo.',
 
   'cvAdapt.detailTitle': 'CV adaptado',
   'cvAdapt.listTitle': 'Mis CV adaptados',
@@ -360,8 +376,8 @@ export const es: Record<string, string> = {
   'cvAdapt.errorCors':
     'No se pudo conectar con el servidor (posible bloqueo CORS). Abrí el frontend en http://localhost:4200 y verificá que el backend corra en el puerto 3000.',
   'cvAdapt.errorServer':
-    'Error del servidor ({status}). Intentalo de nuevo.',
-  'cvAdapt.errorGeneric': 'No se pudo completar la operación. Intentalo de nuevo.',
+    'Error del servidor ({status}). Intentá de nuevo.',
+  'cvAdapt.errorGeneric': 'No se pudo completar la operación. Intentá de nuevo.',
 
   'coverLetter.listTitle': 'Mis cartas de motivación',
   'coverLetter.subtitle':
@@ -382,6 +398,12 @@ export const es: Record<string, string> = {
   'coverLetter.pickOfferTitle': 'Elegí una oferta primero',
   'coverLetter.pickOfferHint':
     'La carta se genera para una postulación concreta. Guardá una oferta en "Analizar ofertas" y, desde su detalle, tocá "Carta de motivación".',
+  'coverLetter.pickOfferEmpty':
+    'Todavía no tenés ofertas guardadas. Analizá una para poder redactar la carta.',
+  'coverLetter.pickOfferGoToOffers': 'Ir a analizar ofertas',
+  'coverLetter.pickOfferAction': 'Redactar carta',
+  'coverLetter.saveChanges': 'Guardar cambios',
+  'coverLetter.editContent': 'Editar carta',
   'coverLetter.applicationTitle': 'Datos de la postulación',
   'coverLetter.loadingOffer': 'Cargando la oferta…',
   'coverLetter.recruiter': 'Recruiter (opcional — si está vacío, el saludo es genérico)',
@@ -402,8 +424,8 @@ export const es: Record<string, string> = {
   'coverLetter.errorCors':
     'No se pudo conectar con el servidor (posible bloqueo CORS). Abrí el frontend en http://localhost:4200 y verificá que el backend corra en el puerto 3000.',
   'coverLetter.errorServer':
-    'Error del servidor ({status}). Intentalo de nuevo.',
-  'coverLetter.errorGeneric': 'No se pudo completar la operación. Intentalo de nuevo.',
+    'Error del servidor ({status}). Intentá de nuevo.',
+  'coverLetter.errorGeneric': 'No se pudo completar la operación. Intentá de nuevo.',
 
   'coverLetter.detailTitle': 'Carta de motivación',
   'coverLetter.documentLang': 'Idioma del documento:',
@@ -432,6 +454,14 @@ export const es: Record<string, string> = {
   'dashboard.editProfile': 'Editar perfil',
   'dashboard.importCv': 'Importar CV',
   'dashboard.offersTitle': 'Ofertas analizadas',
+  'dashboard.retry': 'Reintentar',
+  'dashboard.pendingOffers': 'Pendientes de postular:',
+  'dashboard.sectionIntro': 'Titular o resumen',
+  'dashboard.sectionExperience': 'Experiencia',
+  'dashboard.sectionEducation': 'Educación',
+  'dashboard.sectionSkills': 'Habilidades',
+  'dashboard.sectionProjects': 'Proyectos o certificaciones',
+  'dashboard.sectionLanguages': 'Idiomas',
   'dashboard.offersCount': 'Ofertas analizadas y guardadas:',
   'dashboard.offersEmpty':
     'Todavía no analizaste ofertas. Analizá una para ver su encaje y generar documentos.',
@@ -446,8 +476,8 @@ export const es: Record<string, string> = {
     'Todavía no generaste documentos. Adaptá tu CV o creá una carta para una oferta.',
   'dashboard.generateCv': 'Adaptar CV',
   'dashboard.adaptedCvs': 'CV adaptados',
-  'dashboard.letters': 'cartas',
+  'dashboard.letters': 'Cartas',
   'dashboard.errorCors':
     'No se pudo conectar con el servidor (posible bloqueo CORS). Abrí el frontend en http://localhost:4200 y verificá que el backend corra en el puerto 3000.',
-  'dashboard.errorGeneric': 'No se pudo cargar el resumen. Intentalo de nuevo.',
+  'dashboard.errorGeneric': 'No se pudo cargar el resumen. Intentá de nuevo.',
 };

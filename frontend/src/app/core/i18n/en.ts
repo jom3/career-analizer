@@ -12,6 +12,22 @@ export const en: Record<string, string> = {
   'errors.invalidCredentials': 'Wrong email or password',
   'errors.emailTaken': 'An account with that email already exists',
   'errors.badRequest': 'Review the information you entered',
+  'errors.aiUnavailable':
+    'The AI service is unavailable right now. Try again.',
+  'errors.invalidInput': 'Review the information you entered.',
+  'errors.offerAlreadySaved': 'This offer is already saved in your history.',
+
+  'offerContext.label': 'Offer',
+  'offerContext.untitled': 'Untitled offer',
+  'offerContext.notSaved': 'Not saved',
+  'offerContext.openPosting': 'Open original posting',
+  'offerContext.viewInOffers': 'View in offers',
+  'offerContext.saveOffer': 'Save offer',
+  'offerContext.saving': 'Saving offer…',
+
+  'documentLang.label': 'Document language',
+  'documentLang.es': 'Spanish',
+  'documentLang.en': 'English',
 
   'nav.workflow': 'Workflow',
   'nav.profile': 'Profile',
@@ -383,6 +399,12 @@ export const en: Record<string, string> = {
   'coverLetter.pickOfferTitle': 'Choose an offer first',
   'coverLetter.pickOfferHint':
     'The letter is generated for a specific application. Save an offer in "Analyze offers" and, from its detail, tap "Cover letter".',
+  'coverLetter.pickOfferEmpty':
+    'You have no saved offers yet. Analyze one to write the letter.',
+  'coverLetter.pickOfferGoToOffers': 'Go to analyze offers',
+  'coverLetter.pickOfferAction': 'Write letter',
+  'coverLetter.saveChanges': 'Save changes',
+  'coverLetter.editContent': 'Edit letter',
   'coverLetter.applicationTitle': 'Application details',
   'coverLetter.loadingOffer': 'Loading the offer…',
   'coverLetter.recruiter': 'Recruiter (optional — if empty, the greeting is generic)',
@@ -433,6 +455,14 @@ export const en: Record<string, string> = {
   'dashboard.editProfile': 'Edit profile',
   'dashboard.importCv': 'Import CV',
   'dashboard.offersTitle': 'Analyzed offers',
+  'dashboard.retry': 'Retry',
+  'dashboard.pendingOffers': 'Pending application:',
+  'dashboard.sectionIntro': 'Headline or summary',
+  'dashboard.sectionExperience': 'Experience',
+  'dashboard.sectionEducation': 'Education',
+  'dashboard.sectionSkills': 'Skills',
+  'dashboard.sectionProjects': 'Projects or certifications',
+  'dashboard.sectionLanguages': 'Languages',
   'dashboard.offersCount': 'Analyzed and saved offers:',
   'dashboard.offersEmpty':
     'You have not analyzed any offers yet. Analyze one to see its fit and generate documents.',
@@ -446,8 +476,8 @@ export const en: Record<string, string> = {
   'dashboard.documentsEmpty':
     'You have not generated any documents yet. Adapt your CV or create a letter for an offer.',
   'dashboard.generateCv': 'Adapt CV',
-  'dashboard.adaptedCvs': 'adapted CVs',
-  'dashboard.letters': 'letters',
+  'dashboard.adaptedCvs': 'Adapted CVs',
+  'dashboard.letters': 'Cover letters',
   'dashboard.errorCors':
     'Could not connect to the server (possible CORS block). Open the frontend at http://localhost:4200 and verify the backend runs on port 3000.',
   'dashboard.errorGeneric': 'Could not load the overview. Try again.',

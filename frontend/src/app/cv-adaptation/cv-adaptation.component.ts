@@ -2,12 +2,14 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CvAdaptationService } from '../core/cv-adaptation.service';
+import { apiErrorKey } from '../core/http-errors';
 import { I18nService } from '../core/i18n/i18n.service';
 import type { AdaptedCv, CvExportFormat } from '../core/models/adapted-cv';
+import { OfferContextCardComponent } from '../shared/offer-context-card.component';
 
 @Component({
   selector: 'app-cv-adaptation',
-  imports: [RouterLink],
+  imports: [RouterLink, OfferContextCardComponent],
   templateUrl: './cv-adaptation.component.html',
   styleUrl: './cv-adaptation.component.scss',
 })
@@ -112,6 +114,8 @@ export class CvAdaptationComponent implements OnInit {
 
   private messageFor(error: unknown): string {
     console.error('cv-adaptation request failed:', error);
+    const mapped = apiErrorKey(error);
+    if (mapped) return this.i18n.t(mapped);
     if (error instanceof HttpErrorResponse) {
       if (error.status === 0) {
         return this.i18n.t('cvAdapt.errorCors');

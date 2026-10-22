@@ -6,8 +6,13 @@ import { CvAdaptationService } from '../core/cv-adaptation.service';
 import { I18nService } from '../core/i18n/i18n.service';
 import { JobAnalysisService } from '../core/job-analysis.service';
 import { JobMatchService } from '../core/job-match.service';
+import { apiErrorKey } from '../core/http-errors';
 import { ProfileService } from '../core/profile.service';
 import type { Profile } from '../core/models/profile';
+import {
+  completenessPercent,
+  missingProfileSections,
+} from './dashboard-completeness';
 import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
@@ -35,6 +40,8 @@ export class DashboardComponent implements OnInit {
   readonly matchesCount = signal(0);
   readonly adaptedCvsCount = signal(0);
   readonly lettersCount = signal(0);
+  readonly pendingOffersCount = signal(0);
+  readonly missingSections = signal<string[]>([]);
 
   async ngOnInit(): Promise<void> {
     await this.loadSummary();
@@ -43,74 +50,55 @@ export class DashboardComponent implements OnInit {
   async loadSummary(): Promise<void> {
     this.loading.set(true);
     this.errorMessage.set('');
-    try {
-      await Promise.all([
-        this.loadProfile(),
-        this.loadOffers(),
-        this.loadMatches(),
-        this.loadAdaptedCvs(),
-        this.loadLetters(),
-      ]);
-    } catch (error) {
-      this.errorMessage.set(this.messageFor(error));
-    } finally {
-      this.loading.set(false);
+    const results = await Promise.allSettled([
+      this.loadProfile(),
+      this.loadOffers(),
+      this.loadMatches(),
+      this.loadAdaptedCvs(),
+      this.loadLetters(),
+    ]);
+    const failed = results.find(
+      (result): result is PromiseRejectedResult => result.status === 'rejected',
+    );
+    if (failed) {
+      this.errorMessage.set(this.messageFor(failed.reason));
     }
+    this.loading.set(false);
   }
 
   profileCompleteness(): number {
-    const p = this.profile();
-    if (!p) return 0;
-    const sections = [
-      p.skills.length > 0,
-      p.experiences.length > 0,
-      p.education.length > 0,
-    ];
-    const done = sections.filter(Boolean).length;
-    return Math.round((done / sections.length) * 100);
+    return completenessPercent(this.missingSections());
   }
 
   private async loadProfile(): Promise<void> {
-    try {
-      this.profile.set(await this.profileService.getProfile());
-    } catch {
-      this.profile.set(null);
-    }
+    const profile = await this.profileService.getProfile();
+    this.profile.set(profile);
+    this.missingSections.set(missingProfileSections(profile));
   }
 
   private async loadOffers(): Promise<void> {
-    try {
-      this.offersCount.set((await this.jobAnalysisService.list()).length);
-    } catch {
-      this.offersCount.set(0);
-    }
+    const offers = await this.jobAnalysisService.list();
+    this.offersCount.set(offers.length);
+    this.pendingOffersCount.set(
+      offers.filter((offer) => offer.status === 'PENDING').length,
+    );
   }
 
   private async loadMatches(): Promise<void> {
-    try {
-      this.matchesCount.set((await this.jobMatchService.list()).length);
-    } catch {
-      this.matchesCount.set(0);
-    }
+    this.matchesCount.set((await this.jobMatchService.list()).length);
   }
 
   private async loadAdaptedCvs(): Promise<void> {
-    try {
-      this.adaptedCvsCount.set((await this.cvAdaptationService.list()).length);
-    } catch {
-      this.adaptedCvsCount.set(0);
-    }
+    this.adaptedCvsCount.set((await this.cvAdaptationService.list()).length);
   }
 
   private async loadLetters(): Promise<void> {
-    try {
-      this.lettersCount.set((await this.coverLetterService.list()).length);
-    } catch {
-      this.lettersCount.set(0);
-    }
+    this.lettersCount.set((await this.coverLetterService.list()).length);
   }
 
   private messageFor(error: unknown): string {
+    const mapped = apiErrorKey(error);
+    if (mapped) return this.i18n.t(mapped);
     if (error instanceof HttpErrorResponse && error.status === 0) {
       return this.i18n.t('dashboard.errorCors');
     }

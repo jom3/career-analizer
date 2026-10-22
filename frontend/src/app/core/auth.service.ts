@@ -43,6 +43,11 @@ export class AuthService {
     await firstValueFrom(
       this.http.post<{ ok: boolean }>(`${this.apiUrl}/auth/logout`, {}),
     );
+    this.clearSession();
+  }
+
+  // Limpia el estado local sin llamar al backend (sesión expirada).
+  clearSession(): void {
     this.user.set(null);
   }
 

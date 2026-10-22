@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CvAdaptationService } from '../core/cv-adaptation.service';
+import { apiErrorKey } from '../core/http-errors';
 import { I18nService } from '../core/i18n/i18n.service';
 import { JobMatchService } from '../core/job-match.service';
 import type {
@@ -10,6 +11,11 @@ import type {
   JobMatchGap,
   JobMatchRecommendation,
 } from '../core/models/job-match';
+import { OfferContextCardComponent } from '../shared/offer-context-card.component';
+import {
+  DocumentLangSelectComponent,
+  type DocumentLang,
+} from '../shared/document-lang-select.component';
 
 const DIMENSION_KEYS: DimensionKey[] = [
   'skills',
@@ -20,7 +26,7 @@ const DIMENSION_KEYS: DimensionKey[] = [
 
 @Component({
   selector: 'app-job-match',
-  imports: [RouterLink],
+  imports: [RouterLink, OfferContextCardComponent, DocumentLangSelectComponent],
   templateUrl: './job-match.component.html',
   styleUrl: './job-match.component.scss',
 })
@@ -38,6 +44,8 @@ export class JobMatchComponent implements OnInit {
   readonly recomputing = signal(false);
   readonly deleting = signal(false);
   readonly adapting = signal(false);
+  readonly savingOffer = signal(false);
+  readonly documentLang = signal<DocumentLang>(this.i18n.lang());
 
   readonly dimensionKeys = DIMENSION_KEYS;
 
@@ -104,6 +112,20 @@ export class JobMatchComponent implements OnInit {
     }
   }
 
+  async saveOffer(): Promise<void> {
+    const current = this.match();
+    if (!current) return;
+    this.savingOffer.set(true);
+    this.errorMessage.set('');
+    try {
+      this.match.set(await this.jobMatchService.saveOffer(current.id));
+    } catch (error) {
+      this.errorMessage.set(this.messageFor(error));
+    } finally {
+      this.savingOffer.set(false);
+    }
+  }
+
   async deleteMatch(id: string): Promise<void> {
     if (!window.confirm(this.i18n.t('jobMatch.confirmDelete'))) return;
     this.deleting.set(true);
@@ -127,6 +149,7 @@ export class JobMatchComponent implements OnInit {
       const adapted = await this.cvAdaptationService.create({
         jobOfferId: current.jobOfferId,
         jobMatchId: current.id,
+        lang: this.documentLang(),
       });
       await this.router.navigate(['/cv-adaptation', adapted.id]);
     } catch (error) {
@@ -148,6 +171,8 @@ export class JobMatchComponent implements OnInit {
 
   private messageFor(error: unknown): string {
     console.error('job-match request failed:', error);
+    const mapped = apiErrorKey(error);
+    if (mapped) return this.i18n.t(mapped);
     if (error instanceof HttpErrorResponse) {
       if (error.status === 0) {
         return this.i18n.t('jobMatch.errorCors');
