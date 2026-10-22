@@ -7,6 +7,11 @@ import {
   type CoverLetterGenerationInput,
 } from './cover-letter-parser.service';
 
+const cleanLetter =
+  'Dear María López,\n\nBuilt APIs with TypeScript.\n\nI am available for an interview this week.';
+const employerViolation =
+  'Dear María López,\n\nAt Acme I built APIs.\n\nI am available for an interview.';
+
 describe('CoverLetterParserService', () => {
   let service: CoverLetterParserService;
   const createMock = jest.fn();
@@ -58,10 +63,19 @@ describe('CoverLetterParserService', () => {
     match: null,
   };
 
-  const validResponse = {
-    content:
-      'Dear María López,\n\nI am writing to apply for the Senior Software Engineer position at Acme.',
-  };
+  function mockReply(content: string): void {
+    createMock.mockResolvedValueOnce({
+      choices: [{ message: { content: JSON.stringify({ content }) } }],
+    });
+  }
+
+  function systemPrompts(): string[] {
+    return (
+      createMock.mock.calls as unknown as Array<
+        Array<{ messages: { role: string; content: string }[] }>
+      >
+    ).map((call) => call[0].messages[0].content);
+  }
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -76,146 +90,137 @@ describe('CoverLetterParserService', () => {
     service = module.get(CoverLetterParserService);
   });
 
-  it('normaliza el content de la respuesta de la IA', async () => {
-    createMock.mockResolvedValue({
-      choices: [{ message: { content: JSON.stringify(validResponse) } }],
-    });
+  it('con un borrador limpio hace una sola llamada y no devuelve advertencias', async () => {
+    mockReply(cleanLetter);
 
     const result = await service.generate(input);
 
-    expect(createMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        model: 'test-model',
-        response_format: {
-          type: 'json_schema',
-          json_schema: {
-            name: 'cover_letter',
-            strict: true,
-            schema: expect.any(Object) as object,
-          },
-        },
-      }),
-    );
-    expect(result.content).toContain('Dear María López');
-    expect(result.content).toContain('Senior Software Engineer');
+    expect(createMock).toHaveBeenCalledTimes(1);
+    expect(result.warnings).toEqual([]);
+    expect(result.content).toBe(cleanLetter);
+    expect(result.wordCount).toBe(cleanLetter.split(/\s+/).length);
   });
 
-  it('envía el recruiter y la nota al modelo', async () => {
-    createMock.mockResolvedValue({
-      choices: [{ message: { content: JSON.stringify(validResponse) } }],
-    });
+  it('usa temperature 0 en todas las llamadas', async () => {
+    mockReply(cleanLetter);
 
     await service.generate(input);
 
-    const calls = createMock.mock.calls as unknown as Array<
-      Array<{ messages: { role: string; content: string }[] }>
-    >;
-    // El borrador es la primera llamada; el auditor es la segunda.
-    const lastContent = calls[0][0].messages
-      .filter((message) => message.role === 'user')
-      .map((message) => message.content)
-      .join(' ');
-    expect(lastContent).toContain('María López');
-    expect(lastContent).toContain('Vi la vacante en LinkedIn');
+    expect(createMock).toHaveBeenCalledWith(
+      expect.objectContaining({ temperature: 0 }) as object,
+    );
+  });
+
+  it('envía el recruiter y la nota al modelo', async () => {
+    mockReply(cleanLetter);
+
+    await service.generate(input);
+
+    const content = JSON.stringify(
+      (
+        createMock.mock.calls[0] as unknown as Array<{
+          messages: { content: string }[];
+        }>
+      )[0].messages,
+    );
+    expect(content).toContain('María López');
+    expect(content).toContain('Vi la vacante en LinkedIn');
   });
 
   it('envía el match de la oferta cuando existe', async () => {
-    createMock.mockResolvedValue({
-      choices: [{ message: { content: JSON.stringify(validResponse) } }],
-    });
+    mockReply(cleanLetter);
 
     await service.generate({
       ...input,
       match: {
-        overallScore: 85,
-        overallJustification: 'Strong fit on backend experience.',
-        dimensions: [
-          {
-            key: 'skills',
-            score: 90,
-            justification: 'TypeScript is highly relevant.',
-          },
-        ],
-        gaps: [{ name: 'GraphQL', status: 'PARTIAL' }],
+        overallScore: 70,
+        overallJustification: 'Buen encaje.',
+        dimensions: [],
+        gaps: [{ name: 'NestJS', status: 'MISSING' }],
       },
     });
 
-    const calls = createMock.mock.calls as unknown as Array<
-      Array<{ messages: { role: string; content: string }[] }>
-    >;
-    const matchPayload = calls[0][0].messages
-      .map((message) => message.content)
-      .join(' ');
-    expect(matchPayload).toContain('Job match analysis');
-    expect(matchPayload).toContain('Strong fit on backend experience.');
-    expect(matchPayload).toContain('GraphQL');
-  });
-
-  it('instruye escribir en el idioma de lang', async () => {
-    // El borrador es la primera llamada; el auditor es la segunda.
-    const draftCallSystem = (): string =>
+    const content = JSON.stringify(
       (
         createMock.mock.calls[0] as unknown as Array<{
-          messages: { role: string; content: string }[];
+          messages: { content: string }[];
         }>
-      )[0].messages[0].content;
+      )[0].messages,
+    );
+    expect(content).toContain('Job match analysis');
+    expect(content).toContain('NestJS');
+  });
 
-    createMock.mockResolvedValue({
-      choices: [{ message: { content: JSON.stringify(validResponse) } }],
-    });
+  it('instruye escribir en el idioma del documento', async () => {
+    mockReply(cleanLetter);
     await service.generate({ ...input, lang: 'en' });
-    expect(draftCallSystem()).toContain('in English');
+    expect(systemPrompts()[0]).toContain('in English');
 
-    // Se limpia el historial de llamadas para que calls[0] sea el borrador
-    // del segundo generate.
     createMock.mockClear();
+    mockReply(cleanLetter);
     await service.generate({ ...input, lang: 'es' });
-    expect(draftCallSystem()).toContain('in Spanish');
+    expect(systemPrompts()[0]).toContain('in Spanish');
   });
 
-  it('instruye saludo genérico sin recruiter y sin afirmar skills ajenos', async () => {
-    createMock.mockResolvedValue({
-      choices: [{ message: { content: JSON.stringify(validResponse) } }],
+  it('pide cierre con próximo paso y límite de palabras en el prompt', () => {
+    mockReply(cleanLetter);
+
+    return service.generate(input).then(() => {
+      const prompt = systemPrompts()[0];
+      expect(prompt).toContain('next step');
+      expect(prompt).toContain('180');
+      expect(prompt).toContain('never invent');
     });
-
-    await service.generate({ ...input, recruiterName: null });
-
-    const calls = createMock.mock.calls as unknown as Array<
-      Array<{ messages: { role: string; content: string }[] }>
-    >;
-    // El borrador es la primera llamada; el auditor es la segunda.
-    const system = calls[0][0].messages[0].content;
-    expect(system).toContain('generic localized greeting');
-    expect(system).toContain('NEVER claim');
-    expect(system).toContain('profile lacks');
   });
 
-  it('instruye el estilo pedido: límite de palabras, sin apertura con nombre y sin frases de relleno', async () => {
-    createMock.mockResolvedValue({
-      choices: [{ message: { content: JSON.stringify(validResponse) } }],
-    });
+  it('corrige una infracción con una segunda llamada que recibe la lista exacta', async () => {
+    mockReply(employerViolation);
+    mockReply(cleanLetter);
+
+    const result = await service.generate(input);
+
+    expect(createMock).toHaveBeenCalledTimes(2);
+    expect(result.warnings).toEqual([]);
+    expect(result.content).toBe(cleanLetter);
+    expect(systemPrompts()[1]).toContain('Remove the employer name "Acme"');
+  });
+
+  it('entrega la carta con advertencias si la infracción persiste', async () => {
+    mockReply(employerViolation);
+    mockReply(employerViolation);
+
+    const result = await service.generate(input);
+
+    expect(createMock).toHaveBeenCalledTimes(2);
+    expect(result.content).toBe(employerViolation);
+    expect(result.warnings.map((warning) => warning.code)).toEqual([
+      'EMPLOYER_NAME',
+    ]);
+  });
+
+  it('nunca hace más de dos llamadas', async () => {
+    mockReply(employerViolation);
+    mockReply(employerViolation);
 
     await service.generate(input);
 
-    const calls = createMock.mock.calls as unknown as Array<
-      Array<{ messages: { role: string; content: string }[] }>
-    >;
-    // El borrador es la primera llamada; el auditor es la segunda.
-    const system = calls[0][0].messages[0].content;
-    expect(system).toContain('Maximum 180 words');
-    expect(system).toContain('Do NOT open with "My name is');
-    expect(system).toContain(
-      'Would this sentence work for any candidate at any company',
-    );
-    expect(system).toContain('I am passionate about');
-    expect(system).toContain('is key for');
-    expect(system).toContain('as a justification');
-    expect(system).toContain('not a paragraph appended at the end');
-    expect(system).toContain('One idea per sentence');
+    expect(createMock.mock.calls.length).toBeLessThanOrEqual(2);
+  });
+
+  it('devuelve el borrador con advertencias si la corrección falla', async () => {
+    mockReply(employerViolation);
+    createMock.mockRejectedValueOnce(new Error('boom'));
+
+    const result = await service.generate(input);
+
+    expect(result.content).toBe(employerViolation);
+    expect(result.warnings.map((warning) => warning.code)).toEqual([
+      'EMPLOYER_NAME',
+    ]);
   });
 
   it('lanza 502 cuando el JSON de la IA no es parseable', async () => {
-    createMock.mockResolvedValue({
+    createMock.mockResolvedValueOnce({
       choices: [{ message: { content: 'esto no es json' } }],
     });
 
@@ -223,7 +228,7 @@ describe('CoverLetterParserService', () => {
   });
 
   it('lanza 502 cuando la respuesta viene vacía', async () => {
-    createMock.mockResolvedValue({
+    createMock.mockResolvedValueOnce({
       choices: [{ message: { content: null } }],
     });
 
@@ -231,14 +236,8 @@ describe('CoverLetterParserService', () => {
   });
 
   it('lanza 502 cuando la forma es inválida (content vacío)', async () => {
-    createMock.mockResolvedValue({
-      choices: [
-        {
-          message: {
-            content: JSON.stringify({ content: '   ' }),
-          },
-        },
-      ],
+    createMock.mockResolvedValueOnce({
+      choices: [{ message: { content: JSON.stringify({ content: '   ' }) } }],
     });
 
     await expect(service.generate(input)).rejects.toThrow(BadGatewayException);
