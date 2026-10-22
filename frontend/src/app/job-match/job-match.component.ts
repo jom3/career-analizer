@@ -8,6 +8,7 @@ import { JobMatchService } from '../core/job-match.service';
 import type {
   DimensionKey,
   JobMatch,
+  JobMatchCoverage,
   JobMatchGap,
   JobMatchRecommendation,
 } from '../core/models/job-match';
@@ -157,6 +158,14 @@ export class JobMatchComponent implements OnInit {
     } finally {
       this.adapting.set(false);
     }
+  }
+
+  coverageLabel(coverage: JobMatchCoverage): string {
+    return this.i18n
+      .t('jobMatch.breakdownCoverage')
+      .replace('{matched}', String(coverage.matched.length))
+      .replace('{total}', String(coverage.total))
+      .replace('{percent}', String(coverage.percent ?? 0));
   }
 
   isNullScore(match: JobMatch | null): boolean {

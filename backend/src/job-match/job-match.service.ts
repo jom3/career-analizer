@@ -9,6 +9,12 @@ import { JobLevel, InputType } from '../generated/prisma/enums.js';
 import type { JobMatch } from '../generated/prisma/client';
 import { apiError } from '../common/api-error-codes';
 import {
+  SCORING_VERSION,
+  computeCoverage,
+  reconcileGaps,
+  weightedScore,
+} from './coverage';
+import {
   OFFER_CONTEXT_SELECT,
   toOfferContext,
   type OfferContextOffer,
@@ -231,17 +237,22 @@ export class JobMatchService {
     const profile = await this.profileForUser(userId);
     const localized = localizeProfile(profile, lang);
     const snapshot = profileSnapshot(localized);
+    const coverage = computeCoverage(draft.requiredSkills ?? [], snapshot);
     const analysis = await this.matchWithWhitelist(
       draft,
       snapshot,
       offerSource,
       lang,
+      coverage.matched,
     );
     const fingerprint = profileFingerprint(profileSnapshot(profile));
     const shared = {
       jobOfferId,
       lang,
-      overallScore: analysis.overallScore,
+      overallScore: weightedScore(coverage, analysis.overallScore),
+      aiScore: analysis.overallScore,
+      coverage: coverage.percent,
+      scoringVersion: SCORING_VERSION,
       overallJustification: analysis.overallJustification,
       dimensions: analysis.dimensions as unknown as Prisma.InputJsonValue,
       gaps: analysis.gaps as unknown as Prisma.InputJsonValue,
@@ -267,6 +278,7 @@ export class JobMatchService {
     snapshot: ProfileSnapshot,
     offerSource: OfferSource,
     lang: MatchLang,
+    matchedSkills: string[],
   ): Promise<MatchAnalysis> {
     const analysis = await this.parser.match(draft, snapshot, lang);
     const whitelist = offerSkillWhitelist({
@@ -282,7 +294,7 @@ export class JobMatchService {
         `Job match: ${analysis.gaps.length - gaps.length} gap(s) outside the offer whitelist dropped.`,
       );
     }
-    return { ...analysis, gaps };
+    return { ...analysis, gaps: reconcileGaps(gaps, matchedSkills, lang) };
   }
 
   private async profileForUser(
@@ -360,6 +372,33 @@ export class JobMatchService {
     };
   }
 
+  // Reconstruye el detalle de la cobertura desde los snapshots guardados. Los
+  // matches anteriores a la versión 2 no tienen cobertura: solo score de IA.
+  private coverageFor(match: JobMatch): JobMatchDto['coverage'] {
+    if (match.scoringVersion < SCORING_VERSION || match.coverage === null) {
+      return null;
+    }
+    const offer = (match.offerSnapshot ?? {}) as {
+      requiredSkills?: string[];
+    };
+    const rawProfile = (match.profileSnapshot ??
+      {}) as Partial<ProfileSnapshot>;
+    const profile: ProfileSnapshot = {
+      skills: rawProfile.skills ?? [],
+      experiences: rawProfile.experiences ?? [],
+      education: rawProfile.education ?? [],
+      certifications: rawProfile.certifications ?? [],
+      projects: rawProfile.projects ?? [],
+      languages: rawProfile.languages ?? [],
+    };
+    const computed = computeCoverage(offer.requiredSkills ?? [], profile);
+    return {
+      matched: computed.matched,
+      total: computed.total,
+      percent: match.coverage,
+    };
+  }
+
   private toDto(
     match: JobMatch,
     stale: boolean,
@@ -378,6 +417,10 @@ export class JobMatchService {
       }),
       lang: match.lang as MatchLang,
       overallScore: match.overallScore,
+      aiScore: match.aiScore,
+      coverage: this.coverageFor(match),
+      scoringVersion: match.scoringVersion,
+      needsRecalculation: match.scoringVersion < SCORING_VERSION,
       overallJustification: match.overallJustification,
       dimensions: match.dimensions as unknown as JobMatchDto['dimensions'],
       gaps: match.gaps as unknown as JobMatchGap[],

@@ -235,6 +235,9 @@ model JobMatch {
   jobOffer             JobOffer? @relation(fields: [jobOfferId], references: [id], onDelete: SetNull)
   lang                 String   @default("es")
   overallScore         Int
+  aiScore              Int      @default(0)
+  coverage             Int?
+  scoringVersion       Int      @default(1)
   overallJustification String   @db.Text
   dimensions           Json     // [{ key, score|null, justification }]
   gaps                 Json     // [{ name, status, source, note? }]
