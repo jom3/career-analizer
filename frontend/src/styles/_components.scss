@@ -272,6 +272,21 @@
   flex: 1;
 }
 
+.item.compact .field-value {
+  flex: 0 0 9rem;
+}
+
+@media (max-width: 600px) {
+  .item.compact {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .item.compact .field-value {
+    flex: 1;
+  }
+}
+
 .item-head {
   display: flex;
   align-items: center;
