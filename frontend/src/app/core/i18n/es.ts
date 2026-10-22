@@ -412,6 +412,19 @@ export const es: Record<string, string> = {
     'Todavía no tenés ofertas guardadas. Analizá una para poder redactar la carta.',
   'coverLetter.pickOfferGoToOffers': 'Ir a analizar ofertas',
   'coverLetter.pickOfferAction': 'Redactar carta',
+  'coverLetter.wordCount': 'Palabras:',
+  'coverLetter.warningsTitle': 'Revisá estas advertencias antes de guardar:',
+  'coverLetter.warning.WORD_LIMIT': 'La carta supera las 180 palabras.',
+  'coverLetter.warning.BANNED_PHRASE':
+    'Contiene una frase de relleno o una conexión forzada con el puesto.',
+  'coverLetter.warning.EMPLOYER_NAME':
+    'Nombra un empleador anterior; conviene describir el sector.',
+  'coverLetter.warning.TARGET_COMPANY_REPEATED':
+    'Repite el nombre de la empresa a la que aplicás.',
+  'coverLetter.warning.GENERIC_CLOSING':
+    'El cierre no propone un próximo paso concreto.',
+  'coverLetter.warning.EMPTY_ADJECTIVE':
+    'Usa adjetivos vacíos sin un dato que los respalde.',
   'coverLetter.saveChanges': 'Guardar cambios',
   'coverLetter.editContent': 'Editar carta',
   'coverLetter.applicationTitle': 'Datos de la postulación',

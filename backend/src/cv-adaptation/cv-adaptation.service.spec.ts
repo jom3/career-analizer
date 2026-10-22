@@ -227,7 +227,7 @@ describe('CvAdaptationService', () => {
       expect.objectContaining({
         matchedSkills: ['Angular', 'TypeScript'],
         missingSkills: ['Docker'],
-        sourceLanguage: 'en',
+        documentLang: 'en',
       }) as object,
     );
     const createCall = prismaMock.adaptedCv.create.mock
@@ -287,7 +287,7 @@ describe('CvAdaptationService', () => {
     await service.createForOffer('user-1', 'offer-1', undefined, 'en');
 
     expect(parserMock.adapt).toHaveBeenCalledWith(
-      expect.objectContaining({ sourceLanguage: 'en' }) as object,
+      expect.objectContaining({ documentLang: 'en' }) as object,
     );
     const createCall = prismaMock.adaptedCv.create.mock
       .calls[0] as unknown as Array<{

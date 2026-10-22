@@ -1,4 +1,6 @@
 import { BadGatewayException } from '@nestjs/common';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { OpenaiService } from '../openai/openai.service';
@@ -59,7 +61,7 @@ describe('CvAdaptationParserService', () => {
     },
     matchedSkills: ['TypeScript'],
     missingSkills: ['NestJS'],
-    sourceLanguage: 'en',
+    documentLang: 'en',
   };
 
   const validResponse = {
@@ -107,7 +109,7 @@ describe('CvAdaptationParserService', () => {
     expect(result).toEqual(validResponse);
   });
 
-  it('instruye escribir en el idioma de la oferta (sourceLanguage)', async () => {
+  it('instruye escribir en el idioma del documento (documentLang)', async () => {
     const lastCallSystem = (): string =>
       (
         createMock.mock.calls[
@@ -120,10 +122,10 @@ describe('CvAdaptationParserService', () => {
     createMock.mockResolvedValue({
       choices: [{ message: { content: JSON.stringify(validResponse) } }],
     });
-    await service.adapt({ ...input, sourceLanguage: 'en' });
+    await service.adapt({ ...input, documentLang: 'en' });
     expect(lastCallSystem()).toContain('in English');
 
-    await service.adapt({ ...input, sourceLanguage: 'es' });
+    await service.adapt({ ...input, documentLang: 'es' });
     expect(lastCallSystem()).toContain('in Spanish');
   });
 
@@ -208,5 +210,66 @@ describe('CvAdaptationParserService', () => {
     expect(result.experienceDescriptions).toEqual([
       { originalId: 'exp-1', text: 'Built APIs with TypeScript.' },
     ]);
+  });
+
+  interface MentionCase {
+    id: string;
+    text: string;
+    missingSkill: string;
+    mentions: boolean;
+  }
+
+  const mentionCases: MentionCase[] = JSON.parse(
+    readFileSync(
+      join(
+        __dirname,
+        '..',
+        '..',
+        'test',
+        'fixtures',
+        'evals',
+        'skill-mentions.json',
+      ),
+      'utf8',
+    ),
+  ) as MentionCase[];
+
+  const mentions = (text: string, skill: string): boolean =>
+    (
+      service as unknown as {
+        mentionsSkill(t: string, s: string): boolean;
+      }
+    ).mentionsSkill(text, skill);
+
+  it('cubre los 12 casos de skill-mentions.json', () => {
+    for (const testCase of mentionCases) {
+      expect(mentions(testCase.text, testCase.missingSkill)).toBe(
+        testCase.mentions,
+      );
+    }
+  });
+
+  it('no descarta una descripción por un skill que solo comparte prefijo', async () => {
+    createMock.mockResolvedValue({
+      choices: [
+        {
+          message: {
+            content: JSON.stringify({
+              experienceDescriptions: [
+                { originalId: 'exp-1', text: 'Built good algorithms.' },
+                { originalId: 'exp-1', text: 'Developed with JavaScript.' },
+              ],
+            }),
+          },
+        },
+      ],
+    });
+
+    const result = await service.adapt({
+      ...input,
+      missingSkills: ['Go', 'Java'],
+    });
+
+    expect(result.experienceDescriptions).toHaveLength(2);
   });
 });

@@ -202,7 +202,7 @@ export class JobMatchParserService {
   private buildSystemPrompt(lang: MatchLang): string {
     const responseLanguage =
       lang === 'es'
-        ? 'Escribí toda la respuesta en español.'
+        ? 'Write the entire response in Spanish.'
         : 'Write the entire response in English.';
     return [
       'You are a career matching analyst.',

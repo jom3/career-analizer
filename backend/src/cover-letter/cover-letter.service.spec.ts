@@ -114,6 +114,8 @@ describe('CoverLetterService', () => {
     parserMock = {
       generate: jest.fn().mockResolvedValue({
         content: 'Generated draft content.',
+        wordCount: 3,
+        warnings: [],
       }),
     };
     documentMock = {

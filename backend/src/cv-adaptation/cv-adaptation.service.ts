@@ -178,7 +178,7 @@ export class CvAdaptationService {
       },
       matchedSkills: matchedSkillNames,
       missingSkills,
-      sourceLanguage: targetLang,
+      documentLang: targetLang,
     };
 
     const result = await this.parser.adapt(input);

@@ -413,6 +413,19 @@ export const en: Record<string, string> = {
     'You have no saved offers yet. Analyze one to write the letter.',
   'coverLetter.pickOfferGoToOffers': 'Go to analyze offers',
   'coverLetter.pickOfferAction': 'Write letter',
+  'coverLetter.wordCount': 'Words:',
+  'coverLetter.warningsTitle': 'Check these warnings before saving:',
+  'coverLetter.warning.WORD_LIMIT': 'The letter exceeds 180 words.',
+  'coverLetter.warning.BANNED_PHRASE':
+    'It contains filler or a forced connection to the job.',
+  'coverLetter.warning.EMPLOYER_NAME':
+    'It names a previous employer; describe the sector instead.',
+  'coverLetter.warning.TARGET_COMPANY_REPEATED':
+    'It repeats the target company name.',
+  'coverLetter.warning.GENERIC_CLOSING':
+    'The closing does not propose a concrete next step.',
+  'coverLetter.warning.EMPTY_ADJECTIVE':
+    'It uses vague adjectives without supporting data.',
   'coverLetter.saveChanges': 'Save changes',
   'coverLetter.editContent': 'Edit letter',
   'coverLetter.applicationTitle': 'Application details',

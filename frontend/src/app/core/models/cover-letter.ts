@@ -16,9 +16,24 @@ export interface CoverLetter {
   updatedAt: string;
 }
 
+export type CoverLetterWarningCode =
+  | 'WORD_LIMIT'
+  | 'BANNED_PHRASE'
+  | 'EMPLOYER_NAME'
+  | 'TARGET_COMPANY_REPEATED'
+  | 'GENERIC_CLOSING'
+  | 'EMPTY_ADJECTIVE';
+
+export interface CoverLetterWarning {
+  code: CoverLetterWarningCode;
+  detail?: string;
+}
+
 export interface CoverLetterDraft {
   content: string;
   sourceLanguage: string | null;
+  wordCount: number;
+  warnings: CoverLetterWarning[];
 }
 
 export interface CoverLetterDraftRequest {
