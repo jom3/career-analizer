@@ -7,18 +7,9 @@ import { CvImportService } from '../core/cv-import.service';
 import type { AtsCheckItem } from '../core/models/cv-import';
 import { I18nService } from '../core/i18n/i18n.service';
 import {
-  CEFR_LEVELS,
-  SKILL_LEVELS,
   buildProfileForm,
   loadCvDraftForm,
-  newCertificationForm,
-  newEducationForm,
-  newExperienceForm,
-  newLanguageForm,
-  newProjectForm,
-  newSkillForm,
   profileFormToPayload,
-  syncEndDate,
   type CertificationForm,
   type EducationForm,
   type ExperienceForm,
@@ -28,10 +19,28 @@ import {
   type SkillForm,
 } from '../core/profile-form';
 import { ProfileService } from '../core/profile.service';
+import { CertificationsSectionComponent } from '../shared/profile-form/certifications-section.component';
+import { EducationSectionComponent } from '../shared/profile-form/education-section.component';
+import { ExperienceSectionComponent } from '../shared/profile-form/experience-section.component';
+import { LanguagesSectionComponent } from '../shared/profile-form/languages-section.component';
+import { PersonalInfoSectionComponent } from '../shared/profile-form/personal-info-section.component';
+import { ProjectsSectionComponent } from '../shared/profile-form/projects-section.component';
+import { SkillsSectionComponent } from '../shared/profile-form/skills-section.component';
+import { SummarySectionComponent } from '../shared/profile-form/summary-section.component';
 
 @Component({
   selector: 'app-cv-import',
-  imports: [ReactiveFormsModule],
+  imports: [
+    ReactiveFormsModule,
+    PersonalInfoSectionComponent,
+    SummarySectionComponent,
+    ExperienceSectionComponent,
+    SkillsSectionComponent,
+    EducationSectionComponent,
+    CertificationsSectionComponent,
+    ProjectsSectionComponent,
+    LanguagesSectionComponent,
+  ],
   templateUrl: './cv-import.component.html',
   styleUrl: './cv-import.component.scss',
 })
@@ -41,9 +50,6 @@ export class CvImportComponent implements OnInit {
   private readonly profileService = inject(ProfileService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-
-  readonly cefrLevels = CEFR_LEVELS;
-  readonly skillLevels = SKILL_LEVELS;
 
   readonly uploading = signal(false);
   readonly loadingDraft = signal(true);
@@ -112,36 +118,6 @@ export class CvImportComponent implements OnInit {
     if (file) {
       void this.upload(file);
     }
-  }
-
-  addExperience(): void {
-    this.experiences.push(newExperienceForm());
-  }
-  addSkill(): void {
-    this.skills.push(newSkillForm());
-  }
-  addEducation(): void {
-    this.education.push(newEducationForm());
-  }
-  addCertification(): void {
-    this.certifications.push(newCertificationForm());
-  }
-  addProject(): void {
-    this.projects.push(newProjectForm());
-  }
-  addLanguage(): void {
-    this.languages.push(newLanguageForm());
-  }
-
-  removeAt(array: FormArray, index: number): void {
-    array.removeAt(index);
-  }
-
-  onCurrentChange(
-    group: ExperienceForm | EducationForm,
-    event: Event,
-  ): void {
-    syncEndDate(group, (event.target as HTMLInputElement).checked);
   }
 
   reset(): void {

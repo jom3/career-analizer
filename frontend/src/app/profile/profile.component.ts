@@ -6,8 +6,8 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { FormArray, ReactiveFormsModule } from '@angular/forms';
-import { combineLatest, Subscription } from 'rxjs';
+import { ReactiveFormsModule, type FormArray } from '@angular/forms';
+import { merge, Subscription } from 'rxjs';
 import { apiErrorKey } from '../core/http-errors';
 import type { Profile } from '../core/models/profile';
 import {
@@ -17,18 +17,8 @@ import {
 } from '../core/duplicates';
 import { overlappingExperiences } from '../core/overlap-warning';
 import {
-  CEFR_LEVELS,
-  SKILL_LEVELS,
   buildProfileForm,
   loadProfileForm,
-  newCertificationForm,
-  newEducationForm,
-  newExperienceForm,
-  newLanguageForm,
-  newMetricForm,
-  newProjectForm,
-  newSkillForm,
-  syncEndDate,
   type CertificationForm,
   type EducationForm,
   type ExperienceForm,
@@ -49,10 +39,28 @@ import {
   hasContent,
   type LangValues,
 } from '../core/bilingual-form';
+import { CertificationsSectionComponent } from '../shared/profile-form/certifications-section.component';
+import { EducationSectionComponent } from '../shared/profile-form/education-section.component';
+import { ExperienceSectionComponent } from '../shared/profile-form/experience-section.component';
+import { LanguagesSectionComponent } from '../shared/profile-form/languages-section.component';
+import { PersonalInfoSectionComponent } from '../shared/profile-form/personal-info-section.component';
+import { ProjectsSectionComponent } from '../shared/profile-form/projects-section.component';
+import { SkillsSectionComponent } from '../shared/profile-form/skills-section.component';
+import { SummarySectionComponent } from '../shared/profile-form/summary-section.component';
 
 @Component({
   selector: 'app-profile',
-  imports: [ReactiveFormsModule],
+  imports: [
+    ReactiveFormsModule,
+    PersonalInfoSectionComponent,
+    SummarySectionComponent,
+    ExperienceSectionComponent,
+    SkillsSectionComponent,
+    EducationSectionComponent,
+    CertificationsSectionComponent,
+    ProjectsSectionComponent,
+    LanguagesSectionComponent,
+  ],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',
 })
@@ -61,20 +69,15 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private readonly profileService = inject(ProfileService);
   private readonly cvExportService = inject(CvExportService);
 
-  readonly cefrLevels = CEFR_LEVELS;
-  readonly skillLevels = SKILL_LEVELS;
-
   readonly loading = signal(true);
   readonly saving = signal(false);
   readonly saved = signal(false);
   readonly downloading = signal<'pdf' | 'docx' | null>(null);
   readonly errorMessage = signal('');
   readonly loadError = signal('');
-  readonly duplicateKeys = signal<{
-    skills: Set<string>;
-    experiences: Set<string>;
-  }>({ skills: new Set(), experiences: new Set() });
-  readonly overlapIndices = signal<Set<number>>(new Set());
+  readonly duplicateSkillIndices = signal<ReadonlySet<number>>(new Set());
+  readonly duplicateExperienceIndices = signal<ReadonlySet<number>>(new Set());
+  readonly overlapIndices = signal<ReadonlySet<number>>(new Set());
   readonly activeLang = signal<UiLang>(this.i18n.lang());
   readonly translating = signal(false);
 
@@ -127,10 +130,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
       this.loading.set(false);
     }
     this.refreshDuplicates();
-    this.duplicateSubscription = combineLatest([
+    // merge, no combineLatest: cada colección debe recalcular por su cuenta.
+    this.duplicateSubscription = merge(
       this.experiences.valueChanges,
       this.skills.valueChanges,
-    ]).subscribe(() => this.refreshDuplicates());
+    ).subscribe(() => this.refreshDuplicates());
     this.experiences.valueChanges.subscribe(() => this.refreshOverlaps());
   }
 
@@ -189,27 +193,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.duplicateSubscription?.unsubscribe();
   }
 
-  isSkillDuplicate(index: number): boolean {
-    const group = this.skills.controls[index];
-    const key = skillDuplicateKey({ name: group.controls.name.value });
-    return this.duplicateKeys().skills.has(key);
-  }
-
-  isExperienceDuplicate(index: number): boolean {
-    const group = this.experiences.controls[index];
-    const key = experienceDuplicateKey({
-      company: group.controls.company.value,
-      position: group.controls.position.value,
-      startDate: group.controls.startDate.value,
-      endDate: group.controls.endDate.value,
-    });
-    return this.duplicateKeys().experiences.has(key);
-  }
-
-  isExperienceOverlapping(index: number): boolean {
-    return this.overlapIndices().has(index);
-  }
-
   private refreshOverlaps(): void {
     const experiences = this.experiences.controls.map((group) => ({
       startDate: group.controls.startDate.value,
@@ -236,70 +219,31 @@ export class ProfileComponent implements OnInit, OnDestroy {
       endDate: group.controls.endDate.value,
     }));
     const result = findDuplicates({ skills, experiences });
-    this.duplicateKeys.set({
-      skills: new Set(result.skills.map((group) => group.key)),
-      experiences: new Set(result.experiences.map((group) => group.key)),
+    const skillKeys = new Set(result.skills.map((group) => group.key));
+    const experienceKeys = new Set(
+      result.experiences.map((group) => group.key),
+    );
+
+    this.duplicateSkillIndices.set(
+      this.indexSet(skills, skillKeys, skillDuplicateKey),
+    );
+    this.duplicateExperienceIndices.set(
+      this.indexSet(experiences, experienceKeys, experienceDuplicateKey),
+    );
+  }
+
+  private indexSet<T>(
+    items: T[],
+    keys: Set<string>,
+    toKey: (item: T) => string,
+  ): Set<number> {
+    const indices = new Set<number>();
+    items.forEach((item, index) => {
+      if (keys.has(toKey(item))) {
+        indices.add(index);
+      }
     });
-  }
-
-  addExperience(): void {
-    const index = this.experiences.length;
-    this.experiences.push(newExperienceForm());
-    this.scrollToItem('experience', index);
-  }
-  addSkill(): void {
-    const index = this.skills.length;
-    this.skills.push(newSkillForm());
-    this.scrollToItem('skill', index);
-  }
-  addEducation(): void {
-    const index = this.education.length;
-    this.education.push(newEducationForm());
-    this.scrollToItem('education', index);
-  }
-  addCertification(): void {
-    const index = this.certifications.length;
-    this.certifications.push(newCertificationForm());
-    this.scrollToItem('certification', index);
-  }
-  addProject(): void {
-    const index = this.projects.length;
-    this.projects.push(newProjectForm());
-    this.scrollToItem('project', index);
-  }
-  addLanguage(): void {
-    const index = this.languages.length;
-    this.languages.push(newLanguageForm());
-    this.scrollToItem('language', index);
-  }
-
-  // Posiciona la vista en el item recién agregado para completarlo sin bajar
-  // manualmente. El setTimeout espera el render reactivo del nuevo item.
-  private scrollToItem(prefix: string, index: number): void {
-    setTimeout(() => {
-      document
-        .getElementById(`${prefix}-item-${index}`)
-        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 0);
-  }
-
-  addMetric(group: ExperienceForm | ProjectForm): void {
-    group.controls.metrics.push(newMetricForm());
-  }
-
-  removeMetric(group: ExperienceForm | ProjectForm, index: number): void {
-    group.controls.metrics.removeAt(index);
-  }
-
-  removeAt(array: FormArray, index: number): void {
-    array.removeAt(index);
-  }
-
-  onCurrentChange(
-    group: ExperienceForm | EducationForm,
-    event: Event,
-  ): void {
-    syncEndDate(group, (event.target as HTMLInputElement).checked);
+    return indices;
   }
 
   async onSave(): Promise<void> {
