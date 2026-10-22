@@ -218,6 +218,8 @@ model JobOffer {
   inputType         InputType @default(TEXT)
   status            OfferStatus @default(PENDING)
   rawInput          String?   @db.Text
+  url               String?
+  appliedAt         DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   jobMatches        JobMatch[]

@@ -11,6 +11,7 @@ import {
   TextExtractorService,
   detectFileType,
 } from '../cv-import/text-extractor.service';
+import { extractFirstUrl } from './extract-url';
 import { JobOfferDto } from './dto/job-offer.dto';
 import { JobParserService } from './job-parser.service';
 import { JobOfferDraft, SourceLanguage } from './job-analysis.types';
@@ -20,6 +21,7 @@ export interface JobAnalysisResult {
   sourceLanguage: SourceLanguage;
   inputType: InputType;
   rawInput: string | null;
+  url: string | null;
 }
 
 // Orquesta el análisis de ofertas: analiza texto, imagen o PDF con IA y
@@ -57,6 +59,7 @@ export class JobAnalysisService {
         sourceLanguage,
         inputType: InputType.TEXT,
         rawInput: trimmed,
+        url: extractFirstUrl(trimmed),
       };
     }
 
@@ -73,6 +76,7 @@ export class JobAnalysisService {
         sourceLanguage,
         inputType: InputType.IMAGE,
         rawInput: null,
+        url: null,
       };
     }
 
@@ -90,6 +94,7 @@ export class JobAnalysisService {
       sourceLanguage,
       inputType: InputType.PDF,
       rawInput: extracted,
+      url: extractFirstUrl(extracted),
     };
   }
 
@@ -130,8 +135,18 @@ export class JobAnalysisService {
   }
 
   async updateStatus(userId: string, id: string, status: OfferStatus) {
-    await this.getById(userId, id);
-    return this.prisma.jobOffer.update({ where: { id }, data: { status } });
+    const offer = await this.getById(userId, id);
+    return this.prisma.jobOffer.update({
+      where: { id },
+      data: { status, appliedAt: this.appliedAtFor(status, offer.appliedAt) },
+    });
+  }
+
+  private appliedAtFor(status: OfferStatus, current: Date | null): Date | null {
+    if (status !== OfferStatus.APPLIED) {
+      return null;
+    }
+    return current ?? new Date();
   }
 
   private toData(dto: JobOfferDto) {
@@ -151,6 +166,7 @@ export class JobAnalysisService {
       inputType: dto.inputType ?? InputType.TEXT,
       status: dto.status ?? OfferStatus.PENDING,
       rawInput: dto.rawInput ?? null,
+      url: dto.url ?? null,
     };
   }
 }

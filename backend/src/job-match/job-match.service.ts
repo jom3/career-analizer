@@ -112,6 +112,7 @@ export class JobMatchService {
           sourceLanguage: offer.sourceLanguage,
           inputType: offer.inputType ?? InputType.TEXT,
           rawInput: offer.rawInput,
+          url: offer.url ?? null,
         },
       });
       jobOfferId = created.id;
