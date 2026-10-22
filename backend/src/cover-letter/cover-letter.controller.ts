@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Query,
   Req,
@@ -18,6 +19,7 @@ import {
   type CoverLetterDraftDto,
   CreateCoverLetterDraftDto,
   CreateCoverLetterDto,
+  UpdateCoverLetterDto,
 } from './dto/cover-letter.dto';
 import { CoverLetterService } from './cover-letter.service';
 import { UiLang } from '../i18n/ui-lang';
@@ -35,7 +37,7 @@ export class CoverLetterController {
     @Req() req: RequestWithUser,
     @Body() dto: CreateCoverLetterDraftDto,
   ): Promise<CoverLetterDraftDto> {
-    const targetLang: UiLang = req.uiLang ?? 'es';
+    const targetLang: UiLang = dto.lang ?? req.uiLang ?? 'es';
     return this.coverLetterService.buildDraft(
       req.user.id,
       dto.jobOfferId,
@@ -50,7 +52,7 @@ export class CoverLetterController {
     @Req() req: RequestWithUser,
     @Body() dto: CreateCoverLetterDto,
   ): Promise<CoverLetterDto> {
-    const targetLang: UiLang = req.uiLang ?? 'es';
+    const targetLang: UiLang = dto.lang ?? req.uiLang ?? 'es';
     return this.coverLetterService.create(
       req.user.id,
       dto.jobOfferId,
@@ -72,6 +74,15 @@ export class CoverLetterController {
     @Param('id') id: string,
   ): Promise<CoverLetterDto> {
     return this.coverLetterService.getById(req.user.id, id);
+  }
+
+  @Patch(':id')
+  update(
+    @Req() req: RequestWithUser,
+    @Param('id') id: string,
+    @Body() dto: UpdateCoverLetterDto,
+  ): Promise<CoverLetterDto> {
+    return this.coverLetterService.updateContent(req.user.id, id, dto.content);
   }
 
   @Get(':id/export')

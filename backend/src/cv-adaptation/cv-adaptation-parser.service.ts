@@ -1,5 +1,6 @@
 import { BadGatewayException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { apiError } from '../common/api-error-codes';
 import { OpenaiService } from '../openai/openai.service';
 import type { AdaptedProfileSnapshot } from './cv-adaptation.types';
 
@@ -110,7 +111,10 @@ export class CvAdaptationParserService {
     } catch (error) {
       console.error('OpenAI cv adaptation failed:', error);
       throw new BadGatewayException(
-        'La IA no pudo adaptar el CV. Intenta de nuevo.',
+        apiError(
+          'AI_UNAVAILABLE',
+          'La IA no pudo adaptar el CV. Intentá de nuevo.',
+        ),
       );
     }
   }

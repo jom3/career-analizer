@@ -1,5 +1,6 @@
 import { BadGatewayException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { apiError } from '../common/api-error-codes';
 import { OpenaiService } from '../openai/openai.service';
 import type { ProfileSnapshot } from '../job-match/profile-util';
 
@@ -137,7 +138,10 @@ export class CoverLetterParserService {
     } catch (error) {
       console.error('OpenAI cover letter generation failed:', error);
       throw new BadGatewayException(
-        'La IA no pudo redactar la carta. Intenta de nuevo.',
+        apiError(
+          'AI_UNAVAILABLE',
+          'La IA no pudo redactar la carta. Intentá de nuevo.',
+        ),
       );
     }
   }

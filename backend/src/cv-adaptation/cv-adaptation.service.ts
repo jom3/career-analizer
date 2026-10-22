@@ -2,6 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '../generated/prisma/client';
 import type { AdaptedCv } from '../generated/prisma/client';
 import { JobLevel } from '../generated/prisma/enums.js';
+import {
+  OFFER_CONTEXT_SELECT,
+  toOfferContext,
+  type OfferContextOffer,
+} from '../common/offer-context';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   profileInclude,
@@ -25,6 +30,8 @@ import { buildDeterministicSummary } from './cv-adaptation-summary';
 import type { AdaptedCvDto } from './dto/cv-adaptation.dto';
 import type { JobOfferDraft } from '../job-analysis/job-analysis.types';
 import type { JobMatchGap } from '../job-match/dto/job-match.dto';
+
+type AdaptedCvRow = AdaptedCv & { jobOffer: OfferContextOffer | null };
 
 function emptyProfile(): ProfileWithCollections {
   return {
@@ -196,7 +203,7 @@ export class CvAdaptationService {
         profileFingerprint: fingerprint,
       },
     });
-    return this.toDto(created, false);
+    return this.toDto(created, false, offer);
   }
 
   async list(userId: string): Promise<AdaptedCvDto[]> {
@@ -204,9 +211,14 @@ export class CvAdaptationService {
     const versions = await this.prisma.adaptedCv.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
+      include: { jobOffer: { select: OFFER_CONTEXT_SELECT } },
     });
     return versions.map((version) =>
-      this.toDto(version, version.profileFingerprint !== currentFingerprint),
+      this.toDto(
+        version,
+        version.profileFingerprint !== currentFingerprint,
+        version.jobOffer,
+      ),
     );
   }
 
@@ -216,6 +228,7 @@ export class CvAdaptationService {
     return this.toDto(
       version,
       version.profileFingerprint !== currentFingerprint,
+      version.jobOffer,
     );
   }
 
@@ -317,9 +330,10 @@ export class CvAdaptationService {
     return profileFingerprint(profileSnapshot(profile));
   }
 
-  private async findOwned(userId: string, id: string): Promise<AdaptedCv> {
+  private async findOwned(userId: string, id: string): Promise<AdaptedCvRow> {
     const version = await this.prisma.adaptedCv.findFirst({
       where: { id, userId },
+      include: { jobOffer: { select: OFFER_CONTEXT_SELECT } },
     });
     if (!version) {
       throw new NotFoundException('CV adaptado no encontrado.');
@@ -355,10 +369,22 @@ export class CvAdaptationService {
     };
   }
 
-  private toDto(version: AdaptedCv, stale: boolean): AdaptedCvDto {
+  private toDto(
+    version: AdaptedCv,
+    stale: boolean,
+    offer: OfferContextOffer | null = null,
+  ): AdaptedCvDto {
     return {
       id: version.id,
       jobOfferId: version.jobOfferId,
+      offer: toOfferContext({
+        jobOfferId: version.jobOfferId,
+        offer,
+        snapshot: version.offerSnapshot as unknown as {
+          title?: string | null;
+          company?: string | null;
+        },
+      }),
       jobMatchId: version.jobMatchId,
       sourceLanguage: version.sourceLanguage,
       content: version.content,

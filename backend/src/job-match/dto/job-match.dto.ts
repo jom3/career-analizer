@@ -12,6 +12,7 @@ import {
   ValidationArguments,
 } from 'class-validator';
 import { JobOfferDto } from '../../job-analysis/dto/job-offer.dto';
+import type { OfferContext } from '../../common/offer-context';
 
 export type MatchLang = 'es' | 'en';
 
@@ -72,6 +73,7 @@ class SaveOfferRequiresRawInputConstraint implements ValidatorConstraintInterfac
 export interface JobMatchDto {
   id: string;
   jobOfferId: string | null;
+  offer: OfferContext;
   lang: MatchLang;
   overallScore: number;
   overallJustification: string;

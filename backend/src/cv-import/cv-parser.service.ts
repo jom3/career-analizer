@@ -1,5 +1,6 @@
 import { BadGatewayException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { apiError } from '../common/api-error-codes';
 import { OpenaiService } from '../openai/openai.service';
 import {
   CvDraft,
@@ -138,7 +139,10 @@ export class CvParserService {
       };
     } catch {
       throw new BadGatewayException(
-        'La IA no pudo interpretar el documento. Intenta de nuevo.',
+        apiError(
+          'AI_UNAVAILABLE',
+          'La IA no pudo interpretar el documento. Intentá de nuevo.',
+        ),
       );
     }
   }

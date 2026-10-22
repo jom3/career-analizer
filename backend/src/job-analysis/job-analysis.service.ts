@@ -104,6 +104,15 @@ export class JobAnalysisService {
     });
   }
 
+  // Persiste una oferta a partir de un draft ya analizado (por ejemplo, un match
+  // calculado sin guardar). Solo usa datos que el draft ya contenía.
+  async createFromDraft(userId: string, draft: JobOfferDraft) {
+    const dto = { ...draft, title: draft.title ?? '' } as JobOfferDto;
+    return this.prisma.jobOffer.create({
+      data: { userId, ...this.toData(dto) },
+    });
+  }
+
   async list(userId: string) {
     return this.prisma.jobOffer.findMany({
       where: { userId },

@@ -5,14 +5,17 @@ import {
   IsString,
   MaxLength,
 } from 'class-validator';
+import type { OfferContext } from '../../common/offer-context';
 
 export interface CoverLetterDto {
   id: string;
   jobOfferId: string | null;
+  offer: OfferContext;
   recruiterName: string | null;
   note: string | null;
   sourceLanguage: string | null;
   content: string;
+  editedByUser: boolean;
   stale: boolean;
   createdAt: string;
   updatedAt: string;
@@ -43,9 +46,21 @@ export class CreateCoverLetterDraftDto {
   @IsString()
   @MaxLength(2000)
   note?: string;
+
+  // Idioma del documento; si falta se usa el de la interfaz (Accept-Language).
+  @IsOptional()
+  @IsIn(['es', 'en'])
+  lang?: 'es' | 'en';
 }
 
 export class CreateCoverLetterDto extends CreateCoverLetterDraftDto {
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(20000)
+  content!: string;
+}
+
+export class UpdateCoverLetterDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(20000)
