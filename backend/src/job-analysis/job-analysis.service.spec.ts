@@ -79,7 +79,17 @@ describe('JobAnalysisService', () => {
       sourceLanguage: 'es',
       inputType: InputType.TEXT,
       rawInput: 'Oferta de trabajo',
+      url: null,
     });
+  });
+
+  it('extrae el link del puesto cuando aparece en el texto pegado', async () => {
+    const result = await service.analyze(
+      'Oferta en https://jobs.example.com/42',
+      undefined,
+    );
+
+    expect(result.url).toBe('https://jobs.example.com/42');
   });
 
   it('analiza una imagen con inputType IMAGE y rawInput null', async () => {
@@ -97,6 +107,7 @@ describe('JobAnalysisService', () => {
     );
     expect(result.inputType).toBe(InputType.IMAGE);
     expect(result.rawInput).toBeNull();
+    expect(result.url).toBeNull();
   });
 
   it('analiza un PDF extrayendo el texto y con inputType PDF', async () => {
@@ -164,6 +175,7 @@ describe('JobAnalysisService', () => {
         inputType: InputType.TEXT,
         status: OfferStatus.PENDING,
         rawInput: null,
+        url: null,
       },
     });
   });
@@ -233,9 +245,43 @@ describe('JobAnalysisService', () => {
     });
     expect(prismaMock.jobOffer.update).toHaveBeenCalledWith({
       where: { id: 'offer-1' },
-      data: { status: OfferStatus.APPLIED },
+      data: {
+        status: OfferStatus.APPLIED,
+        appliedAt: expect.any(Date) as Date,
+      },
     });
     expect(result.status).toBe(OfferStatus.APPLIED);
+  });
+
+  it('conserva la fecha de postulación al volver a marcar como enviada', async () => {
+    const appliedAt = new Date('2026-10-01T10:00:00Z');
+    prismaMock.jobOffer.findFirst.mockResolvedValue({
+      id: 'offer-1',
+      appliedAt,
+    });
+    prismaMock.jobOffer.update.mockResolvedValue({ id: 'offer-1' });
+
+    await service.updateStatus('user-1', 'offer-1', OfferStatus.APPLIED);
+
+    expect(prismaMock.jobOffer.update).toHaveBeenCalledWith({
+      where: { id: 'offer-1' },
+      data: { status: OfferStatus.APPLIED, appliedAt },
+    });
+  });
+
+  it('limpia la fecha de postulación al omitir la oferta', async () => {
+    prismaMock.jobOffer.findFirst.mockResolvedValue({
+      id: 'offer-1',
+      appliedAt: new Date(),
+    });
+    prismaMock.jobOffer.update.mockResolvedValue({ id: 'offer-1' });
+
+    await service.updateStatus('user-1', 'offer-1', OfferStatus.OMITTED);
+
+    expect(prismaMock.jobOffer.update).toHaveBeenCalledWith({
+      where: { id: 'offer-1' },
+      data: { status: OfferStatus.OMITTED, appliedAt: null },
+    });
   });
 
   it('no actualiza el estado de una oferta ajena', async () => {
