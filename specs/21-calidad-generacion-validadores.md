@@ -1,6 +1,6 @@
 # SPEC 21 — Calidad de generación: validadores deterministas
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 12 (adaptación de CV), SPEC 13 (carta de motivación), SPEC 22 (idioma de documento)
 > **Date:** 2026-10-22
 > **Objective:** Que las reglas de calidad de la carta y del CV adaptado se verifiquen en código y no solo se pidan al modelo. Reducir el prompt de la carta, eliminar la segunda pasada de IA abierta, y corregir la comparación de skills que descarta descripciones válidas.
