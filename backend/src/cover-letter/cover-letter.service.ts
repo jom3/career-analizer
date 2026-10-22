@@ -28,6 +28,7 @@ import type {
   CoverLetterDraftDto,
   CoverLetterDto,
 } from './dto/cover-letter.dto';
+import { COVER_LETTER_PROMPT_VERSION } from './prompts/cover-letter.prompt';
 
 type CoverLetterRow = CoverLetter & {
   jobOffer: OfferContextOffer | null;
@@ -119,7 +120,12 @@ export class CoverLetterService {
       match: await this.latestMatchInsight(userId, jobOfferId),
     };
     const result = await this.parser.generate(input);
-    return { content: result.content, sourceLanguage: lang };
+    return {
+      content: result.content,
+      sourceLanguage: lang,
+      wordCount: result.wordCount,
+      warnings: result.warnings,
+    };
   }
 
   async create(
@@ -143,6 +149,7 @@ export class CoverLetterService {
         note: note ?? null,
         sourceLanguage: lang,
         content,
+        promptVersion: COVER_LETTER_PROMPT_VERSION,
         offerSnapshot: this.toOfferSnapshot(
           offer,
         ) as unknown as Prisma.InputJsonValue,
@@ -397,6 +404,7 @@ export class CoverLetterService {
       sourceLanguage: letter.sourceLanguage,
       content: letter.content,
       editedByUser: letter.editedByUser,
+      promptVersion: letter.promptVersion,
       stale,
       createdAt: letter.createdAt.toISOString(),
       updatedAt: letter.updatedAt.toISOString(),

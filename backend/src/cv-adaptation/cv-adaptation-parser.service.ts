@@ -25,7 +25,7 @@ export interface AdaptationInput {
   };
   matchedSkills: string[];
   missingSkills: string[];
-  sourceLanguage: string | null;
+  documentLang: string | null;
 }
 
 function nonEmptyString(value: unknown): string | null {
@@ -69,7 +69,7 @@ export class CvAdaptationParserService {
   }
 
   async adapt(input: AdaptationInput): Promise<AdaptationResult> {
-    const targetLanguage = this.resolveTargetLanguage(input.sourceLanguage);
+    const targetLanguage = this.resolveTargetLanguage(input.documentLang);
     try {
       const completion =
         await this.openaiService.client.chat.completions.create({
@@ -119,8 +119,8 @@ export class CvAdaptationParserService {
     }
   }
 
-  private resolveTargetLanguage(sourceLanguage: string | null): 'es' | 'en' {
-    const lower = sourceLanguage?.toLowerCase() ?? '';
+  private resolveTargetLanguage(documentLang: string | null): 'es' | 'en' {
+    const lower = documentLang?.toLowerCase() ?? '';
     if (
       lower === 'es' ||
       lower.startsWith('español') ||
@@ -192,10 +192,16 @@ export class CvAdaptationParserService {
     return { experienceDescriptions: safe };
   }
 
+  // Compara por palabra completa: evita que "Go" descarte "good" o que "Java"
+  // descarte "JavaScript". Los símbolos de C++ y C# se respetan como parte del
+  // token, y "Node" sí matchea "Node.js" (el punto no es carácter de palabra).
   private mentionsSkill(text: string, skillToken: string): boolean {
-    if (skillToken.length === 0) {
+    const token = skillToken.trim();
+    if (token.length === 0) {
       return false;
     }
-    return text.toLowerCase().includes(skillToken);
+    const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pattern = new RegExp(`(?<![\\w+#.])${escaped}(?![\\w+#])`, 'i');
+    return pattern.test(text);
   }
 }

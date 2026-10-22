@@ -16,6 +16,7 @@ export interface CoverLetterDto {
   sourceLanguage: string | null;
   content: string;
   editedByUser: boolean;
+  promptVersion: number;
   stale: boolean;
   createdAt: string;
   updatedAt: string;
@@ -24,6 +25,8 @@ export interface CoverLetterDto {
 export interface CoverLetterDraftDto {
   content: string;
   sourceLanguage: string | null;
+  wordCount: number;
+  warnings: { code: string; detail?: string }[];
 }
 
 export interface CoverLetterDraftRequest {

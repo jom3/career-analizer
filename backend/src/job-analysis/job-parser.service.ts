@@ -157,7 +157,7 @@ export class JobParserService {
               content: [
                 {
                   type: 'text',
-                  text: 'Analizá la siguiente imagen de una oferta de trabajo.',
+                  text: 'Analyze the following job posting image.',
                 },
                 { type: 'image_url', image_url: { url: dataUrl } },
               ],
