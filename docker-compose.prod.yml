@@ -1,22 +1,4 @@
 services:
-  db:
-    image: postgres:18.4-alpine3.24
-    container_name: career_analyzer_db
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-career_analyzer}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-career_analyzer_dev}
-      POSTGRES_DB: ${POSTGRES_DB:-career_analyzer}
-    ports:
-      - "${DB_PORT:-5432}:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
   backend:
     build:
       context: .
@@ -27,13 +9,12 @@ services:
     env_file: .env
     working_dir: /app/backend
     command: ["node", "dist/main.js"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "${BACKEND_PORT:-3000}:3000"
     volumes:
       - uploads:/app/backend/uploads
-    depends_on:
-      db:
-        condition: service_healthy
 
   frontend:
     build:
@@ -49,5 +30,4 @@ services:
       - backend
 
 volumes:
-  pgdata:
   uploads:
