@@ -1,6 +1,6 @@
 # SPEC 23 — Formulario de perfil compartido
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 05 (candidate profile), SPEC 06 (CV import), SPEC 17 (perfil bilingüe)
 > **Date:** 2026-10-22
 > **Objective:** Eliminar la duplicación entre el formulario de `/profile` y el de `/cv-import`, que hoy repiten las mismas secciones con casi el mismo markup, sin perder los campos bilingües ni la detección de duplicados del perfil.
@@ -24,7 +24,8 @@
 
 - **Sí:** **un componente por sección** (`ExperienceSectionComponent`, `SkillsSectionComponent`, `EducationSectionComponent`, `CertificationsSectionComponent`, `ProjectsSectionComponent`, `LanguagesSectionComponent`), no un único formulario monolítico. Cada sección se reutiliza donde haga falta y se testea por separado.
 - **Sí:** **el componente no posee el `FormGroup`**: recibe el form y las colecciones del padre. Los padres siguen siendo dueños del estado, la persistencia y la validación. Menos acoplamiento y migración incremental.
-- **Sí:** **idiomas editables como input** (`languages: UiLang[]`): `/profile` pasa `['es', 'en']` y muestra el bloque de campos por idioma según la pestaña activa; `/cv-import` pasa `[]` y muestra solo los campos base.
+- **Sí:** **los componentes no manejan idiomas**: verificado durante la implementación, `/profile` no tiene inputs bilingües. Los idiomas se resuelven en la página con `applyLangToForm` y un store lateral, y los componentes solo renderizan los controles del idioma activo. Por eso no necesitan un input de idiomas.
+- **Sí:** **diferencias reales como inputs**: `showMetrics` (perfil sí, importación no), `duplicateIndices` y `overlapIndices` (solo perfil).
 - **Sí:** **componentes standalone y zoneless-safe**, con `ChangeDetectionStrategy.OnPush` y signals para lo que sea estado local.
 - **No:** mover la cabecera, los botones de guardar/descargar/traducir ni el reporte ATS: quedan en cada página.
 
@@ -37,7 +38,7 @@
 5. **`CertificationsSectionComponent`:** nombre, emisor, año, URL, más bilingües.
 6. **`ProjectsSectionComponent`:** nombre, rol, URL, stack, descripción y métricas, más bilingües.
 7. **`ExperienceSectionComponent`:** la más compleja; incluye detección de duplicados y el evento de ítem agregado para el autoscroll.
-8. **`PersonalInfoSectionComponent` y `SummarySectionComponent`:** cabecera del perfil con sus versiones bilingües.
+8. **`PersonalInfoSectionComponent` y `SummarySectionComponent`:** cabecera del perfil; reciben los controles y no manejan idiomas.
 9. **Migrar `/profile`** sección por sección, manteniendo las pestañas y el guardado actual.
 10. **Migrar `/cv-import`** con `languages: []`.
 11. **Limpieza:** eliminar del markup de ambas páginas lo que ahora vive en los componentes y borrar estilos duplicados.
@@ -49,7 +50,7 @@
 
 - `SkillsSectionComponent` renderiza los controles existentes y agrega/quita ítems sobre el `FormArray` recibido.
 - `ExperienceSectionComponent` muestra el tag de duplicado cuando el padre lo indica y emite el evento de ítem agregado.
-- Con `languages: ['es', 'en']` aparecen los campos bilingües; con `languages: []` no.
+- Con `showMetrics` en `false` no se renderiza el editor de métricas; por defecto sí.
 - Ningún componente muta el form fuera de las acciones del usuario.
 
 **Regresión de páginas:**
