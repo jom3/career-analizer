@@ -127,8 +127,41 @@
 
 .history-filter {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
+  gap: var(--space-3);
   margin-bottom: var(--space-3);
+}
+
+.history-search {
+  flex: 1;
+  min-width: 12rem;
+  max-width: 22rem;
+}
+
+.history-meta {
+  font-size: var(--fs-small);
+}
+
+.history-link {
+  font-size: var(--fs-small);
+  overflow-wrap: anywhere;
+  color: var(--ink);
+}
+
+.raw-text {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-3);
+  max-height: 16rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-s);
 }
 
 .history-filter__label {

@@ -24,6 +24,7 @@ export interface JobAnalysisResult {
   sourceLanguage: SourceLanguage;
   inputType: InputType;
   rawInput: string | null;
+  url: string | null;
 }
 
 // Payload para POST/PUT /job-analysis: el título es obligatorio y los campos
@@ -43,6 +44,7 @@ export interface JobOfferPayload {
 sourceLanguage: SourceLanguage | null;
   inputType: InputType;
   rawInput: string | null;
+  url: string | null;
   status: OfferStatus;
 }
 
@@ -51,7 +53,9 @@ export interface JobOffer extends JobOfferDraft {
   sourceLanguage: SourceLanguage | null;
   inputType: InputType;
   rawInput: string | null;
+  url: string | null;
   status: OfferStatus;
+  appliedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }

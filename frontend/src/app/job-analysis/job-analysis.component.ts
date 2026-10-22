@@ -14,6 +14,7 @@ import { JobAnalysisService } from '../core/job-analysis.service';
 import { JobMatchService } from '../core/job-match.service';
 import type {
   InputType,
+  JobAnalysisResult,
   JobLevel,
   JobOffer,
   JobOfferDraft,
@@ -25,6 +26,7 @@ import type {
 interface JobOfferForm {
   title: FormControl<string>;
   company: FormControl<string>;
+  url: FormControl<string>;
   level: FormControl<JobLevel | ''>;
   responsibilities: FormArray<FormControl<string>>;
   requiredSkills: FormArray<FormControl<string>>;
@@ -67,6 +69,7 @@ function buildForm(draft?: JobOfferDraft | null): FormGroup<JobOfferForm> {
     company: new FormControl<string>(draft?.company ?? '', {
       nonNullable: true,
     }),
+    url: new FormControl<string>('', { nonNullable: true }),
     level: new FormControl<JobLevel | ''>(draft?.level ?? '', {
       nonNullable: true,
     }),
@@ -144,12 +147,16 @@ export class JobAnalysisComponent implements OnInit {
   readonly statusSavingId = signal<string | null>(null);
   readonly loadingHistory = signal(true);
   readonly statusFilter = signal<OfferStatus | 'ALL'>('ALL');
+  readonly searchQuery = signal('');
+  readonly expandedRawId = signal<string | null>(null);
   readonly filteredHistory = computed(() => {
     const filter = this.statusFilter();
-    if (filter === 'ALL') {
-      return this.history();
-    }
-    return this.history().filter((item) => item.status === filter);
+    const query = this.searchQuery().trim().toLowerCase();
+    return this.history().filter(
+      (item) =>
+        (filter === 'ALL' || item.status === filter) &&
+        this.matchesSearch(item, query),
+    );
   });
   readonly errorMessage = signal('');
   readonly savedMessage = signal('');
@@ -398,6 +405,7 @@ export class JobAnalysisComponent implements OnInit {
     this.pendingStatus = offer.status;
     this.form.reset();
     this.setDraftValues(offer);
+    this.form.controls.url.setValue(offer.url ?? '');
     this.editingId.set(offer.id);
     this.resultReady.set(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -450,6 +458,18 @@ export class JobAnalysisComponent implements OnInit {
     this.statusFilter.set(raw === 'ALL' ? 'ALL' : (raw as OfferStatus));
   }
 
+  onSearch(value: string): void {
+    this.searchQuery.set(value);
+  }
+
+  toggleRawText(offer: JobOffer): void {
+    this.expandedRawId.set(this.expandedRawId() === offer.id ? null : offer.id);
+  }
+
+  formatDate(iso: string): string {
+    return new Date(iso).toLocaleDateString(this.i18n.lang());
+  }
+
   reset(): void {
     this.resetPreview();
     this.textInput.set('');
@@ -477,7 +497,7 @@ export class JobAnalysisComponent implements OnInit {
   }
 
   private async runAnalysis(
-    analyze: () => Promise<{ draft: JobOfferDraft; sourceLanguage: SourceLanguage; inputType: InputType; rawInput: string | null }>,
+    analyze: () => Promise<JobAnalysisResult>,
   ): Promise<void> {
     this.analyzing.set(true);
     this.errorMessage.set('');
@@ -490,6 +510,7 @@ export class JobAnalysisComponent implements OnInit {
       this.pendingStatus = 'PENDING';
       this.form.reset();
       this.setDraftValues(result.draft);
+      this.form.controls.url.setValue(result.url ?? '');
       this.editingId.set(null);
       this.resultReady.set(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -505,6 +526,7 @@ export class JobAnalysisComponent implements OnInit {
     return {
       title: v.title.trim(),
       company: v.company.trim() || null,
+      url: v.url.trim() || null,
       level: v.level || null,
       responsibilities: this.cleanItems(v.responsibilities),
       requiredSkills: this.cleanItems(v.requiredSkills),
@@ -521,6 +543,15 @@ export class JobAnalysisComponent implements OnInit {
       rawInput: this.pendingRawInput,
       status: this.pendingStatus,
     };
+  }
+
+  private matchesSearch(offer: JobOffer, query: string): boolean {
+    if (!query) {
+      return true;
+    }
+    return [offer.title, offer.company, offer.url].some((field) =>
+      field?.toLowerCase().includes(query),
+    );
   }
 
   private cleanItems(items: string[]): string[] {

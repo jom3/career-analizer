@@ -83,6 +83,10 @@
             {{ i18n.t('jobAnalysis.experienceYears') }}
             <input formControlName="experienceYears" type="number" min="0" />
           </label>
+          <label class="form-field field-full">
+            {{ i18n.t('jobAnalysis.jobUrl') }}
+            <input formControlName="url" type="url" />
+          </label>
         </div>
         <label class="form-field field-full">
           {{ i18n.t('jobAnalysis.experienceSummary') }}
@@ -159,6 +163,14 @@
       <p class="muted">{{ i18n.t('jobAnalysis.emptyHistory') }}</p>
     } @else {
       <div class="history-filter">
+        <input
+          class="history-search"
+          type="search"
+          [attr.aria-label]="i18n.t('jobAnalysis.search')"
+          [placeholder]="i18n.t('jobAnalysis.searchPlaceholder')"
+          [value]="searchQuery()"
+          (input)="onSearch($any($event.target).value)"
+        />
         <label class="status-field">
           <span class="muted history-filter__label">
             {{ i18n.t('jobAnalysis.filter') }}
@@ -180,7 +192,9 @@
         </label>
       </div>
       @if (filteredHistory().length === 0) {
-        <p class="muted">{{ i18n.t('jobAnalysis.emptyFiltered') }}</p>
+        <p class="muted">
+          {{ i18n.t(searchQuery().trim() ? 'jobAnalysis.emptySearch' : 'jobAnalysis.emptyFiltered') }}
+        </p>
       } @else {
         <ul class="list-history">
           @for (offer of filteredHistory(); track offer.id) {
@@ -197,6 +211,28 @@
                   · {{ offer.level }}
                 }
               </span>
+              <span class="muted history-meta">
+                {{ i18n.t('jobAnalysis.createdOn') }} {{ formatDate(offer.createdAt) }}
+                @if (offer.status === 'APPLIED' && offer.appliedAt) {
+                  · {{ i18n.t('jobAnalysis.appliedOn') }} {{ formatDate(offer.appliedAt) }}
+                }
+              </span>
+              @if (offer.url) {
+                <a
+                  class="history-link"
+                  [href]="offer.url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {{ offer.url }}
+                </a>
+              }
+              @if (offer.inputType === 'IMAGE') {
+                <span class="muted history-meta">{{ i18n.t('jobAnalysis.imageSource') }}</span>
+              }
+              @if (expandedRawId() === offer.id) {
+                <pre class="raw-text">{{ offer.rawInput }}</pre>
+              }
               @if (offer.status !== 'PENDING') {
                 <span class="history-status">
                   @if (offer.status === 'APPLIED') {
@@ -254,6 +290,15 @@
               >
                 {{ i18n.t('jobAnalysis.coverLetter') }}
               </button>
+              @if (offer.rawInput) {
+                <button
+                  type="button"
+                  class="btn btn--secondary btn--small"
+                  (click)="toggleRawText(offer)"
+                >
+                  {{ expandedRawId() === offer.id ? i18n.t('jobAnalysis.hideOriginal') : i18n.t('jobAnalysis.viewOriginal') }}
+                </button>
+              }
               <button
                 type="button"
                 class="btn btn--secondary btn--small"
