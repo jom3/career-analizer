@@ -1,0 +1,14 @@
+[
+  { "id": "m01", "text": "Built good algorithms in Node.js services.", "missingSkill": "Go", "mentions": false },
+  { "id": "m02", "text": "Desarrollé una app con JavaScript.", "missingSkill": "Java", "mentions": false },
+  { "id": "m03", "text": "Usé Java en un backend de pagos.", "missingSkill": "Java", "mentions": true },
+  { "id": "m04", "text": "Trabajé con C++ en sistemas embebidos.", "missingSkill": "C", "mentions": false },
+  { "id": "m05", "text": "Trabajé con C# en .NET.", "missingSkill": "C#", "mentions": true },
+  { "id": "m06", "text": "Usé Go para servicios internos.", "missingSkill": "Go", "mentions": true },
+  { "id": "m07", "text": "Mantuve un pipeline en Kubernetes.", "missingSkill": "Kubernetes", "mentions": true },
+  { "id": "m08", "text": "Escribí tests con Jest.", "missingSkill": "jest", "mentions": true },
+  { "id": "m09", "text": "Trabajé con Node.js y NestJS.", "missingSkill": "Node", "mentions": true },
+  { "id": "m10", "text": "Trabajé con Nodemon en desarrollo.", "missingSkill": "Node", "mentions": false },
+  { "id": "m11", "text": "Usé Angular.js en el proyecto anterior.", "missingSkill": "Angular", "mentions": true },
+  { "id": "m12", "text": "Documenté la arquitectura del sistema.", "missingSkill": "Rust", "mentions": false }
+]

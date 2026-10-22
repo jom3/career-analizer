@@ -1,0 +1,68 @@
+[
+  {
+    "id": "O1",
+    "title": "Backend Developer Senior",
+    "company": "Compañía Ficticia X",
+    "level": "Senior",
+    "requiredSkills": ["Node.js", "NestJS", "PostgreSQL", "Docker"],
+    "preferredSkills": ["AWS", "Kubernetes"],
+    "experienceYears": 4,
+    "experienceSummary": "4+ años construyendo APIs en producción",
+    "sourceLanguage": "es"
+  },
+  {
+    "id": "O2",
+    "title": "Platform Engineer",
+    "company": "Compañía Ficticia Y",
+    "level": "Senior",
+    "requiredSkills": ["Go", "Kubernetes", "PostgreSQL"],
+    "preferredSkills": ["Terraform"],
+    "experienceYears": 5,
+    "experienceSummary": "Experiencia con sistemas distribuidos",
+    "sourceLanguage": "es"
+  },
+  {
+    "id": "O3",
+    "title": "Frontend Engineer Senior",
+    "company": "Compañía Ficticia Z",
+    "level": "Senior",
+    "requiredSkills": ["Angular", "TypeScript", "RxJS"],
+    "preferredSkills": ["Jest"],
+    "experienceYears": 5,
+    "experienceSummary": "Arquitectura de aplicaciones Angular a gran escala",
+    "sourceLanguage": "es"
+  },
+  {
+    "id": "O4",
+    "title": "Data Scientist",
+    "company": "Compañía Ficticia W",
+    "level": "Mid",
+    "requiredSkills": ["Python", "SQL", "scikit-learn"],
+    "preferredSkills": ["Airflow"],
+    "experienceYears": 2,
+    "experienceSummary": "Modelos predictivos aplicados a negocio",
+    "sourceLanguage": "es"
+  },
+  {
+    "id": "O5",
+    "title": "Junior Developer",
+    "company": "Ficticious Labs",
+    "level": "Junior",
+    "requiredSkills": ["JavaScript", "Go"],
+    "preferredSkills": [],
+    "experienceYears": 0,
+    "experienceSummary": "Good communication skills and algorithmic thinking",
+    "sourceLanguage": "en"
+  },
+  {
+    "id": "O6",
+    "title": "API Developer",
+    "company": "Compañía Ficticia V",
+    "level": "Mid",
+    "requiredSkills": ["Node", "PostgreSQL"],
+    "preferredSkills": [],
+    "experienceYears": 2,
+    "experienceSummary": "APIs REST en Node",
+    "sourceLanguage": "es"
+  }
+]

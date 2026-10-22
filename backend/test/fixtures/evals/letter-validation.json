@@ -1,0 +1,82 @@
+[
+  {
+    "id": "L01",
+    "lang": "es",
+    "text": "Diseñé una plataforma de gestión interna para un centro de salud, con tareas, documentos y reportes. Usé Angular, NestJS y PostgreSQL. Implementé autenticación JWT y autorización por roles. Estoy disponible para una entrevista esta semana.",
+    "employers": ["Empresa Ficticia A"],
+    "targetCompany": "Compañía Ficticia X",
+    "expect": { "violations": [] }
+  },
+  {
+    "id": "L02",
+    "lang": "es",
+    "text": "Diseñé una plataforma para la Clínica Dental Rivera con reportes automáticos. Estoy disponible para una entrevista esta semana.",
+    "employers": ["Clínica Dental Rivera"],
+    "targetCompany": "Compañía Ficticia X",
+    "expect": { "violations": ["EMPLOYER_NAME"] }
+  },
+  {
+    "id": "L03",
+    "lang": "es",
+    "text": "Trabajé con consultas SQL en un equipo de datos. Es una habilidad clave para el puesto. Puedo coordinar una llamada en los próximos días.",
+    "employers": [],
+    "targetCompany": "Compañía Ficticia W",
+    "expect": { "violations": ["EMPTY_ADJECTIVE"] }
+  },
+  {
+    "id": "L04",
+    "lang": "es",
+    "text": "Reduje la latencia de 320 ms a 180 ms en consultas eficientes. Estoy disponible para una entrevista esta semana.",
+    "employers": [],
+    "targetCompany": "Compañía Ficticia X",
+    "expect": { "violations": [] }
+  },
+  {
+    "id": "L05",
+    "lang": "es",
+    "text": "Construí APIs REST con NestJS para facturación. Espero poder aportar al crecimiento del equipo.",
+    "employers": [],
+    "targetCompany": "Compañía Ficticia X",
+    "expect": { "violations": ["GENERIC_CLOSING"] }
+  },
+  {
+    "id": "L06",
+    "lang": "es",
+    "text": "Trabajo con APIs REST en producción día a día y mantengo servicios con PostgreSQL en un equipo pequeño. Trabajo con APIs REST en producción día a día y mantengo servicios con PostgreSQL en un equipo pequeño. Trabajo con APIs REST en producción día a día y mantengo servicios con PostgreSQL en un equipo pequeño. Trabajo con APIs REST en producción día a día y mantengo servicios con PostgreSQL en un equipo pequeño. Trabajo con APIs REST en producción día a día y mantengo servicios con PostgreSQL en un equipo pequeño. Trabajo con APIs REST en producción día a día y mantengo servicios con PostgreSQL en un equipo pequeño. Trabajo con APIs REST en producción día a día y mantengo servicios con PostgreSQL en un equipo pequeño. Trabajo con APIs REST en producción día a día y mantengo servicios con PostgreSQL en un equipo pequeño. Trabajo con APIs REST en producción día a día y mantengo servicios con PostgreSQL en un equipo pequeño. Trabajo con APIs REST en producción día a día y mantengo servicios con PostgreSQL en un equipo pequeño. Estoy disponible para una entrevista.",
+    "employers": [],
+    "targetCompany": "Compañía Ficticia X",
+    "expect": { "violations": ["WORD_LIMIT"] }
+  },
+  {
+    "id": "L07",
+    "lang": "en",
+    "text": "I built a payments API for Globant clients. Globant's teams use it daily, and Globant asked us to extend it. I am available for an interview next week.",
+    "employers": [],
+    "targetCompany": "Globant",
+    "expect": { "violations": ["TARGET_COMPANY_REPEATED"] }
+  },
+  {
+    "id": "L08",
+    "lang": "es",
+    "text": "Usé Angular y TypeScript en formularios reactivos. Esto se alinea con los requerimientos del puesto. Quedo disponible para una entrevista.",
+    "employers": [],
+    "targetCompany": "Compañía Ficticia Z",
+    "expect": { "violations": ["BANNED_PHRASE"] }
+  },
+  {
+    "id": "L09",
+    "lang": "es",
+    "text": "Optimicé consultas SQL, lo que permitió mejorar los tiempos del reporte. Puedo coordinar una llamada en los próximos días.",
+    "employers": [],
+    "targetCompany": "Compañía Ficticia W",
+    "expect": { "violations": ["BANNED_PHRASE"] }
+  },
+  {
+    "id": "L10",
+    "lang": "es",
+    "text": "Cuento con certificaciones en tecnologías relevantes para el puesto. Puedo coordinar una llamada en los próximos días.",
+    "employers": [],
+    "targetCompany": "Compañía Ficticia X",
+    "expect": { "violations": ["BANNED_PHRASE"] }
+  }
+]

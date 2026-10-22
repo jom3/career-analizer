@@ -1,0 +1,101 @@
+[
+  {
+    "id": "P1",
+    "description": "Backend senior con experiencia en APIs y PostgreSQL",
+    "snapshot": {
+      "skills": [
+        { "name": "Node.js", "level": 4 },
+        { "name": "NestJS", "level": 4 },
+        { "name": "PostgreSQL", "level": 4 },
+        { "name": "Docker", "level": 3 },
+        { "name": "AWS", "level": 2 },
+        { "name": "TypeScript", "level": 5 }
+      ],
+      "experiences": [
+        {
+          "position": "Backend Engineer",
+          "company": "Empresa Ficticia A",
+          "description": "Diseñé APIs REST con NestJS y PostgreSQL para el módulo de facturación; reduje la latencia p95 un 35%.",
+          "metrics": ["Latencia p95 reducida un 35%"]
+        }
+      ],
+      "education": [
+        { "degree": "Ingeniería en Sistemas", "field": null, "institution": "Universidad Ficticia" }
+      ],
+      "certifications": [],
+      "projects": [
+        { "name": "Tablero interno", "techStack": ["Angular", "NestJS"], "description": "Tablero de tareas para equipos internos." }
+      ],
+      "languages": [{ "name": "Inglés", "level": "B2" }]
+    }
+  },
+  {
+    "id": "P2",
+    "description": "Frontend junior con Angular",
+    "snapshot": {
+      "skills": [
+        { "name": "Angular", "level": 3 },
+        { "name": "TypeScript", "level": 3 },
+        { "name": "HTML", "level": 4 },
+        { "name": "CSS", "level": 3 }
+      ],
+      "experiences": [
+        {
+          "position": "Desarrollador Frontend",
+          "company": "Empresa Ficticia B",
+          "description": "Mantuve formularios reactivos en Angular con validaciones personalizadas.",
+          "metrics": []
+        }
+      ],
+      "education": [
+        { "degree": "Técnico en Programación", "field": null, "institution": "Instituto Ficticio" }
+      ],
+      "certifications": [{ "name": "Angular Fundamentals" }],
+      "projects": [],
+      "languages": [
+        { "name": "Español", "level": "Nativo" },
+        { "name": "Inglés", "level": "A2" }
+      ]
+    }
+  },
+  {
+    "id": "P3",
+    "description": "Analista de datos con Python y SQL",
+    "snapshot": {
+      "skills": [
+        { "name": "Python", "level": 4 },
+        { "name": "SQL", "level": 4 },
+        { "name": "pandas", "level": 3 },
+        { "name": "Power BI", "level": 3 }
+      ],
+      "experiences": [
+        {
+          "position": "Analista de Datos",
+          "company": "Empresa Ficticia C",
+          "description": "Construí tableros de ventas en Power BI a partir de consultas SQL.",
+          "metrics": ["Reporte semanal automatizado: pasó de 2 días a 1 hora"]
+        }
+      ],
+      "education": [
+        { "degree": "Licenciatura en Estadística", "field": null, "institution": "Universidad Ficticia" }
+      ],
+      "certifications": [],
+      "projects": [
+        { "name": "Predicción de bajas de clientes", "techStack": ["Python", "scikit-learn"], "description": "Modelo de clasificación para detectar clientes en riesgo de baja." }
+      ],
+      "languages": [{ "name": "Inglés", "level": "C1" }]
+    }
+  },
+  {
+    "id": "P4",
+    "description": "Perfil mínimo: solo una skill declarada",
+    "snapshot": {
+      "skills": [{ "name": "JavaScript", "level": 2 }],
+      "experiences": [],
+      "education": [],
+      "certifications": [],
+      "projects": [],
+      "languages": []
+    }
+  }
+]

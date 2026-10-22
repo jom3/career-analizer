@@ -3,6 +3,7 @@
 > **Status:** Implemented
 > **Depends on:** SPEC 17 (perfil bilingüe es/en), SPEC 09/10/11/12/13 (generadores), SPEC 14 (i18n UI)
 > **Date:** 2026-08-19
+> **Nota:** el idioma de generación queda reemplazado por SPEC 22 (idioma del documento elegible, con la interfaz como default). El idioma de interfaz y `Accept-Language` siguen vigentes.
 > **Objective:** Hacer que todo el contenido generado (CV base exportado, CV adaptado, carta de motivación y análisis de match) se produzca en el idioma de la interfaz activa en lugar del idioma de la oferta, consumiendo el perfil bilingüe del SPEC 17 (seleccionando los campos del idioma objetivo con fallback al otro idioma). El idioma de la interfaz viaja del frontend al backend por el header HTTP global `Accept-Language`, con fallback a `es`. Este spec depende de que SPEC 17 esté implementado.
 
 ## Scope
