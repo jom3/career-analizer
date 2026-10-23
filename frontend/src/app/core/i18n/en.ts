@@ -426,6 +426,8 @@ export const en: Record<string, string> = {
     'The closing does not propose a concrete next step.',
   'coverLetter.warning.EMPTY_ADJECTIVE':
     'It uses vague adjectives without supporting data.',
+  'coverLetter.warning.UNSUPPORTED_NUMBER':
+    'It mentions a figure that is not in your profile or the offer.',
   'coverLetter.saveChanges': 'Save changes',
   'coverLetter.editContent': 'Edit letter',
   'coverLetter.applicationTitle': 'Application details',

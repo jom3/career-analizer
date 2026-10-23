@@ -425,6 +425,8 @@ export const es: Record<string, string> = {
     'El cierre no propone un próximo paso concreto.',
   'coverLetter.warning.EMPTY_ADJECTIVE':
     'Usa adjetivos vacíos sin un dato que los respalde.',
+  'coverLetter.warning.UNSUPPORTED_NUMBER':
+    'Menciona una cifra que no figura en tu perfil ni en la oferta.',
   'coverLetter.saveChanges': 'Guardar cambios',
   'coverLetter.editContent': 'Editar carta',
   'coverLetter.applicationTitle': 'Datos de la postulación',
