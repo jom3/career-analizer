@@ -6,5 +6,6 @@ coverage/
 uploads/
 .DS_Store
 *.log
-# Salidas del banco de evaluación de cartas
+# Salidas del banco de evaluaciï¿½n de cartas
 backend/test/letter-eval-out/
+backend/test/gerund-eval-out/

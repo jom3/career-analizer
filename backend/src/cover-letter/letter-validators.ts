@@ -1,3 +1,6 @@
+import { mentionsToken } from '../common/token-mention';
+import { findSpanishGerunds } from './spanish-gerunds';
+
 export type CoverLetterWarningCode =
   | 'WORD_LIMIT'
   | 'BANNED_PHRASE'
@@ -5,7 +8,9 @@ export type CoverLetterWarningCode =
   | 'TARGET_COMPANY_REPEATED'
   | 'GENERIC_CLOSING'
   | 'EMPTY_ADJECTIVE'
-  | 'UNSUPPORTED_NUMBER';
+  | 'UNSUPPORTED_NUMBER'
+  | 'GERUND'
+  | 'MISSING_SKILL';
 
 export interface CoverLetterWarning {
   code: CoverLetterWarningCode;
@@ -18,6 +23,8 @@ export interface LetterValidationInput {
   targetCompany: string | null;
   // Cifras que existen en el perfil o en la oferta. Si se omite, no se valida.
   supportedNumbers?: string[];
+  // Skills de la oferta que el perfil no tiene: ni afirmarlas ni negarlas.
+  missingSkills?: string[];
 }
 
 export const MAX_WORDS = 180;
@@ -237,6 +244,22 @@ export function validateLetter(
         code: 'UNSUPPORTED_NUMBER',
         detail: unsupported.join(', '),
       });
+    }
+  }
+
+  if (input.missingSkills) {
+    const mentioned = input.missingSkills.filter((skill) =>
+      mentionsToken(content, skill),
+    );
+    if (mentioned.length > 0) {
+      warnings.push({ code: 'MISSING_SKILL', detail: mentioned.join(', ') });
+    }
+  }
+
+  if (input.lang === 'es') {
+    const gerunds = [...new Set(findSpanishGerunds(content))];
+    if (gerunds.length > 0) {
+      warnings.push({ code: 'GERUND', detail: gerunds.join(', ') });
     }
   }
 

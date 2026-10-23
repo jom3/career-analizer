@@ -1,6 +1,7 @@
 import { BadGatewayException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { apiError } from '../common/api-error-codes';
+import { mentionsToken } from '../common/token-mention';
 import { OpenaiService } from '../openai/openai.service';
 import type { ProfileSnapshot } from '../job-match/profile-util';
 import {
@@ -74,6 +75,10 @@ function describeViolation(warning: CoverLetterWarning): string {
       return 'Replace the closing line with a concrete availability or interview statement only.';
     case 'EMPTY_ADJECTIVE':
       return `Remove or back with a number these vague adjectives: ${warning.detail}.`;
+    case 'MISSING_SKILL':
+      return `Remove every mention of these skills, the candidate does not have them, not even to deny them: ${warning.detail}.`;
+    case 'GERUND':
+      return `Replace these gerunds with a conjugated verb, without adding facts: ${warning.detail}.`;
     case 'UNSUPPORTED_NUMBER':
       return `Remove or replace these figures: they do not appear in the profile or the offer (${warning.detail}).`;
     default:
@@ -109,12 +114,41 @@ export class CoverLetterParserService {
     }
 
     const corrected = await this.correct(draft.content, warnings, input.lang);
-    const remaining = this.validate(corrected.content, input);
+    const content = this.dropSentencesWithMissingSkills(
+      corrected.content,
+      this.missingSkills(input),
+    );
+    const remaining = this.validate(content, input);
     return {
-      content: corrected.content,
-      wordCount: countWords(corrected.content),
+      content,
+      wordCount: countWords(content),
       warnings: remaining,
     };
+  }
+
+  // Red de seguridad determinista: si la corrección deja una mención a una skill
+  // que el perfil no tiene, se quita la oración completa. Quitar no agrega hechos.
+  private dropSentencesWithMissingSkills(
+    content: string,
+    missingSkills: string[],
+  ): string {
+    if (missingSkills.length === 0) {
+      return content;
+    }
+    return content
+      .split('\n')
+      .map((line) =>
+        line
+          .split(/(?<=[.!?])\s+/)
+          .filter(
+            (sentence) =>
+              !missingSkills.some((skill) => mentionsToken(sentence, skill)),
+          )
+          .join(' '),
+      )
+      .join('\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
   }
 
   private validate(
@@ -128,7 +162,17 @@ export class CoverLetterParserService {
         .filter((company): company is string => Boolean(company)),
       targetCompany: input.offer.company,
       supportedNumbers: this.supportedNumbers(input),
+      missingSkills: this.missingSkills(input),
     });
+  }
+
+  // Skills de la oferta que no aparecen en ningún dato del perfil.
+  private missingSkills(input: CoverLetterGenerationInput): string[] {
+    const profileText = JSON.stringify(input.profile);
+    return [
+      ...input.offer.requiredSkills,
+      ...input.offer.preferredSkills,
+    ].filter((skill) => !mentionsToken(profileText, skill));
   }
 
   // Cifras que la carta puede usar: las que ya existen en el perfil o la oferta.
