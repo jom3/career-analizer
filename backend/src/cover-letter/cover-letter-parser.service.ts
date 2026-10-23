@@ -74,6 +74,8 @@ function describeViolation(warning: CoverLetterWarning): string {
       return 'Replace the closing line with a concrete availability or interview statement only.';
     case 'EMPTY_ADJECTIVE':
       return `Remove or back with a number these vague adjectives: ${warning.detail}.`;
+    case 'GERUND':
+      return `Replace these gerunds with a conjugated verb, without adding facts: ${warning.detail}.`;
     case 'UNSUPPORTED_NUMBER':
       return `Remove or replace these figures: they do not appear in the profile or the offer (${warning.detail}).`;
     default:

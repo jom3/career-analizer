@@ -1,3 +1,5 @@
+import { findSpanishGerunds } from './spanish-gerunds';
+
 export type CoverLetterWarningCode =
   | 'WORD_LIMIT'
   | 'BANNED_PHRASE'
@@ -5,7 +7,8 @@ export type CoverLetterWarningCode =
   | 'TARGET_COMPANY_REPEATED'
   | 'GENERIC_CLOSING'
   | 'EMPTY_ADJECTIVE'
-  | 'UNSUPPORTED_NUMBER';
+  | 'UNSUPPORTED_NUMBER'
+  | 'GERUND';
 
 export interface CoverLetterWarning {
   code: CoverLetterWarningCode;
@@ -237,6 +240,13 @@ export function validateLetter(
         code: 'UNSUPPORTED_NUMBER',
         detail: unsupported.join(', '),
       });
+    }
+  }
+
+  if (input.lang === 'es') {
+    const gerunds = [...new Set(findSpanishGerunds(content))];
+    if (gerunds.length > 0) {
+      warnings.push({ code: 'GERUND', detail: gerunds.join(', ') });
     }
   }
 

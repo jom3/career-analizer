@@ -427,6 +427,8 @@ export const es: Record<string, string> = {
     'Usa adjetivos vacíos sin un dato que los respalde.',
   'coverLetter.warning.UNSUPPORTED_NUMBER':
     'Menciona una cifra que no figura en tu perfil ni en la oferta.',
+  'coverLetter.warning.GERUND':
+    'Usa gerundios (-ando, -iendo) que suenan a traducción literal. Conviene usar un verbo conjugado.',
   'coverLetter.saveChanges': 'Guardar cambios',
   'coverLetter.editContent': 'Editar carta',
   'coverLetter.applicationTitle': 'Datos de la postulación',
