@@ -125,9 +125,17 @@ describe('Job Match (e2e)', () => {
       .send({ offer: fakeDraft, lang: 'es' })
       .expect(201);
 
-    const body = created.body as { id: string; overallScore: number };
+    const body = created.body as {
+      id: string;
+      overallScore: number;
+      aiScore: number;
+      coverage: { percent: number | null } | null;
+    };
     expect(body.id).toBeDefined();
-    expect(body.overallScore).toBe(82);
+    // El perfil está vacío: cobertura 0 y score final = 50% de la evaluación IA.
+    expect(body.aiScore).toBe(82);
+    expect(body.coverage?.percent).toBe(0);
+    expect(body.overallScore).toBe(41);
 
     const list = await agent.get('/job-match').expect(200);
     const matches = list.body as { id: string; jobOfferId: string | null }[];
@@ -187,7 +195,10 @@ describe('Job Match (e2e)', () => {
     const matchId = (created.body as { id: string }).id;
 
     const got = await agent.get(`/job-match/${matchId}`).expect(200);
-    expect((got.body as { overallScore: number }).overallScore).toBe(82);
+    const detail = got.body as { overallScore: number; aiScore: number };
+    // Esta oferta no declara requisitos: la cobertura es null y el score es el de la IA.
+    expect(detail.aiScore).toBe(82);
+    expect(detail.overallScore).toBe(82);
 
     const recomputed = await agent
       .post(`/job-match/${matchId}/recompute`)
