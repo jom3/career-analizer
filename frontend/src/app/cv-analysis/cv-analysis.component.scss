@@ -1,0 +1,120 @@
+.cv-analysis-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: 68rem;
+  margin: 0 auto;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.score-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.score-badge {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.15rem;
+  font-family: var(--font-display);
+  font-size: 3rem;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.score-badge span {
+  font-size: 1.2rem;
+  color: var(--muted);
+}
+
+.score-text h2 {
+  margin: 0 0 var(--space-1);
+}
+
+.check-list,
+.item-list,
+.suggestion-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.check-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--radius-s);
+  background: var(--success-soft);
+}
+
+.check-item--fail {
+  background: var(--error-soft);
+}
+
+.check-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--success);
+  color: var(--surface);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.check-item--fail .check-icon {
+  background: var(--error);
+}
+
+.check-item p {
+  margin: 0.15rem 0 0;
+  font-size: 0.85rem;
+}
+
+.item-list li {
+  display: flex;
+  gap: var(--space-2);
+  line-height: 1.5;
+}
+
+.item-list li::before {
+  content: '—';
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.suggestion-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-s);
+}
+
+.suggestion-item p {
+  margin: 0;
+}
+
+@media (max-width: 600px) {
+  .score-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+}

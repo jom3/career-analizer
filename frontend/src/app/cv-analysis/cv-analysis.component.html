@@ -1,0 +1,106 @@
+<section class="cv-analysis-page">
+  <header class="page-head">
+    <div>
+      <h1 class="page-title">{{ i18n.t('cvAnalysis.title') }}</h1>
+      <p class="page-sub">{{ i18n.t('cvAnalysis.subtitle') }}</p>
+    </div>
+    <div class="actions">
+      <button
+        type="button"
+        class="btn btn--secondary btn--small"
+        [disabled]="loading()"
+        (click)="load()"
+      >
+        {{ loading() ? i18n.t('common.loading') : i18n.t('cvAnalysis.refresh') }}
+      </button>
+    </div>
+  </header>
+
+  @if (errorMessage()) {
+    <p class="alert alert--error" role="alert">{{ errorMessage() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="muted">{{ i18n.t('common.loading') }}</p>
+  }
+
+  @if (!loading() && analysis(); as current) {
+    @if (isEmpty(current)) {
+      <section class="card">
+        <h2>{{ i18n.t('cvAnalysis.emptyTitle') }}</h2>
+        <p class="muted">{{ i18n.t('cvAnalysis.emptyHint') }}</p>
+        <a class="btn btn--primary" routerLink="/profile">
+          {{ i18n.t('cvAnalysis.emptyCta') }}
+        </a>
+      </section>
+    } @else {
+      <section class="card score-card">
+        <div class="score-badge">{{ current.score }}<span>%</span></div>
+        <div class="score-text">
+          <h2>{{ i18n.t('cvAnalysis.scoreTitle') }}</h2>
+          <p class="muted">{{ i18n.t('cvAnalysis.scoreHint') }}</p>
+        </div>
+      </section>
+
+      <section class="card">
+        <header class="section-header">
+          <h2>{{ i18n.t('cvAnalysis.checksTitle') }}</h2>
+        </header>
+        <ul class="check-list">
+          @for (check of current.checks; track check.key) {
+            <li class="check-item" [class.check-item--fail]="!check.ok">
+              <span class="check-icon" aria-hidden="true">
+                {{ check.ok ? '✓' : '✗' }}
+              </span>
+              <div>
+                <strong>{{ checkLabel(check) }}</strong>
+                @if (!check.ok) {
+                  <p class="muted">{{ checkHint(check) }}</p>
+                }
+              </div>
+            </li>
+          }
+        </ul>
+      </section>
+
+      <section class="card">
+        <header class="section-header">
+          <h2>{{ i18n.t('cvAnalysis.strengthsTitle') }}</h2>
+          <span class="tag tag--ai">{{ i18n.t('cvAnalysis.aiTag') }}</span>
+        </header>
+        @if (!current.aiAvailable) {
+          <p class="muted">{{ i18n.t('cvAnalysis.aiUnavailable') }}</p>
+        } @else if (current.strengths.length === 0) {
+          <p class="muted">{{ i18n.t('cvAnalysis.strengthsEmpty') }}</p>
+        } @else {
+          <ul class="item-list">
+            @for (strength of current.strengths; track strength) {
+              <li>{{ strength }}</li>
+            }
+          </ul>
+        }
+      </section>
+
+      <section class="card">
+        <header class="section-header">
+          <h2>{{ i18n.t('cvAnalysis.suggestionsTitle') }}</h2>
+          <span class="tag tag--ai">{{ i18n.t('cvAnalysis.aiTag') }}</span>
+        </header>
+        @if (!current.aiAvailable) {
+          <p class="muted">{{ i18n.t('cvAnalysis.aiUnavailable') }}</p>
+        } @else if (current.suggestions.length === 0) {
+          <p class="muted">{{ i18n.t('cvAnalysis.suggestionsEmpty') }}</p>
+        } @else {
+          <ul class="suggestion-list">
+            @for (suggestion of current.suggestions; track trackSuggestion($index, suggestion)) {
+              <li class="suggestion-item">
+                <span class="tag">{{ sectionLabel(suggestion.section) }}</span>
+                <p>{{ suggestion.action }}</p>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    }
+  }
+</section>

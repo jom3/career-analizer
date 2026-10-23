@@ -8,6 +8,7 @@ import { CvAdaptationModule } from './cv-adaptation/cv-adaptation.module';
 import { CvExportModule } from './cv-export/cv-export.module';
 import { CvImportModule } from './cv-import/cv-import.module';
 import { CoverLetterModule } from './cover-letter/cover-letter.module';
+import { CvAnalysisModule } from './cv-analysis/cv-analysis.module';
 import { HealthController } from './health.controller';
 import { I18nModule } from './i18n/i18n.module';
 import { UiLangMiddleware } from './i18n/ui-lang.middleware';
@@ -40,6 +41,7 @@ import { ProfileModule } from './profile/profile.module';
     I18nModule,
     AuthModule,
     ProfileModule,
+    CvAnalysisModule,
     CvImportModule,
     CvExportModule,
     JobAnalysisModule,

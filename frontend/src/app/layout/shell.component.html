@@ -42,7 +42,16 @@
         <span class="rail__label">{{ i18n.t('nav.match') }}</span>
       </a>
 
-      <p class="rail__group">05 · {{ i18n.t('nav.documents') }}</p>
+      <a
+        routerLink="/cv-analysis"
+        routerLinkActive="is-active"
+        class="rail__link"
+      >
+        <span class="rail__num">05</span>
+        <span class="rail__label">{{ i18n.t('nav.cvAnalysis') }}</span>
+      </a>
+
+      <p class="rail__group">06 · {{ i18n.t('nav.documents') }}</p>
 
       <a
         routerLink="/cv-adaptation"
