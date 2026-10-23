@@ -4,7 +4,8 @@ export type CoverLetterWarningCode =
   | 'EMPLOYER_NAME'
   | 'TARGET_COMPANY_REPEATED'
   | 'GENERIC_CLOSING'
-  | 'EMPTY_ADJECTIVE';
+  | 'EMPTY_ADJECTIVE'
+  | 'UNSUPPORTED_NUMBER';
 
 export interface CoverLetterWarning {
   code: CoverLetterWarningCode;
@@ -15,6 +16,8 @@ export interface LetterValidationInput {
   lang: 'es' | 'en';
   employers: string[];
   targetCompany: string | null;
+  // Cifras que existen en el perfil o en la oferta. Si se omite, no se valida.
+  supportedNumbers?: string[];
 }
 
 export const MAX_WORDS = 180;
@@ -33,6 +36,15 @@ const BANNED_PHRASES = [
   'quedo atento a su respuesta',
   'espero con interés',
   'espero con interes',
+  'espero su respuesta',
+  'lo que me permite',
+  'lo que permite',
+  'estoy entusiasmado',
+  'estoy entusiasmada',
+  'estoy emocionado',
+  'estoy emocionada',
+  'i am excited',
+  'i am passionate',
 ];
 
 const EMPTY_ADJECTIVES = [
@@ -117,6 +129,40 @@ function hasNearbyNumber(text: string, index: number): boolean {
   return /\d/.test(sentenceAt(text, index));
 }
 
+const NUMBER_PATTERN = /\d+(?:[.,]\d+)?\s?%?/g;
+
+function normalizeNumber(raw: string): string {
+  return raw.replace(/\s+/g, '').replace(',', '.').replace('%', '');
+}
+
+function isYear(value: string): boolean {
+  if (!/^\d{4}$/.test(value)) {
+    return false;
+  }
+  const year = Number(value);
+  return year >= 1900 && year <= 2100;
+}
+
+// Toda cifra de la carta debe existir en el perfil o en la oferta. Los años
+// quedan afuera: son contexto, no una métrica inventada.
+function findUnsupportedNumbers(
+  content: string,
+  supported: string[],
+): string[] {
+  const allowed = new Set(supported.map(normalizeNumber));
+  const found: string[] = [];
+  for (const match of content.matchAll(NUMBER_PATTERN)) {
+    const value = normalizeNumber(match[0]);
+    if (value.length === 0 || isYear(value) || allowed.has(value)) {
+      continue;
+    }
+    if (!found.includes(value)) {
+      found.push(value);
+    }
+  }
+  return found;
+}
+
 function findBannedPhrases(content: string): string[] {
   const lower = normalize(content);
   return BANNED_PHRASES.filter((phrase) => lower.includes(phrase));
@@ -182,6 +228,16 @@ export function validateLetter(
   const adjectives = findEmptyAdjectives(content, banned);
   if (adjectives.length > 0) {
     warnings.push({ code: 'EMPTY_ADJECTIVE', detail: adjectives.join(', ') });
+  }
+
+  if (input.supportedNumbers) {
+    const unsupported = findUnsupportedNumbers(content, input.supportedNumbers);
+    if (unsupported.length > 0) {
+      warnings.push({
+        code: 'UNSUPPORTED_NUMBER',
+        detail: unsupported.join(', '),
+      });
+    }
   }
 
   return warnings;
