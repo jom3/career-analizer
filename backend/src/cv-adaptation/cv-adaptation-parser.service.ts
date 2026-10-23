@@ -136,6 +136,10 @@ export class CvAdaptationParserService {
       targetLanguage === 'es'
         ? 'Write the rewritten descriptions in Spanish. Do not translate proper nouns (companies, positions, degrees, certifications, project names).'
         : 'Write the rewritten descriptions in English. Do not translate proper nouns (companies, positions, degrees, certifications, project names).';
+    const gerundRule =
+      targetLanguage === 'es'
+        ? 'Every sentence starts with a conjugated past-tense verb and never uses an -ando, -iendo or -yendo form, not even at the end of a sentence. Example of the expected style: "Diseñé una API con NestJS. Reduje la latencia p95 un 35%."'
+        : null;
     return [
       'You adapt the experience descriptions of a candidate CV for a specific job so recruiters and ATS filters read them naturally.',
       'You receive the real candidate profile snapshot and the job offer.',
@@ -145,6 +149,7 @@ export class CvAdaptationParserService {
       'Never claim that the candidate has a missing skill: the matchedSkills list is the only truth about what the candidate can highlight.',
       'Keep every factual claim identical to the snapshot; only rephrase for clarity, relevance and natural keyword emphasis.',
       writeIn,
+      ...(gerundRule ? [gerundRule] : []),
       'The candidate summary is NOT your job: it is generated deterministically elsewhere. Never output a summary.',
     ].join(' ');
   }
