@@ -1,6 +1,7 @@
 # SPEC 10 — Análisis de ofertas de trabajo
 
-> **Status:** Approved
+> **Status:** Implemented
+> **Verificado:** 2026-10-23 — criterios contrastados contra el código y `job-analysis.e2e-spec.ts`. Único desvío: la respuesta de `analyze` agrega `url` desde SPEC 22 (aditivo, no rompe el contrato).
 > **Depends on:** SPEC 03, SPEC 05, SPEC 06
 > **Date:** 2026-08-09
 > **Objective:** Analizar una oferta de trabajo —ingresada como texto pegado, imagen copiada/subida o PDF— con la API de OpenAI, estructurarla en un esquema fijo y persistirla como historial por usuario, con preview editable antes de guardar y sin incluir el matching con el perfil.
@@ -119,17 +120,17 @@ Cada paso deja el sistema compilable y funcionando.
 
 ## Acceptance criteria
 
-- [ ] Los enums `JobLevel` e `InputType` y el modelo `JobOffer` existen en `schema.prisma`; la migración `job_offer` está aplicada y el client regenerado.
-- [ ] `POST /job-analysis/analyze` con texto → 200 con `{ draft, sourceLanguage }`; no persiste nada (no aparece en `GET /job-analysis`).
-- [ ] `POST /job-analysis/analyze` con imagen (copia o subida) y con PDF/DOCX → 200 con el mismo contrato; sin `text` ni `file` → 400.
-- [ ] El borrador solo contiene datos presentes en la fuente (verificable comparando `draft` contra `rawInput`/texto extraído); `level` es `null` cuando la oferta no lo declara.
-- [ ] Las claves del esquema son fijas (`title`, `company`, `level`, `responsibilities`, `requiredSkills`, `preferredSkills`, `experienceYears`, `experienceSummary`, `education`, `languages`, `keywords`); el contenido de los textos queda en el idioma de la oferta.
-- [ ] `POST /job-analysis` persiste con validación estricta: sin `title` → 400; `level` inválido → 400; `experienceYears` fuera de 0–50 → 400.
-- [ ] `GET /job-analysis` devuelve solo el historial del usuario autenticado; `GET/PUT/DELETE /job-analysis/:id` de una oferta ajena o inexistente → 404.
-- [ ] Para texto/PDF, la oferta guardada incluye `rawInput`; para imágenes `rawInput` es `null` y **no queda ningún archivo en disco** (la imagen solo impulsa el análisis).
-- [ ] `npm run build:all` y `npm run lint:all` OK; `npm run test -w career-analyzer-backend` pasa (unit + e2e).
-- [ ] `/job-analysis` en el frontend ingresa por las 4 vías, muestra preview editable, guarda con confirmación y refleja la oferta en el historial; sin sesión redirige a `/auth/login`.
-- [ ] No se usa `localStorage` para ofertas; todo viaja por la API.
+- [x] Los enums `JobLevel` e `InputType` y el modelo `JobOffer` existen en `schema.prisma`; la migración `job_offer` está aplicada y el client regenerado.
+- [x] `POST /job-analysis/analyze` con texto → 200 con `{ draft, sourceLanguage }`; no persiste nada (no aparece en `GET /job-analysis`).
+- [x] `POST /job-analysis/analyze` con imagen (copia o subida) y con PDF/DOCX → 200 con el mismo contrato; sin `text` ni `file` → 400.
+- [x] El borrador solo contiene datos presentes en la fuente (verificable comparando `draft` contra `rawInput`/texto extraído); `level` es `null` cuando la oferta no lo declara.
+- [x] Las claves del esquema son fijas (`title`, `company`, `level`, `responsibilities`, `requiredSkills`, `preferredSkills`, `experienceYears`, `experienceSummary`, `education`, `languages`, `keywords`); el contenido de los textos queda en el idioma de la oferta.
+- [x] `POST /job-analysis` persiste con validación estricta: sin `title` → 400; `level` inválido → 400; `experienceYears` fuera de 0–50 → 400.
+- [x] `GET /job-analysis` devuelve solo el historial del usuario autenticado; `GET/PUT/DELETE /job-analysis/:id` de una oferta ajena o inexistente → 404.
+- [x] Para texto/PDF, la oferta guardada incluye `rawInput`; para imágenes `rawInput` es `null` y **no queda ningún archivo en disco** (la imagen solo impulsa el análisis).
+- [x] `npm run build:all` y `npm run lint:all` OK; `npm run test -w career-analyzer-backend` pasa (unit + e2e).
+- [x] `/job-analysis` en el frontend ingresa por las 4 vías, muestra preview editable, guarda con confirmación y refleja la oferta en el historial; sin sesión redirige a `/auth/login`.
+- [x] No se usa `localStorage` para ofertas; todo viaja por la API.
 
 ## Decisions
 

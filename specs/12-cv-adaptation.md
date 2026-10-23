@@ -1,6 +1,7 @@
 # SPEC 12 — CV adaptado a la oferta (tailoring)
 
-> **Status:** Approved
+> **Status:** Implemented
+> **Verificado:** 2026-10-23 — criterios contrastados contra el código y `cv-adaptation.e2e-spec.ts`. Desvío: el idioma del CV ya no es el de la oferta sino el idioma del documento elegido, con la interfaz como default (SPEC 22).
 > **Depends on:** SPEC 05, SPEC 07, SPEC 09, SPEC 10, SPEC 11
 > **Date:** 2026-08-09
 > **Objective:** Generar y persistir una versión del CV adaptada a una oferta concreta —tomando el Candidate Profile como única fuente de verdad y la oferta (más su match, si existe) como foco de adaptación—, donde las reglas del sistema seleccionan y ordenan, la IA solo reformula prosa integrando keywords de forma natural sin inventar datos, y el resultado queda auditable y exportable en PDF/DOCX reutilizando la plantilla de SPEC 07/09.

@@ -1,6 +1,7 @@
 # SPEC 13 — Carta de motivación (cover letter)
 
-> **Status:** Approved
+> **Status:** Implemented
+> **Verificado:** 2026-10-23 — criterios contrastados contra el código y `cover-letter.e2e-spec.ts`. Desvíos posteriores: el idioma del documento lo elige el usuario (SPEC 22), el borrador devuelve `wordCount` y `warnings` (SPEC 21) y la auditoría abierta se reemplazó por validadores deterministas con corrección puntual (SPEC 21 y 24).
 > **Depends on:** SPEC 05, SPEC 07, SPEC 10, SPEC 11
 > **Date:** 2026-08-09
 > **Objective:** Generar, permitir editar antes de guardar, persistir con historial y exportar en PDF/DOCX una carta de motivación "medianamente completa" para una postulación concreta —derivada del Candidate Profile y de una `JobOffer` guardada, con nombre de recruiter y nota libre opcionales, en el idioma de la oferta y sin que la IA invente datos del perfil.
@@ -132,18 +133,18 @@ Cada paso deja el sistema compilable y funcionando.
 
 ## Acceptance criteria
 
-- [ ] El modelo `CoverLetter` existe en `schema.prisma` con `jobOfferId` nullable y `onDelete: SetNull`; la migración `cover_letter` está aplicada y el client regenerado.
-- [ ] `POST /cover-letter/draft` con `jobOfferId` de una oferta del usuario → 200 con `{ content, sourceLanguage }` y **no persiste** (nada aparece en `GET /cover-letter`); oferta ajena/inexistente → 404; sin `jobOfferId` → 400.
-- [ ] `POST /cover-letter` con `content` no vacío → 201 y persiste; sin `content` → 400; `content` > 20.000 chars → 400; oferta ajena/inexistente → 404.
-- [ ] El `content` está en el idioma `sourceLanguage` de la oferta (si es es/en) y el saludo usa `recruiterName` cuando viene y el genérico/localizado (`Dear hiring team` / `Estimado equipo de selección`) cuando no.
-- [ ] El `content` no afirma ninguna empresa, posición, skill, logro, métrica, educación o proyecto ausente del `profileSnapshot` (revisable por diff `content` vs `profileSnapshot` + `offerSnapshot` + `note`); el `draft` nunca se persiste sin edición humana previa.
-- [ ] `GET /cover-letter/:id` sirve el guardado e incluye `stale` correcto (huella del perfil); `GET /cover-letter` devuelve solo cartas del usuario; `GET/export/DELETE` de una carta ajena o inexistente → 404.
-- [ ] `GET /cover-letter/:id/export?format=pdf` → 200, `Content-Type: application/pdf`, body `%PDF` con texto extraído (`pdf-parse`) que incluye asunto `Re: {title}`, el `content` y la firma; `format=docx` → 200 con texto equivalente (`mammoth`); `format` inválido → 400.
-- [ ] La fecha de la carta y el asunto se derivan de `offerSnapshot`/fecha actual y la firma del `User` (no del `content`); `lang=es`/`lang=en` cambia la localización de la fecha.
-- [ ] `DELETE /cover-letter/:id` borra la carta y **no** borra la oferta.
-- [ ] `npm run build:all` y `npm run lint:all` OK; `npm run test -w career-analyzer-backend` pasa (unit + e2e).
-- [ ] Frontend: botón "Carta de motivación" por oferta en `/job-analysis`; flujo generador → editable → guardar → detalle; descargas PDF/DOCX; banner de `stale`; historial en `/cover-letter`; sin sesión redirige a `/auth/login`.
-- [ ] No se usa `localStorage` para cartas; todo viaja por la API.
+- [x] El modelo `CoverLetter` existe en `schema.prisma` con `jobOfferId` nullable y `onDelete: SetNull`; la migración `cover_letter` está aplicada y el client regenerado.
+- [x] `POST /cover-letter/draft` con `jobOfferId` de una oferta del usuario → 200 con `{ content, sourceLanguage }` y **no persiste** (nada aparece en `GET /cover-letter`); oferta ajena/inexistente → 404; sin `jobOfferId` → 400.
+- [x] `POST /cover-letter` con `content` no vacío → 201 y persiste; sin `content` → 400; `content` > 20.000 chars → 400; oferta ajena/inexistente → 404.
+- [x] El `content` está en el idioma `sourceLanguage` de la oferta (si es es/en) y el saludo usa `recruiterName` cuando viene y el genérico/localizado (`Dear hiring team` / `Estimado equipo de selección`) cuando no.
+- [x] El `content` no afirma ninguna empresa, posición, skill, logro, métrica, educación o proyecto ausente del `profileSnapshot` (revisable por diff `content` vs `profileSnapshot` + `offerSnapshot` + `note`); el `draft` nunca se persiste sin edición humana previa.
+- [x] `GET /cover-letter/:id` sirve el guardado e incluye `stale` correcto (huella del perfil); `GET /cover-letter` devuelve solo cartas del usuario; `GET/export/DELETE` de una carta ajena o inexistente → 404.
+- [x] `GET /cover-letter/:id/export?format=pdf` → 200, `Content-Type: application/pdf`, body `%PDF` con texto extraído (`pdf-parse`) que incluye asunto `Re: {title}`, el `content` y la firma; `format=docx` → 200 con texto equivalente (`mammoth`); `format` inválido → 400.
+- [x] La fecha de la carta y el asunto se derivan de `offerSnapshot`/fecha actual y la firma del `User` (no del `content`); `lang=es`/`lang=en` cambia la localización de la fecha.
+- [x] `DELETE /cover-letter/:id` borra la carta y **no** borra la oferta.
+- [x] `npm run build:all` y `npm run lint:all` OK; `npm run test -w career-analyzer-backend` pasa (unit + e2e).
+- [x] Frontend: botón "Carta de motivación" por oferta en `/job-analysis`; flujo generador → editable → guardar → detalle; descargas PDF/DOCX; banner de `stale`; historial en `/cover-letter`; sin sesión redirige a `/auth/login`.
+- [x] No se usa `localStorage` para cartas; todo viaja por la API.
 
 ## Decisions
 

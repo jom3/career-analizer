@@ -1,6 +1,7 @@
 # SPEC 06 — Importación de CV
 
-> **Status:** Approved
+> **Status:** Implemented
+> **Verificado:** 2026-10-23 — criterios contrastados contra el código y `cv-import.e2e-spec.ts`; el 422 de PDF escaneado vive en `text-extractor.service.ts` y el `source: CV_IMPORT` lo asigna `cv-parser.service.ts`.
 > **Depends on:** SPEC 03, SPEC 04, SPEC 05
 > **Date:** 2026-08-07
 > **Objective:** Subir un CV en PDF o DOCX, extraer su texto, parsearlo con la API de OpenAI hacia un borrador del Candidate Profile, chequearlo contra criterios ATS y persistir archivo, texto y borrador, para que el usuario lo revise, edite y confirme antes de aplicarlo al perfil con el campo `source`.
