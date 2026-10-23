@@ -53,7 +53,22 @@ describe('CoverLetterService', () => {
     ],
     education: [],
     certifications: [],
-    projects: [],
+    projects: [
+      {
+        id: 'p1',
+        profileId: 'profile-1',
+        name: 'Tablero interno',
+        role: null,
+        description: 'Tablero de tareas para equipos internos.',
+        url: null,
+        techStack: ['TypeScript'],
+        metrics: [],
+        sortOrder: 0,
+        source: 'USER',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ],
     languages: [],
     createdAt: new Date('2026-01-01'),
     updatedAt: new Date('2026-01-01'),
@@ -133,6 +148,22 @@ describe('CoverLetterService', () => {
     }).compile();
 
     service = module.get(CoverLetterService);
+  });
+
+  it('rechaza el borrador con PROFILE_INCOMPLETE si el perfil no tiene evidencia suficiente', async () => {
+    prismaMock.jobOffer.findFirst.mockResolvedValue(offer);
+    prismaMock.profile.findUnique.mockResolvedValue({
+      ...profile,
+      projects: [],
+    });
+    prismaMock.jobMatch.findFirst.mockResolvedValue(null);
+
+    await expect(
+      service.buildDraft('user-1', 'offer-1', null, null, 'es'),
+    ).rejects.toMatchObject({
+      response: { code: 'PROFILE_INCOMPLETE' },
+    });
+    expect(parserMock.generate).not.toHaveBeenCalled();
   });
 
   it('genera un borrador sin persistir nada', async () => {
@@ -321,7 +352,7 @@ describe('CoverLetterService', () => {
     expect(createCall[0].data.content).toBe(
       'Dear María López, edited content.',
     );
-    expect(createCall[0].data.promptVersion).toBe(3);
+    expect(createCall[0].data.promptVersion).toBe(5);
     expect(createCall[0].data.offerSnapshot.title).toBe('Senior Fullstack');
     expect(createCall[0].data.profileFingerprint).toEqual(expect.any(String));
     expect(result.id).toBe('letter-1');

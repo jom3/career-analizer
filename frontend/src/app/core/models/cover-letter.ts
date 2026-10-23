@@ -25,7 +25,10 @@ export type CoverLetterWarningCode =
   | 'EMPTY_ADJECTIVE'
   | 'UNSUPPORTED_NUMBER'
   | 'GERUND'
-  | 'MISSING_SKILL';
+  | 'MISSING_SKILL'
+  | 'UNSUPPORTED_YEARS'
+  | 'UNSUPPORTED_SECTOR'
+  | 'RECRUITER_NAME_MISSING';
 
 export interface CoverLetterWarning {
   code: CoverLetterWarningCode;

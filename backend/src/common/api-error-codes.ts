@@ -1,5 +1,8 @@
 export type ApiErrorCode =
-  'AI_UNAVAILABLE' | 'INVALID_INPUT' | 'OFFER_ALREADY_SAVED';
+  | 'AI_UNAVAILABLE'
+  | 'INVALID_INPUT'
+  | 'OFFER_ALREADY_SAVED'
+  | 'PROFILE_INCOMPLETE';
 
 export interface ApiErrorBody {
   code: ApiErrorCode;

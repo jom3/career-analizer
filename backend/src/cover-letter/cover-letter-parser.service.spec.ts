@@ -248,6 +248,20 @@ describe('CoverLetterParserService', () => {
     expect(result.warnings).toEqual([]);
   });
 
+  it('quita la oración con años de experiencia que el perfil no respalda', async () => {
+    const draftWithYears =
+      'Dear María López,\n\nBuilt APIs with TypeScript. I have over 4 years of experience with APIs.\n\nI am available for an interview.';
+    mockReply(draftWithYears);
+    mockReply(draftWithYears);
+
+    const result = await service.generate(input);
+
+    expect(result.content).toBe(
+      'Dear María López,\n\nBuilt APIs with TypeScript.\n\nI am available for an interview.',
+    );
+    expect(result.warnings).toEqual([]);
+  });
+
   it('devuelve el borrador con advertencias si la corrección falla', async () => {
     mockReply(employerViolation);
     createMock.mockRejectedValueOnce(new Error('boom'));

@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import OpenAI from 'openai';
 import { CoverLetterParserService } from '../src/cover-letter/cover-letter-parser.service';
 import { mentionsToken } from '../src/common/token-mention';
+import { hasEnoughEvidence } from '../src/cover-letter/profile-sufficiency';
 import { findSpanishGerunds } from '../src/cover-letter/spanish-gerunds';
 import {
   CvAdaptationParserService,
@@ -253,6 +254,7 @@ async function main(): Promise<void> {
   mkdirSync(outputDir, { recursive: true });
 
   const samples: Sample[] = [];
+  const blockedLetters: string[] = [];
   for (const testCase of cases) {
     const profile = findOrThrow(profiles, testCase.profile).snapshot;
     const offer = findOrThrow(offers, testCase.offer);
@@ -276,6 +278,10 @@ async function main(): Promise<void> {
       }
     }
 
+    if (!hasEnoughEvidence(profile)) {
+      blockedLetters.push(base);
+      continue;
+    }
     const letter = await generateLetter(letterParser, profile, offer);
     const letterName = `${label}-letter-${base}.md`;
     writeFileSync(join(outputDir, letterName), letter, 'utf8');
@@ -298,6 +304,7 @@ async function main(): Promise<void> {
     cv: summarize(samples.filter((sample) => sample.kind === 'cv')),
     letter: {
       ...summarize(letters),
+      blockedByProfile: blockedLetters,
       withUnsupportedClaims: letters.filter((s) => s.unsupported.length > 0)
         .length,
       unsupportedClaims: letters.flatMap((s) => s.unsupported).slice(0, 15),

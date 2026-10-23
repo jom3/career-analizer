@@ -6,6 +6,7 @@ import { OpenaiService } from '../openai/openai.service';
 import type { ProfileSnapshot } from '../job-match/profile-util';
 import {
   MAX_WORDS,
+  isUnsupportedClaimSentence,
   validateLetter,
   type CoverLetterWarning,
 } from './letter-validators';
@@ -77,6 +78,12 @@ function describeViolation(warning: CoverLetterWarning): string {
       return `Remove or back with a number these vague adjectives: ${warning.detail}.`;
     case 'MISSING_SKILL':
       return `Remove every mention of these skills, the candidate does not have them, not even to deny them: ${warning.detail}.`;
+    case 'RECRUITER_NAME_MISSING':
+      return `Greet the recruiter by name: "${warning.detail}" must appear in the greeting instead of a generic one.`;
+    case 'UNSUPPORTED_YEARS':
+      return `Remove the years of experience "${warning.detail}": the profile does not state them. Do not replace them with another number.`;
+    case 'UNSUPPORTED_SECTOR':
+      return `Remove any mention of the employer's sector or industry: the profile does not state it. Sentence: "${warning.detail}".`;
     case 'GERUND':
       return `Replace these gerunds with a conjugated verb, without adding facts: ${warning.detail}.`;
     case 'UNSUPPORTED_NUMBER':
@@ -114,10 +121,7 @@ export class CoverLetterParserService {
     }
 
     const corrected = await this.correct(draft.content, warnings, input.lang);
-    const content = this.dropSentencesWithMissingSkills(
-      corrected.content,
-      this.missingSkills(input),
-    );
+    const content = this.dropUnsupportedSentences(corrected.content, input);
     const remaining = this.validate(content, input);
     return {
       content,
@@ -126,24 +130,24 @@ export class CoverLetterParserService {
     };
   }
 
-  // Red de seguridad determinista: si la corrección deja una mención a una skill
-  // que el perfil no tiene, se quita la oración completa. Quitar no agrega hechos.
-  private dropSentencesWithMissingSkills(
+  // Red de seguridad determinista: si la corrección deja una skill que el perfil
+  // no tiene, o un año de experiencia o sector sin respaldo, se quita la oración
+  // completa. Quitar no agrega hechos.
+  private dropUnsupportedSentences(
     content: string,
-    missingSkills: string[],
+    input: CoverLetterGenerationInput,
   ): string {
-    if (missingSkills.length === 0) {
-      return content;
-    }
+    const missingSkills = this.missingSkills(input);
+    const profileText = JSON.stringify(input.profile);
+    const isUnsupported = (sentence: string): boolean =>
+      missingSkills.some((skill) => mentionsToken(sentence, skill)) ||
+      isUnsupportedClaimSentence(sentence, profileText);
     return content
       .split('\n')
       .map((line) =>
         line
           .split(/(?<=[.!?])\s+/)
-          .filter(
-            (sentence) =>
-              !missingSkills.some((skill) => mentionsToken(sentence, skill)),
-          )
+          .filter((sentence) => !isUnsupported(sentence))
           .join(' '),
       )
       .join('\n')
@@ -163,6 +167,8 @@ export class CoverLetterParserService {
       targetCompany: input.offer.company,
       supportedNumbers: this.supportedNumbers(input),
       missingSkills: this.missingSkills(input),
+      profileText: JSON.stringify(input.profile),
+      recruiterName: input.recruiterName,
     });
   }
 

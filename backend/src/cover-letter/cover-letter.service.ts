@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { apiError } from '../common/api-error-codes';
+import { hasEnoughEvidence } from './profile-sufficiency';
 import { Prisma } from '../generated/prisma/client';
 import type { CoverLetter } from '../generated/prisma/client';
 import {
@@ -119,6 +125,14 @@ export class CoverLetterService {
       lang,
       match: await this.latestMatchInsight(userId, jobOfferId),
     };
+    if (!hasEnoughEvidence(input.profile)) {
+      throw new BadRequestException(
+        apiError(
+          'PROFILE_INCOMPLETE',
+          'Completá tu perfil con una skill y una experiencia o proyecto antes de redactar la carta.',
+        ),
+      );
+    }
     const result = await this.parser.generate(input);
     return {
       content: result.content,
