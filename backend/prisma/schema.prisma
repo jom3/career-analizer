@@ -90,6 +90,7 @@ model Experience {
   source         Source    @default(USER)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
+  @@index([profileId])
 }
 
 model Skill {
@@ -102,6 +103,7 @@ model Skill {
   source    Source   @default(USER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@index([profileId])
 }
 
 model Education {
@@ -127,6 +129,7 @@ model Education {
   source         Source    @default(USER)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
+  @@index([profileId])
 }
 
 model Certification {
@@ -145,6 +148,7 @@ model Certification {
   source    Source   @default(USER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@index([profileId])
 }
 
 model Project {
@@ -169,6 +173,7 @@ model Project {
   source       Source   @default(USER)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  @@index([profileId])
 }
 
 model Language {
@@ -183,6 +188,7 @@ model Language {
   source    Source   @default(USER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@index([profileId])
 }
 
 model CvDocument {
@@ -197,6 +203,7 @@ model CvDocument {
   model          String?
   draftJson      Json?
   createdAt      DateTime @default(now())
+  @@index([userId])
 }
 
 model JobOffer {
@@ -225,6 +232,7 @@ model JobOffer {
   jobMatches        JobMatch[]
   adaptedCvs        AdaptedCv[]
   coverLetters      CoverLetter[]
+  @@index([userId])
 }
 
 model JobMatch {
@@ -248,6 +256,7 @@ model JobMatch {
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
   adaptedCvs           AdaptedCv[]
+  @@index([userId])
 }
 
 model AdaptedCv {
@@ -265,6 +274,7 @@ model AdaptedCv {
   profileFingerprint String
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
+  @@index([userId])
 }
 
 model CoverLetter {
@@ -284,6 +294,7 @@ model CoverLetter {
   profileFingerprint String
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
+  @@index([userId])
 }
 
 model User {
