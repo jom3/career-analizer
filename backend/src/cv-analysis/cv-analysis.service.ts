@@ -131,13 +131,13 @@ export class CvAnalysisService {
   private hasContent(profile: ProfileWithCollections): boolean {
     return Boolean(
       profile.headline?.trim() ||
-        profile.summary?.trim() ||
-        profile.experiences.length > 0 ||
-        profile.skills.length > 0 ||
-        profile.education.length > 0 ||
-        profile.certifications.length > 0 ||
-        profile.projects.length > 0 ||
-        profile.languages.length > 0,
+      profile.summary?.trim() ||
+      profile.experiences.length > 0 ||
+      profile.skills.length > 0 ||
+      profile.education.length > 0 ||
+      profile.certifications.length > 0 ||
+      profile.projects.length > 0 ||
+      profile.languages.length > 0,
     );
   }
 
@@ -154,7 +154,8 @@ export class CvAnalysisService {
 
   private scoreFor(checks: CvCheck[]): number {
     return checks.reduce(
-      (total, check) => (check.ok ? total + CV_CHECK_WEIGHTS[check.key] : total),
+      (total, check) =>
+        check.ok ? total + CV_CHECK_WEIGHTS[check.key] : total,
       0,
     );
   }

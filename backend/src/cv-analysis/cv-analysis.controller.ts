@@ -9,9 +9,6 @@ export class CvAnalysisController {
 
   @Get()
   analyze(@Req() req: RequestWithUser): Promise<CvAnalysis> {
-    return this.cvAnalysisService.analyze(
-      req.user.id,
-      req.uiLang ?? 'es',
-    );
+    return this.cvAnalysisService.analyze(req.user.id, req.uiLang ?? 'es');
   }
 }

@@ -15,7 +15,18 @@ const profile = {
   summary: 'Backend con Node.js.',
   source: 'USER',
   experiences: [],
-  skills: [{ id: 's1', profileId: 'p1', name: 'Node.js', level: 4, sortOrder: 0, source: 'USER', createdAt: new Date(), updatedAt: new Date() }],
+  skills: [
+    {
+      id: 's1',
+      profileId: 'p1',
+      name: 'Node.js',
+      level: 4,
+      sortOrder: 0,
+      source: 'USER',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  ],
   education: [],
   certifications: [],
   projects: [],
@@ -31,9 +42,11 @@ describe('CvAnalysisParserService', () => {
     client: { chat: { completions: { create: createMock } } },
   };
   const configMock = {
-    get: jest.fn().mockImplementation((key: string, fallback?: string) =>
-      key === 'OPENAI_MODEL' ? 'test-model' : fallback,
-    ),
+    get: jest
+      .fn()
+      .mockImplementation((key: string, fallback?: string) =>
+        key === 'OPENAI_MODEL' ? 'test-model' : fallback,
+      ),
   };
 
   beforeEach(async () => {
