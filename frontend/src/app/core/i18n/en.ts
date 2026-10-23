@@ -429,6 +429,10 @@ export const en: Record<string, string> = {
     'It uses vague adjectives without supporting data.',
   'coverLetter.warning.UNSUPPORTED_NUMBER':
     'It mentions a figure that is not in your profile or the offer.',
+  'coverLetter.warning.UNSUPPORTED_YEARS':
+    'It mentions years of experience that your profile does not state.',
+  'coverLetter.warning.UNSUPPORTED_SECTOR':
+    'It mentions an employer sector that your profile does not state.',
   'coverLetter.warning.MISSING_SKILL':
     'It mentions a technology from the offer that is not in your profile, even to deny it.',
   'coverLetter.warning.GERUND':

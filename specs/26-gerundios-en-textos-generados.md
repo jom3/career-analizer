@@ -1,6 +1,6 @@
 # SPEC 26 — Gerundios en textos generados
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 21 (cartas, prompt v3), SPEC 22 (idioma del documento)
 > **Date:** 2026-10-23
 > **Objective:** Reducir los gerundios en las descripciones adaptadas del CV y en las cartas de presentación. Un gerundio encadenado («usé X, logrando Y») suena a traducción literal del inglés y resta naturalidad. El cambio se decide con medición antes y después, no por intuición.
@@ -88,6 +88,24 @@ Modelo `gpt-4o-mini`. CV: 6 pares × 3 repeticiones = 18 textos. Cartas: 6 pares
 - Sector de empleador inventado («empresa del sector tecnológico») y niveles de skill citados como texto: pendiente de regla en el prompt.
 - El juez es un modelo de IA. No reemplaza una revisión humana.
 
+**Cuarta etapa: años de experiencia y sector del empleador.**
+
+| Corrida | Cambio | Cartas con gerundios | Skills faltantes mencionadas | Afirmaciones sin respaldo (juez) |
+| --- | --- | --- | --- | --- |
+| `final` | (etapa anterior) | 0 | 0 | 2 de 6 (4 afirmaciones; incluía años y sector) |
+| `fidelity2` | `UNSUPPORTED_YEARS` y `UNSUPPORTED_SECTOR` contra el texto del perfil, red de seguridad extendida, prompt v4 | 0 | 0 | 2 de 6 (4 afirmaciones; ninguna es un año ni un sector) |
+
+**Cambios aplicados:**
+
+- **Años de experiencia:** una cifra con «años» o «years» en una oración de experiencia solo es válida si el perfil la declara junto a una unidad de tiempo. La oferta no cuenta como evidencia del candidato. Un nivel de skill numérico (`level: 4`) tampoco.
+- **Sector:** mencionar un sector o industria solo es válido si el perfil lo menciona. El prompt ya no obliga a describir empleadores por sector: solo si el perfil lo declara; si no, se omite el empleador.
+- **Red de seguridad:** después de la corrección, las oraciones con skills faltantes, años o sectores sin respaldo se quitan completas. No agrega texto.
+- **Versión del prompt de carta:** 4.
+
+**Costo conocido:** en P4-O4 la carta quedó muy corta (dos oraciones útiles). Quitar lo no respaldado deja poco material cuando el perfil es escaso. Es preferible a inventar, pero conviene revisar si el candidato necesita completar su perfil.
+
+**Hallazgos del juez que siguen abiertos:** «Tengo experiencia en APIs en producción» (P4-O1) y «Tengo experiencia en la construcción de APIs en producción» (P3-O1) aparecen sin respaldo explícito. No son años ni sectores, y el juez puede ser estricto con parafraseos. Requiere lectura humana.
+
 **Decisión:**
 
 - **CV: se adopta** la regla en español (`cv-adaptation-parser.service.ts`): frases que empiezan con verbo conjugado en pasado y sin gerundios. Reduce de 12 a 6 textos con gerundios y de 24 a 7 gerundios. Es el estilo habitual de bullets de CV.
@@ -109,8 +127,10 @@ Modelo `gpt-4o-mini`. CV: 6 pares × 3 repeticiones = 18 textos. Cartas: 6 pares
 - [x] Negaciones de skills faltantes: se marcan (`MISSING_SKILL`) y, si la corrección no las quita, se eliminan (`final`: 0 de 6).
 - [x] Gerundio residual: 0 de 6 en la corrida final.
 - [x] Chequeo de fidelidad automatizado en la medición (juez gpt-4o): 2 de 6 cartas con afirmaciones sin respaldo, revisadas arriba.
-- [ ] Decidir la regla de años de experiencia (oferta vs. perfil) y el tratamiento de sectores inventados.
-- [ ] Revisión humana de las cartas de `final` antes de cerrar la spec.
+- [x] Años de experiencia: solo si el perfil los declara (`fidelity2`: ninguna carta con años sin respaldo).
+- [x] Sector del empleador: solo si el perfil lo declara; el prompt ya no lo exige (`fidelity2`: ninguna carta con sector inventado).
+- [x] Tests del validador y de la red de seguridad (años, sector, nivel de skill numérico).
+- [ ] Revisión humana de las 6 cartas de `fidelity2`, incluida la limitación de P4-O4 (carta corta por falta de datos en el perfil).
 
 ## Risks
 

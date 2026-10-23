@@ -51,6 +51,54 @@ describe('validateLetter con gerundios', () => {
     expect(warnings).toEqual([{ code: 'MISSING_SKILL', detail: 'Kubernetes' }]);
   });
 
+  it('marca años de experiencia que el perfil no indica, aunque la oferta los tenga', () => {
+    const warnings = validateLetter(
+      'Tengo más de 4 años de experiencia en APIs.',
+      {
+        ...base,
+        lang: 'es',
+        profileText: '{"experiences":[{"position":"Backend Engineer"}]}',
+      },
+    );
+
+    expect(warnings).toEqual([{ code: 'UNSUPPORTED_YEARS', detail: '4 años' }]);
+  });
+
+  it('acepta años de experiencia que el perfil sí indica', () => {
+    const warnings = validateLetter('Tengo 4 años de experiencia en APIs.', {
+      ...base,
+      lang: 'es',
+      profileText: '{"summary":"4 años de experiencia en backend"}',
+    });
+
+    expect(
+      warnings.some((warning) => warning.code === 'UNSUPPORTED_YEARS'),
+    ).toBe(false);
+  });
+
+  it('un nivel de skill numérico no respalda años de experiencia', () => {
+    const warnings = validateLetter('Tengo 4 años de experiencia en APIs.', {
+      ...base,
+      lang: 'es',
+      profileText: '{"skills":[{"name":"NestJS","level":4}]}',
+    });
+
+    expect(warnings.map((warning) => warning.code)).toEqual([
+      'UNSUPPORTED_YEARS',
+    ]);
+  });
+
+  it('marca el sector de un empleador que el perfil no indica', () => {
+    const warnings = validateLetter(
+      'Desarrollé APIs en una empresa del sector tecnológico.',
+      { ...base, lang: 'es', profileText: '{"skills":["NestJS"]}' },
+    );
+
+    expect(warnings.map((warning) => warning.code)).toEqual([
+      'UNSUPPORTED_SECTOR',
+    ]);
+  });
+
   it('no aplica la regla a cartas en inglés', () => {
     const warnings = validateLetter('I built the API using NestJS.', {
       ...base,

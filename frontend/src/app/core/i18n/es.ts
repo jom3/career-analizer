@@ -428,6 +428,10 @@ export const es: Record<string, string> = {
     'Usa adjetivos vacíos sin un dato que los respalde.',
   'coverLetter.warning.UNSUPPORTED_NUMBER':
     'Menciona una cifra que no figura en tu perfil ni en la oferta.',
+  'coverLetter.warning.UNSUPPORTED_YEARS':
+    'Menciona años de experiencia que tu perfil no indica.',
+  'coverLetter.warning.UNSUPPORTED_SECTOR':
+    'Menciona el sector de un empleador que tu perfil no indica.',
   'coverLetter.warning.MISSING_SKILL':
     'Menciona una tecnología de la oferta que no tenés en tu perfil, ni siquiera para negarla.',
   'coverLetter.warning.GERUND':

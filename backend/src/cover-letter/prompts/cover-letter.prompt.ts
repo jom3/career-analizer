@@ -1,4 +1,4 @@
-export const COVER_LETTER_PROMPT_VERSION = 3;
+export const COVER_LETTER_PROMPT_VERSION = 4;
 
 // Hechos primero, prosa después. Lo verificable en código vive en letter-validators.ts.
 const PROCESS = [
@@ -8,7 +8,7 @@ const PROCESS = [
 ];
 const RULES = [
   'Never invent companies, positions, skills, metrics, numbers, education, certifications or projects.',
-  'Describe past employers by their sector, never by name. Never claim a skill the profile lacks.',
+  'Never name past employers. Describe one by its sector only when the profile states that sector; otherwise leave the employer out. State years of experience only when the profile states them. Never claim a skill the profile lacks.',
   'Do not explain, summarize or justify a fact you already stated. Cut any clause that does ("lo que permitió", "which allowed", gerunds).',
   'No generic enthusiasm, no self-evaluation, no forced connection to the job.',
   'Never qualify a skill with an adjective (avanzado, eficiente, sólido, clave, advanced, solid). Name the skill and what you built with it.',

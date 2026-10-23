@@ -10,7 +10,9 @@ export type CoverLetterWarningCode =
   | 'EMPTY_ADJECTIVE'
   | 'UNSUPPORTED_NUMBER'
   | 'GERUND'
-  | 'MISSING_SKILL';
+  | 'MISSING_SKILL'
+  | 'UNSUPPORTED_YEARS'
+  | 'UNSUPPORTED_SECTOR';
 
 export interface CoverLetterWarning {
   code: CoverLetterWarningCode;
@@ -25,6 +27,8 @@ export interface LetterValidationInput {
   supportedNumbers?: string[];
   // Skills de la oferta que el perfil no tiene: ni afirmarlas ni negarlas.
   missingSkills?: string[];
+  // Texto del perfil: única fuente para años de experiencia y sector.
+  profileText?: string;
 }
 
 export const MAX_WORDS = 180;
@@ -192,6 +196,45 @@ function findEmptyAdjectives(content: string, banned: string[]): string[] {
   return found;
 }
 
+const YEARS_CLAIM = /(\d+)\+?\s*(?:años|year|years)\b/giu;
+const EXPERIENCE_WORD = /experiencia|experience|trayectoria/i;
+const SECTOR_WORD = /\b(?:sector|industria|industry)\b/i;
+
+// El perfil respalda años solo si el número aparece junto a una unidad de tiempo:
+// un nivel de skill "4" no es evidencia de experiencia.
+function profileStatesYears(profileText: string, years: string): boolean {
+  return new RegExp(`(?<!\\d)${years}\\s*(?:años|year|years)\\b`, 'iu').test(
+    profileText,
+  );
+}
+
+// Afirmaciones sobre el candidato que el perfil no respalda: años de experiencia
+// y sector del empleador. Una oferta no es evidencia del candidato.
+function findUnsupportedClaims(
+  sentence: string,
+  profileText: string,
+): CoverLetterWarning[] {
+  const warnings: CoverLetterWarning[] = [];
+  if (EXPERIENCE_WORD.test(sentence)) {
+    for (const match of sentence.matchAll(YEARS_CLAIM)) {
+      if (!profileStatesYears(profileText, match[1])) {
+        warnings.push({ code: 'UNSUPPORTED_YEARS', detail: match[0] });
+      }
+    }
+  }
+  if (SECTOR_WORD.test(sentence) && !SECTOR_WORD.test(profileText)) {
+    warnings.push({ code: 'UNSUPPORTED_SECTOR', detail: sentence.trim() });
+  }
+  return warnings;
+}
+
+export function isUnsupportedClaimSentence(
+  sentence: string,
+  profileText: string,
+): boolean {
+  return findUnsupportedClaims(sentence, profileText).length > 0;
+}
+
 export function validateLetter(
   content: string,
   input: LetterValidationInput,
@@ -253,6 +296,13 @@ export function validateLetter(
     );
     if (mentioned.length > 0) {
       warnings.push({ code: 'MISSING_SKILL', detail: mentioned.join(', ') });
+    }
+  }
+
+  if (input.profileText !== undefined) {
+    const sentences = content.split(/(?<=[.!?])\s+|\n+/);
+    for (const sentence of sentences) {
+      warnings.push(...findUnsupportedClaims(sentence, input.profileText));
     }
   }
 
