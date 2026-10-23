@@ -22,7 +22,8 @@ export type CoverLetterWarningCode =
   | 'EMPLOYER_NAME'
   | 'TARGET_COMPANY_REPEATED'
   | 'GENERIC_CLOSING'
-  | 'EMPTY_ADJECTIVE';
+  | 'EMPTY_ADJECTIVE'
+  | 'UNSUPPORTED_NUMBER';
 
 export interface CoverLetterWarning {
   code: CoverLetterWarningCode;

@@ -8,10 +8,8 @@ import {
   validateLetter,
   type CoverLetterWarning,
 } from './letter-validators';
-import {
-  buildCorrectionPrompt,
-  buildCoverLetterSystemPrompt,
-} from './prompts/cover-letter.prompt';
+import { buildCoverLetterSystemPrompt } from './prompts/cover-letter.prompt';
+import { buildCorrectionPrompt } from './prompts/correction.prompt';
 
 export interface CoverLetterMatchInsight {
   overallScore: number | null;
@@ -76,6 +74,8 @@ function describeViolation(warning: CoverLetterWarning): string {
       return 'Replace the closing line with a concrete availability or interview statement only.';
     case 'EMPTY_ADJECTIVE':
       return `Remove or back with a number these vague adjectives: ${warning.detail}.`;
+    case 'UNSUPPORTED_NUMBER':
+      return `Remove or replace these figures: they do not appear in the profile or the offer (${warning.detail}).`;
     default:
       return warning.code;
   }
@@ -127,7 +127,19 @@ export class CoverLetterParserService {
         .map((experience) => experience.company)
         .filter((company): company is string => Boolean(company)),
       targetCompany: input.offer.company,
+      supportedNumbers: this.supportedNumbers(input),
     });
+  }
+
+  // Cifras que la carta puede usar: las que ya existen en el perfil o la oferta.
+  private supportedNumbers(input: CoverLetterGenerationInput): string[] {
+    const source = JSON.stringify({
+      profile: input.profile,
+      offer: input.offer,
+    });
+    return [...source.matchAll(/\d+(?:[.,]\d+)?\s?%?/g)].map(
+      (match) => match[0],
+    );
   }
 
   private async draft(

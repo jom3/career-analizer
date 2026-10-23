@@ -9,6 +9,7 @@ interface ValidationCase {
   text: string;
   employers: string[];
   targetCompany: string | null;
+  supportedNumbers?: string[];
   expect: { violations: CoverLetterWarningCode[] };
 }
 
@@ -34,6 +35,7 @@ describe('validateLetter', () => {
         lang: testCase.lang,
         employers: testCase.employers,
         targetCompany: testCase.targetCompany,
+        supportedNumbers: testCase.supportedNumbers,
       });
 
       expect(warnings.map((warning) => warning.code)).toEqual(
@@ -77,6 +79,29 @@ describe('validateLetter', () => {
   it('no marca como vacío un adjetivo con evidencia numérica cerca', () => {
     const warnings = validateLetter(
       'Reduje la latencia en consultas eficientes de 320 ms a 180 ms. Estoy disponible para una entrevista.',
+      { lang: 'es', employers: [], targetCompany: null },
+    );
+
+    expect(warnings).toEqual([]);
+  });
+
+  it('ignora los años al validar cifras', () => {
+    const warnings = validateLetter(
+      'Trabajé en el proyecto desde 2019 hasta 2021. Estoy disponible para una entrevista.',
+      {
+        lang: 'es',
+        employers: [],
+        targetCompany: null,
+        supportedNumbers: [],
+      },
+    );
+
+    expect(warnings).toEqual([]);
+  });
+
+  it('no valida cifras si no se declaran las soportadas', () => {
+    const warnings = validateLetter(
+      'Reduje los costos un 45%. Estoy disponible para una entrevista.',
       { lang: 'es', employers: [], targetCompany: null },
     );
 

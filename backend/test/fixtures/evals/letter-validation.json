@@ -78,5 +78,47 @@
     "employers": [],
     "targetCompany": "Compañía Ficticia X",
     "expect": { "violations": ["BANNED_PHRASE"] }
+  },
+  {
+    "id": "L11",
+    "lang": "es",
+    "text": "Reduje los costos operativos un 45% en el último año. Estoy disponible para una entrevista.",
+    "employers": [],
+    "targetCompany": "Compañía Ficticia X",
+    "supportedNumbers": ["30"],
+    "expect": { "violations": ["UNSUPPORTED_NUMBER"] }
+  },
+  {
+    "id": "L12",
+    "lang": "es",
+    "text": "Reduje los costos operativos un 30% en el último año. Estoy disponible para una entrevista.",
+    "employers": [],
+    "targetCompany": "Compañía Ficticia X",
+    "supportedNumbers": ["30"],
+    "expect": { "violations": [] }
+  },
+  {
+    "id": "L13",
+    "lang": "es",
+    "text": "Tengo experiencia en Node.js, lo que me permite crear APIs. Estoy disponible para una entrevista.",
+    "employers": [],
+    "targetCompany": "Compañía Ficticia X",
+    "expect": { "violations": ["BANNED_PHRASE"] }
+  },
+  {
+    "id": "L14",
+    "lang": "es",
+    "text": "Estoy entusiasmado por la oportunidad de sumarme al proyecto. Estoy disponible para una entrevista.",
+    "employers": [],
+    "targetCompany": "Compañía Ficticia X",
+    "expect": { "violations": ["BANNED_PHRASE"] }
+  },
+  {
+    "id": "L15",
+    "lang": "es",
+    "text": "Mantuve APIs con NestJS en producción. Espero su respuesta.",
+    "employers": [],
+    "targetCompany": "Compañía Ficticia X",
+    "expect": { "violations": ["BANNED_PHRASE"] }
   }
 ]
