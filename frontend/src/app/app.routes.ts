@@ -9,6 +9,7 @@ import { CoverLetterComponent } from './cover-letter/cover-letter.component';
 import { CoverLetterDetailComponent } from './cover-letter/cover-letter-detail.component';
 import { CoverLetterNewComponent } from './cover-letter/cover-letter-new.component';
 import { CvAdaptationComponent } from './cv-adaptation/cv-adaptation.component';
+import { CvAnalysisComponent } from './cv-analysis/cv-analysis.component';
 import { CvImportComponent } from './cv-import/cv-import.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { JobAnalysisComponent } from './job-analysis/job-analysis.component';
@@ -28,6 +29,7 @@ export const routes: Routes = [
       { path: 'dashboard', component: DashboardComponent },
       { path: 'profile', component: ProfileComponent },
       { path: 'cv-import', component: CvImportComponent },
+      { path: 'cv-analysis', component: CvAnalysisComponent },
       { path: 'job-analysis', component: JobAnalysisComponent },
       { path: 'job-match', component: JobMatchComponent },
       { path: 'job-match/:id', component: JobMatchComponent },
