@@ -308,6 +308,7 @@ describe('CoverLetterService', () => {
         note: string;
         sourceLanguage: string;
         content: string;
+        promptVersion: number;
         offerSnapshot: { title: string };
         profileSnapshot: unknown;
         profileFingerprint: string;
@@ -320,6 +321,7 @@ describe('CoverLetterService', () => {
     expect(createCall[0].data.content).toBe(
       'Dear María López, edited content.',
     );
+    expect(createCall[0].data.promptVersion).toBe(3);
     expect(createCall[0].data.offerSnapshot.title).toBe('Senior Fullstack');
     expect(createCall[0].data.profileFingerprint).toEqual(expect.any(String));
     expect(result.id).toBe('letter-1');

@@ -169,7 +169,7 @@ describe('CoverLetterParserService', () => {
       const prompt = systemPrompts()[0];
       expect(prompt).toContain('next step');
       expect(prompt).toContain('180');
-      expect(prompt).toContain('never invent');
+      expect(prompt).toContain('Never invent');
     });
   });
 
@@ -183,6 +183,29 @@ describe('CoverLetterParserService', () => {
     expect(result.warnings).toEqual([]);
     expect(result.content).toBe(cleanLetter);
     expect(systemPrompts()[1]).toContain('Remove the employer name "Acme"');
+  });
+
+  it('corrige una cifra que no existe en el perfil ni en la oferta', async () => {
+    mockReply(
+      'Dear María López,\n\nI cut latency by 90%.\n\nI am available for an interview this week.',
+    );
+    mockReply(cleanLetter);
+
+    await service.generate(input);
+
+    expect(createMock).toHaveBeenCalledTimes(2);
+    expect(systemPrompts()[1]).toContain('figures');
+  });
+
+  it('no marca cifras que ya están en el perfil u oferta', async () => {
+    mockReply(
+      'Dear María López,\n\nI cut latency by 40%.\n\nI am available for an interview this week.',
+    );
+
+    const result = await service.generate(input);
+
+    expect(createMock).toHaveBeenCalledTimes(1);
+    expect(result.warnings).toEqual([]);
   });
 
   it('entrega la carta con advertencias si la infracción persiste', async () => {
