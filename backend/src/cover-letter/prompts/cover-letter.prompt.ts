@@ -1,4 +1,4 @@
-export const COVER_LETTER_PROMPT_VERSION = 4;
+export const COVER_LETTER_PROMPT_VERSION = 5;
 
 // Hechos primero, prosa después. Lo verificable en código vive en letter-validators.ts.
 const PROCESS = [
@@ -9,6 +9,7 @@ const PROCESS = [
 const RULES = [
   'Never invent companies, positions, skills, metrics, numbers, education, certifications or projects.',
   'Never name past employers. Describe one by its sector only when the profile states that sector; otherwise leave the employer out. State years of experience only when the profile states them. Never claim a skill the profile lacks.',
+  'The job offer describes what the candidate is looking for, never what they did: never turn its requirements or summary into the candidate experience. Only the profile is evidence.',
   'Do not explain, summarize or justify a fact you already stated. Cut any clause that does ("lo que permitió", "which allowed", gerunds).',
   'No generic enthusiasm, no self-evaluation, no forced connection to the job.',
   'Never qualify a skill with an adjective (avanzado, eficiente, sólido, clave, advanced, solid). Name the skill and what you built with it.',
@@ -20,7 +21,7 @@ const EXAMPLES = [
 ];
 const FORMAT = [
   'Aim for 90-150 words in two or three short paragraphs. Maximum 180. Body only, from greeting to closing line: date, subject and signature are added elsewhere.',
-  'Use the recruiter name when provided; otherwise a localized generic greeting.',
+  'When a recruiter name is provided, greet that person by name, never with a generic greeting; otherwise use a localized generic greeting.',
 ];
 
 export function buildCoverLetterSystemPrompt(lang: 'es' | 'en'): string {

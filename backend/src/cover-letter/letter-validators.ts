@@ -12,7 +12,8 @@ export type CoverLetterWarningCode =
   | 'GERUND'
   | 'MISSING_SKILL'
   | 'UNSUPPORTED_YEARS'
-  | 'UNSUPPORTED_SECTOR';
+  | 'UNSUPPORTED_SECTOR'
+  | 'RECRUITER_NAME_MISSING';
 
 export interface CoverLetterWarning {
   code: CoverLetterWarningCode;
@@ -29,6 +30,7 @@ export interface LetterValidationInput {
   missingSkills?: string[];
   // Texto del perfil: única fuente para años de experiencia y sector.
   profileText?: string;
+  recruiterName?: string | null;
 }
 
 export const MAX_WORDS = 180;
@@ -297,6 +299,11 @@ export function validateLetter(
     if (mentioned.length > 0) {
       warnings.push({ code: 'MISSING_SKILL', detail: mentioned.join(', ') });
     }
+  }
+
+  const recruiter = input.recruiterName?.trim();
+  if (recruiter && !lower.includes(normalize(recruiter))) {
+    warnings.push({ code: 'RECRUITER_NAME_MISSING', detail: recruiter });
   }
 
   if (input.profileText !== undefined) {

@@ -16,6 +16,8 @@ export const en: Record<string, string> = {
     'The AI service is unavailable right now. Try again.',
   'errors.invalidInput': 'Review the information you entered.',
   'errors.offerAlreadySaved': 'This offer is already saved in your history.',
+  'errors.profileIncomplete':
+    'Complete your profile with one skill and one experience or project before writing the letter.',
 
   'offerContext.label': 'Offer',
   'offerContext.untitled': 'Untitled offer',
@@ -429,6 +431,8 @@ export const en: Record<string, string> = {
     'It uses vague adjectives without supporting data.',
   'coverLetter.warning.UNSUPPORTED_NUMBER':
     'It mentions a figure that is not in your profile or the offer.',
+  'coverLetter.warning.RECRUITER_NAME_MISSING':
+    'The letter does not greet the recruiter by name.',
   'coverLetter.warning.UNSUPPORTED_YEARS':
     'It mentions years of experience that your profile does not state.',
   'coverLetter.warning.UNSUPPORTED_SECTOR':

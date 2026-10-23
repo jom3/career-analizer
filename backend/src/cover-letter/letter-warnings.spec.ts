@@ -99,6 +99,17 @@ describe('validateLetter con gerundios', () => {
     ]);
   });
 
+  it('marca un saludo genérico cuando hay nombre de reclutador', () => {
+    const warnings = validateLetter(
+      'Estimado reclutador,\n\nConstruí APIs con NestJS.',
+      { ...base, lang: 'es', recruiterName: 'Ana' },
+    );
+
+    expect(warnings).toEqual([
+      { code: 'RECRUITER_NAME_MISSING', detail: 'Ana' },
+    ]);
+  });
+
   it('no aplica la regla a cartas en inglés', () => {
     const warnings = validateLetter('I built the API using NestJS.', {
       ...base,

@@ -6,6 +6,7 @@ const API_ERROR_KEYS: Record<string, string> = {
   AI_UNAVAILABLE: 'errors.aiUnavailable',
   INVALID_INPUT: 'errors.invalidInput',
   OFFER_ALREADY_SAVED: 'errors.offerAlreadySaved',
+  PROFILE_INCOMPLETE: 'errors.profileIncomplete',
 };
 
 export function apiErrorKey(error: unknown): string | null {

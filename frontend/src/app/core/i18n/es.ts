@@ -16,6 +16,8 @@ export const es: Record<string, string> = {
     'El servicio de IA no está disponible en este momento. Intentá de nuevo.',
   'errors.invalidInput': 'Revisá los datos ingresados.',
   'errors.offerAlreadySaved': 'Esta oferta ya está guardada en tu historial.',
+  'errors.profileIncomplete':
+    'Completá tu perfil con una skill y una experiencia o proyecto antes de redactar la carta.',
 
   'offerContext.label': 'Oferta',
   'offerContext.untitled': 'Oferta sin título',
@@ -428,6 +430,8 @@ export const es: Record<string, string> = {
     'Usa adjetivos vacíos sin un dato que los respalde.',
   'coverLetter.warning.UNSUPPORTED_NUMBER':
     'Menciona una cifra que no figura en tu perfil ni en la oferta.',
+  'coverLetter.warning.RECRUITER_NAME_MISSING':
+    'La carta no saluda al reclutador por su nombre.',
   'coverLetter.warning.UNSUPPORTED_YEARS':
     'Menciona años de experiencia que tu perfil no indica.',
   'coverLetter.warning.UNSUPPORTED_SECTOR':

@@ -78,6 +78,8 @@ function describeViolation(warning: CoverLetterWarning): string {
       return `Remove or back with a number these vague adjectives: ${warning.detail}.`;
     case 'MISSING_SKILL':
       return `Remove every mention of these skills, the candidate does not have them, not even to deny them: ${warning.detail}.`;
+    case 'RECRUITER_NAME_MISSING':
+      return `Greet the recruiter by name: "${warning.detail}" must appear in the greeting instead of a generic one.`;
     case 'UNSUPPORTED_YEARS':
       return `Remove the years of experience "${warning.detail}": the profile does not state them. Do not replace them with another number.`;
     case 'UNSUPPORTED_SECTOR':
@@ -166,6 +168,7 @@ export class CoverLetterParserService {
       supportedNumbers: this.supportedNumbers(input),
       missingSkills: this.missingSkills(input),
       profileText: JSON.stringify(input.profile),
+      recruiterName: input.recruiterName,
     });
   }
 

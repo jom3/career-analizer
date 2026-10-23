@@ -106,6 +106,25 @@ Modelo `gpt-4o-mini`. CV: 6 pares × 3 repeticiones = 18 textos. Cartas: 6 pares
 
 **Hallazgos del juez que siguen abiertos:** «Tengo experiencia en APIs en producción» (P4-O1) y «Tengo experiencia en la construcción de APIs en producción» (P3-O1) aparecen sin respaldo explícito. No son años ni sectores, y el juez puede ser estricto con parafraseos. Requiere lectura humana.
 
+**Quinta etapa: revisión de cartas y experiencias inventadas.**
+
+Cambios: umbral de evidencia del perfil (`profile-sufficiency.ts`: al menos una skill y una experiencia descrita o un proyecto; si no, `PROFILE_INCOMPLETE` antes de llamar a la IA), regla de prompt «la oferta describe lo que el candidato busca, nunca lo que hizo», advertencia `RECRUITER_NAME_MISSING` para el saludo, y prompt v5.
+
+| Corrida | Cambio | Cartas | Gerundios | Skills faltantes | Afirmaciones sin respaldo (juez) | Bloqueadas por perfil |
+| --- | --- | --- | --- | --- | --- | --- |
+| `fidelity2` | (etapa anterior) | 6 | 0 | 0 | 2 de 6 (incluía experiencias inventadas en P3-O1 y P4-O1) | 0 |
+| `review2` | umbral, regla de oferta, saludo | 4 | 0 | 0 | 0 de 4 | 2 (P4-O1, P4-O4) |
+
+**Revisión humana de `review2`:**
+
+- P1-O1 (buena): todo respaldado por el perfil. Mínimo: «ImplementÉ Docker en el entorno de desarrollo» agrega un detalle no declarado.
+- P3-O4 (buena): sólida para el puesto. Repite una frase de la oferta («modelos predictivos aplicados a negocio») como experiencia del candidato. Respaldada en contenido, pero el texto viene de la oferta.
+- P1-O4 (genérica): un perfil backend para un puesto de data science. No inventa, pero aporta poco.
+- P3-O1 (fuera de puesto): perfil de datos para un puesto backend. Ya no inventa experiencia en APIs, pero la carta no defiende la candidatura.
+- Registro mixto: «prefieras» (usted) y «consideres» (tú) en la misma carta. Pendiente: fijar un registro en el prompt.
+
+**Costo:** dos perfiles quedan bloqueados (P4-O1 y P4-O4). Es la decisión de producto acordada: mejor pedir más datos que inventar.
+
 **Decisión:**
 
 - **CV: se adopta** la regla en español (`cv-adaptation-parser.service.ts`): frases que empiezan con verbo conjugado en pasado y sin gerundios. Reduce de 12 a 6 textos con gerundios y de 24 a 7 gerundios. Es el estilo habitual de bullets de CV.
