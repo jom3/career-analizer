@@ -1,6 +1,7 @@
 # SPEC 14 — Rediseño total del frontend (shell único + identidad visual + i18n es/en)
 
-> **Status:** Approved
+> **Status:** Implemented
+> **Verificado:** 2026-10-23 — criterios contrastados contra el código: sin Google Fonts ni `localhost:3000`, rail colapsado a 900px, `prefers-reduced-motion`, tags de IA y todos los textos en diccionarios.
 > **Depends on:** SPEC 01, 04–13 (frontends ya implementados)
 > **Date:** 2026-08-10
 > **Objective:** Rediseñar por completo la interfaz Angular con una identidad visual distintiva ("expediente profesional") recogida en design tokens, unificada en un shell único con navegación persistente organizada por el flujo real del producto, campos de formulario con anchos según el tipo de dato, y soporte de idioma de interfaz es/en con selector en el shell — todo 100% frontend, sin tocar el backend ni agregar librerías UI.
@@ -95,17 +96,17 @@ Cada paso deja el sistema compilable y funcionando.
 
 ## Acceptance criteria
 
-- [ ] `npm run build:all`, `npm run lint:all` y `npm run test:all` pasan; el backend no se toca (0 diffs fuera de `frontend/` y `package.json` raíz si aplica).
-- [ ] Existe un shell único con rail lateral en `--ink`, navegación persistente numerada (01 Perfil…05 Documentos), wordmark tipográfico "Career Analyzer", selector de idioma ES/EN y sesión del usuario; **ninguna** pantalla autenticada muestra "Volver al dashboard"; sin sesión redirige a `/auth/login`.
-- [ ] La nueva identidad está en tokens: se aplican las 5+ variables de paleta definidas y las 3 tipografías `@fontsource` (Newsreader/Figtree/IBM Plex Mono) self-hosted; **no** se usa Google Fonts ni fallbacks de sistema para display/body; no quedan valores mágicos sueltos en los componentes (colores ≥ tokenizados).
-- [ ] Los campos de formulario usan el sistema de spans de 12 columnas: teléfono/fechas/año/nivel ocupan menos columnas que empresa/descripción/`summary` (verificable revisando `profile.component.html`); a <600px todo pasa a 1 columna.
-- [ ] `I18nService` con `t()` en todos los textos visibles: cambiar ES→EN en el header cambia **toda** la interfaz sin recargar, persiste en `localStorage`, y al recargar se respeta esa elección; sin preferencia guardada, `navigator.language` es/en → ese idioma, cualquier otro → es; `document.documentElement.lang` refleja el idioma activo.
-- [ ] El dashboard carga datos reales de los endpoints existentes (conteo de ofertas, matches, documentos y completitud del perfil) y muestra empty states con CTA en cada sección vacía; no introduce llamadas nuevas al backend.
-- [ ] Etiquetas y banners de contenido generado: "GENERADO POR IA" en mono sobre `--amber` en CV adaptado y carta; banner de `stale` con texto del idioma activo.
-- [ ] `frontend/package.json` solo agrega `@fontsource/*`; no hay Material, Tailwind, ngx-translate ni NgRx.
-- [ ] Responsive: el rail colapsa <900px, formularios a 1 columna <600px, foco visible en controles y `prefers-reduced-motion` respetada.
-- [ ] No quedan strings visibles hardcodeados fuera de los diccionarios `es.ts`/`en.ts` (verificable por revisión; `http-errors.ts` traducido).
-- [ ] No se toca `specs/.spec-config.yml` y la contribución es solo frontend.
+- [x] `npm run build:all`, `npm run lint:all` y `npm run test:all` pasan; el backend no se toca (0 diffs fuera de `frontend/` y `package.json` raíz si aplica).
+- [x] Existe un shell único con rail lateral en `--ink`, navegación persistente numerada (01 Perfil…05 Documentos), wordmark tipográfico "Career Analyzer", selector de idioma ES/EN y sesión del usuario; **ninguna** pantalla autenticada muestra "Volver al dashboard"; sin sesión redirige a `/auth/login`.
+- [x] La nueva identidad está en tokens: se aplican las 5+ variables de paleta definidas y las 3 tipografías `@fontsource` (Newsreader/Figtree/IBM Plex Mono) self-hosted; **no** se usa Google Fonts ni fallbacks de sistema para display/body; no quedan valores mágicos sueltos en los componentes (colores ≥ tokenizados).
+- [x] Los campos de formulario usan el sistema de spans de 12 columnas: teléfono/fechas/año/nivel ocupan menos columnas que empresa/descripción/`summary` (verificable revisando `profile.component.html`); a <600px todo pasa a 1 columna.
+- [x] `I18nService` con `t()` en todos los textos visibles: cambiar ES→EN en el header cambia **toda** la interfaz sin recargar, persiste en `localStorage`, y al recargar se respeta esa elección; sin preferencia guardada, `navigator.language` es/en → ese idioma, cualquier otro → es; `document.documentElement.lang` refleja el idioma activo.
+- [x] El dashboard carga datos reales de los endpoints existentes (conteo de ofertas, matches, documentos y completitud del perfil) y muestra empty states con CTA en cada sección vacía; no introduce llamadas nuevas al backend.
+- [x] Etiquetas y banners de contenido generado: "GENERADO POR IA" en mono sobre `--amber` en CV adaptado y carta; banner de `stale` con texto del idioma activo.
+- [x] `frontend/package.json` solo agrega `@fontsource/*`; no hay Material, Tailwind, ngx-translate ni NgRx.
+- [x] Responsive: el rail colapsa <900px, formularios a 1 columna <600px, foco visible en controles y `prefers-reduced-motion` respetada.
+- [x] No quedan strings visibles hardcodeados fuera de los diccionarios `es.ts`/`en.ts` (verificable por revisión; `http-errors.ts` traducido).
+- [x] No se toca `specs/.spec-config.yml` y la contribución es solo frontend.
 
 ## Decisions
 

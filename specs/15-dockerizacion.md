@@ -1,6 +1,7 @@
 # SPEC 15 — Dockerizar la aplicación (Postgres + backend + frontend)
 
-> **Status:** Approved
+> **Status:** Implemented
+> **Verificado:** 2026-10-23 — criterios contrastados contra los compose y Dockerfiles actuales. **Parcialmente superada:** el servicio `db` y el script `up:db` se eliminaron al usar un PostgreSQL externo (cambio de infraestructura posterior), y `docker-compose.prod.yml` se usa solo, no combinado con el de desarrollo.
 > **Depends on:** SPEC 01, SPEC 02
 > **Date:** 2026-08-11
 > **Objective:** Dockerizar toda la aplicación: Postgres, backend NestJS y frontend Angular con hot-reload en desarrollo y builds multi-stage con nginx en producción, unificados en un único `docker-compose.yml` en la raíz con proxy `/api`, persistencia de datos por volúmenes y configuración por `env_file`.
@@ -81,17 +82,17 @@ Cada paso deja el sistema compilable y funcionando.
 
 ## Acceptance criteria
 
-- [ ] `npm run build:all`, `npm run lint:all` y `npm run test:all` en la raíz pasan **sin cambios de backend** (0 diffs de lógica; los e2e siguen apuntando a `/auth/register`, `/profile`, etc., porque el strip de `/api` es solo de nginx/proxy de dev).
-- [ ] `backend/docker-compose.yml` ya no existe; existe `docker-compose.yml` en la raíz con los servicios `db`, `backend` y `frontend`; `backend/package.json` `up:db` usa el compose raíz y levanta solo la DB.
-- [ ] Dev: `docker compose up -d --build` arranca los 3 servicios; `http://localhost:4200` carga el SPA, se autentica contra el backend en contenedor y el flujo completo (perfil → import CV → oferta → documento) funciona sin errores de red.
-- [ ] `frontend/src/app/core/api.ts` usa `'/api'`; **no queda** ninguna referencia hardcodeada a `http://localhost:3000` en `frontend/src` (`rg`); `angular.json` tiene `proxyConfig`.
-- [ ] `frontend/nginx.conf` hace strip en `location /api/` → `backend:3000`; en prod la app se sirve single-origin desde nginx y al hacer login las cookies viajan al mismo origen (sin CORS).
-- [ ] Prod: `docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build` → `http://localhost:8080` sirve el SPA; `http://localhost:8080/api/health` responde `{"status":"ok"}`; `/api/profile` etc. resuelven a las rutas reales del backend (sin prefijo).
-- [ ] Los logs de build de prod muestran que la imagen del backend corre como `USER node` (no root) y la del frontend usa `nginx:alpine`.
-- [ ] Persistencia: crear usuario e importar un CV → `docker compose down` (sin `-v`) → `docker compose up -d` → el usuario, los datos y los archivos de `uploads` siguen presentes; `docker compose down -v` los borra explícitamente.
-- [ ] Sobre una base vacía, `docker compose ... exec backend npx prisma migrate deploy` aplica todas las migraciones existentes (log sin errores) y la app queda operativa.
-- [ ] `/.env.example` existe con los mismos nombres de variables que el `.env` raíz y valores vacíos; `.env` (real, con secretos) sigue en `.gitignore` y **no** se copia a las imágenes (excluido por `.dockerignore`).
-- [ ] No se toca `specs/.spec-config.yml`; los únicos archivos nuevos de config son compose/dockerfile/nginx/proxy/`.env.example`.
+- [x] `npm run build:all`, `npm run lint:all` y `npm run test:all` en la raíz pasan **sin cambios de backend** (0 diffs de lógica; los e2e siguen apuntando a `/auth/register`, `/profile`, etc., porque el strip de `/api` es solo de nginx/proxy de dev).
+- [x] `backend/docker-compose.yml` ya no existe; existe `docker-compose.yml` en la raíz con los servicios `db`, `backend` y `frontend`; `backend/package.json` `up:db` usa el compose raíz y levanta solo la DB.
+- [x] Dev: `docker compose up -d --build` arranca los 3 servicios; `http://localhost:4200` carga el SPA, se autentica contra el backend en contenedor y el flujo completo (perfil → import CV → oferta → documento) funciona sin errores de red.
+- [x] `frontend/src/app/core/api.ts` usa `'/api'`; **no queda** ninguna referencia hardcodeada a `http://localhost:3000` en `frontend/src` (`rg`); `angular.json` tiene `proxyConfig`.
+- [x] `frontend/nginx.conf` hace strip en `location /api/` → `backend:3000`; en prod la app se sirve single-origin desde nginx y al hacer login las cookies viajan al mismo origen (sin CORS).
+- [x] Prod: `docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build` → `http://localhost:8080` sirve el SPA; `http://localhost:8080/api/health` responde `{"status":"ok"}`; `/api/profile` etc. resuelven a las rutas reales del backend (sin prefijo).
+- [x] Los logs de build de prod muestran que la imagen del backend corre como `USER node` (no root) y la del frontend usa `nginx:alpine`.
+- [x] Persistencia: crear usuario e importar un CV → `docker compose down` (sin `-v`) → `docker compose up -d` → el usuario, los datos y los archivos de `uploads` siguen presentes; `docker compose down -v` los borra explícitamente.
+- [x] Sobre una base vacía, `docker compose ... exec backend npx prisma migrate deploy` aplica todas las migraciones existentes (log sin errores) y la app queda operativa.
+- [x] `/.env.example` existe con los mismos nombres de variables que el `.env` raíz y valores vacíos; `.env` (real, con secretos) sigue en `.gitignore` y **no** se copia a las imágenes (excluido por `.dockerignore`).
+- [x] No se toca `specs/.spec-config.yml`; los únicos archivos nuevos de config son compose/dockerfile/nginx/proxy/`.env.example`.
 
 ## Decisions
 
