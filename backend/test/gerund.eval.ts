@@ -141,7 +141,7 @@ function missingSkills(
 }
 
 interface Sample {
-  kind: 'cv' | 'letter';
+  kind: 'cv' | 'letter' | 'rewrite';
   name: string;
   text: string;
   gerunds: string[];
@@ -173,6 +173,36 @@ async function generateLetter(
       { role: 'user', content: `Oferta:\n${JSON.stringify(offer)}` },
       { role: 'user', content: `Perfil:\n${JSON.stringify(snapshot)}` },
       { role: 'user', content: 'Recruiter name: Ana' },
+    ],
+  });
+  const raw = completion.choices[0]?.message?.content ?? 'null';
+  return (JSON.parse(raw) as { content?: string }).content ?? '';
+}
+
+async function rewriteGerunds(client: OpenAI, text: string): Promise<string> {
+  const completion = await client.chat.completions.create({
+    model,
+    temperature: 0,
+    response_format: {
+      type: 'json_schema',
+      json_schema: {
+        name: 'rewrite',
+        strict: true,
+        schema: {
+          type: 'object',
+          additionalProperties: false,
+          properties: { content: { type: 'string' } },
+          required: ['content'],
+        },
+      },
+    },
+    messages: [
+      {
+        role: 'system',
+        content:
+          'You edit a Spanish cover letter. Rewrite ONLY the sentences that contain an -ando, -iendo or -yendo verb form, replacing that form with a conjugated verb. Keep every fact, number, name and claim exactly as is; do not add or remove information. Keep all other sentences and the paragraph structure unchanged.',
+      },
+      { role: 'user', content: text },
     ],
   });
   const raw = completion.choices[0]?.message?.content ?? 'null';
@@ -258,6 +288,18 @@ async function main(): Promise<void> {
       text: letter,
       gerunds: findGerunds(letter),
     });
+
+    if (process.env.EVAL_REWRITE === '1' && findGerunds(letter).length > 0) {
+      const rewritten = await rewriteGerunds(client, letter);
+      const rewrittenName = `${label}-letter-rewritten-${base}.md`;
+      writeFileSync(join(outputDir, rewrittenName), rewritten, 'utf8');
+      samples.push({
+        kind: 'rewrite',
+        name: rewrittenName,
+        text: rewritten,
+        gerunds: findGerunds(rewritten),
+      });
+    }
   }
 
   const summary = {
@@ -265,6 +307,7 @@ async function main(): Promise<void> {
     model,
     cv: summarize(samples.filter((sample) => sample.kind === 'cv')),
     letter: summarize(samples.filter((sample) => sample.kind === 'letter')),
+    rewrite: summarize(samples.filter((sample) => sample.kind === 'rewrite')),
   };
   writeFileSync(
     join(outputDir, `${label}-summary.json`),
