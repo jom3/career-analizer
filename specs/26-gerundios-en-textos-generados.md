@@ -52,6 +52,21 @@ Modelo `gpt-4o-mini`. CV: 6 pares × 3 repeticiones = 18 textos. Cartas: 6 pares
 | `rewrite` | paso de reescritura (segunda llamada que edita solo las frases con gerundios), con `gpt-4o-mini` | Sobre 4 cartas con gerundios, 3 siguen con gerundios. Además agregó una afirmación nueva («No cuento con experiencia directa en Python…») y un adjetivo prohibido («sólido conocimiento»). Descartado. |
 | `gpt4o` | misma carta v3 con `gpt-4o` | 5 de 6 cartas siguen con gerundios. Un modelo más grande no resuelve el problema. |
 
+**Segunda etapa: cartas con el pipeline completo.** La medición anterior miraba solo el borrador. Ahora `gerund.eval.ts` llama a `CoverLetterParserService.generate` (borrador, validación y corrección), que es lo que ve el usuario.
+
+| Corrida | Cambio | Cartas con gerundios (6) | Gerundios |
+| --- | --- | --- | --- |
+| `pipeline-before` | ninguno (solo el pipeline actual) | 4 | 5 |
+| `pipeline-after` | advertencia `GERUND` en el validador, que dispara la corrección existente | 1 | 1 |
+
+**Cambio aplicado:** `GERUND` es una advertencia más del validador de cartas en español (`letter-validators.ts`). La corrección existente recibe la instrucción de reemplazarlos por verbos conjugados sin agregar hechos. Detector en `spanish-gerunds.ts`, compartido por el validador y la medición. Se excluyen verbos de primera persona como «entiendo», que la primera versión marcaba como falsos positivos.
+
+**Hallazgos a revisar a mano en `pipeline-after`:**
+
+- La corrección puede redactar negaciones sobre skills de la oferta que el perfil no tiene (P4-O4: «No cuento con experiencia en Python…»). Es honesto, pero ocupa la carta. Hay que decidir si se acepta.
+- P1-O1 dice «en una empresa del sector tecnológico», que no está en el perfil. Viene del borrador (regla de describir empleadores por sector), no de la corrección. Sin verificación automática de hechos no lo podemos asegurar.
+- P1-O4 conserva un gerundio: la corrección es de una sola pasada.
+
 **Decisión:**
 
 - **CV: se adopta** la regla en español (`cv-adaptation-parser.service.ts`): frases que empiezan con verbo conjugado en pasado y sin gerundios. Reduce de 12 a 6 textos con gerundios y de 24 a 7 gerundios. Es el estilo habitual de bullets de CV.
@@ -68,7 +83,10 @@ Modelo `gpt-4o-mini`. CV: 6 pares × 3 repeticiones = 18 textos. Cartas: 6 pares
 - [x] Cartas: no empeoran respecto de la línea base; el prompt v3 se conserva.
 - [x] `npm run test -w career-analyzer-backend` de CV y carta pasan.
 - [x] `npm run lint:all` y `npm run build:all` pasan.
-- [ ] Decisión pendiente sobre el paso de reescritura para cartas.
+- [x] Cartas: el pipeline completo baja de 4 a 1 de 6 cartas con gerundios (`pipeline-after`).
+- [x] Tests del detector y del validador (`spanish-gerunds.spec.ts`), incluidos falsos positivos.
+- [ ] Revisión humana de los hallazgos de la segunda etapa (negaciones de skills, sector inventado, gerundio residual).
+- [ ] Verificar que la corrección no agrega hechos: requiere un chequeo de fidelidad (pendiente).
 
 ## Risks
 

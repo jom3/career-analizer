@@ -2,7 +2,8 @@ import 'dotenv/config';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import OpenAI from 'openai';
-import { buildCoverLetterSystemPrompt } from '../src/cover-letter/prompts/cover-letter.prompt';
+import { CoverLetterParserService } from '../src/cover-letter/cover-letter-parser.service';
+import { findSpanishGerunds } from '../src/cover-letter/spanish-gerunds';
 import {
   CvAdaptationParserService,
   type AdaptationInput,
@@ -11,7 +12,8 @@ import type { AdaptedProfileSnapshot } from '../src/cv-adaptation/cv-adaptation.
 import type { ProfileSnapshot } from '../src/job-match/profile-util';
 import type { OpenaiService } from '../src/openai/openai.service';
 
-// Medición de gerundios en descripciones de CV y cartas: `npm run test:gerund-eval`.
+// Medición de gerundios en descripciones de CV y en cartas (pipeline completo:
+// borrador, validación y corrección): `npm run test:gerund-eval`.
 // No corre en CI: consume tokens de OpenAI.
 
 const fixturesDir = join(__dirname, 'fixtures', 'evals');
@@ -19,35 +21,6 @@ const outputDir = join(__dirname, 'gerund-eval-out');
 const label = process.env.EVAL_LABEL ?? 'run';
 const cvReps = Number(process.env.EVAL_REPS ?? 3);
 const model = process.env.OPENAI_MODEL ?? 'gpt-4o-mini';
-
-const GERUND_SUFFIX =
-  /(ando|iendo|yendo)(me|te|se|nos|os|le|les|lo|la|los|las)?$/;
-const GERUND_EXCEPTIONS = new Set([
-  'cuando',
-  'mando',
-  'comando',
-  'demando',
-  'fernando',
-  'armando',
-  'hernando',
-  'rolando',
-  'orlando',
-]);
-
-function normalizeWord(word: string): string {
-  return word
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
-}
-
-export function findGerunds(text: string): string[] {
-  const words = text.match(/\p{L}+/gu) ?? [];
-  return words.filter((word) => {
-    const normalized = normalizeWord(word);
-    return !GERUND_EXCEPTIONS.has(normalized) && GERUND_SUFFIX.test(normalized);
-  });
-}
 
 interface ProfileFixture {
   id: string;
@@ -118,13 +91,15 @@ function toAdaptedSnapshot(snapshot: ProfileSnapshot): AdaptedProfileSnapshot {
   } as unknown as AdaptedProfileSnapshot;
 }
 
+function ownedSkills(snapshot: ProfileSnapshot): Set<string> {
+  return new Set(snapshot.skills.map((skill) => skill.name.toLowerCase()));
+}
+
 function matchedSkills(
   snapshot: ProfileSnapshot,
   offer: OfferFixture,
 ): string[] {
-  const owned = new Set(
-    snapshot.skills.map((skill) => skill.name.toLowerCase()),
-  );
+  const owned = ownedSkills(snapshot);
   return offer.requiredSkills.filter((skill) => owned.has(skill.toLowerCase()));
 }
 
@@ -132,81 +107,17 @@ function missingSkills(
   snapshot: ProfileSnapshot,
   offer: OfferFixture,
 ): string[] {
-  const owned = new Set(
-    snapshot.skills.map((skill) => skill.name.toLowerCase()),
-  );
+  const owned = ownedSkills(snapshot);
   return offer.requiredSkills.filter(
     (skill) => !owned.has(skill.toLowerCase()),
   );
 }
 
 interface Sample {
-  kind: 'cv' | 'letter' | 'rewrite';
+  kind: 'cv' | 'letter';
   name: string;
   text: string;
   gerunds: string[];
-}
-
-async function generateLetter(
-  client: OpenAI,
-  snapshot: ProfileSnapshot,
-  offer: OfferFixture,
-): Promise<string> {
-  const completion = await client.chat.completions.create({
-    model,
-    temperature: 0,
-    response_format: {
-      type: 'json_schema',
-      json_schema: {
-        name: 'cover_letter',
-        strict: true,
-        schema: {
-          type: 'object',
-          additionalProperties: false,
-          properties: { content: { type: 'string' } },
-          required: ['content'],
-        },
-      },
-    },
-    messages: [
-      { role: 'system', content: buildCoverLetterSystemPrompt('es') },
-      { role: 'user', content: `Oferta:\n${JSON.stringify(offer)}` },
-      { role: 'user', content: `Perfil:\n${JSON.stringify(snapshot)}` },
-      { role: 'user', content: 'Recruiter name: Ana' },
-    ],
-  });
-  const raw = completion.choices[0]?.message?.content ?? 'null';
-  return (JSON.parse(raw) as { content?: string }).content ?? '';
-}
-
-async function rewriteGerunds(client: OpenAI, text: string): Promise<string> {
-  const completion = await client.chat.completions.create({
-    model,
-    temperature: 0,
-    response_format: {
-      type: 'json_schema',
-      json_schema: {
-        name: 'rewrite',
-        strict: true,
-        schema: {
-          type: 'object',
-          additionalProperties: false,
-          properties: { content: { type: 'string' } },
-          required: ['content'],
-        },
-      },
-    },
-    messages: [
-      {
-        role: 'system',
-        content:
-          'You edit a Spanish cover letter. Rewrite ONLY the sentences that contain an -ando, -iendo or -yendo verb form, replacing that form with a conjugated verb. Keep every fact, number, name and claim exactly as is; do not add or remove information. Keep all other sentences and the paragraph structure unchanged.',
-      },
-      { role: 'user', content: text },
-    ],
-  });
-  const raw = completion.choices[0]?.message?.content ?? 'null';
-  return (JSON.parse(raw) as { content?: string }).content ?? '';
 }
 
 async function generateCvDescriptions(
@@ -232,6 +143,30 @@ async function generateCvDescriptions(
   return result.experienceDescriptions.map((item) => item.text).join('\n');
 }
 
+async function generateLetter(
+  parser: CoverLetterParserService,
+  snapshot: ProfileSnapshot,
+  offer: OfferFixture,
+): Promise<string> {
+  const result = await parser.generate({
+    profile: snapshot,
+    offer: {
+      title: offer.title,
+      company: offer.company,
+      responsibilities: [],
+      requiredSkills: offer.requiredSkills,
+      preferredSkills: offer.preferredSkills,
+      experienceSummary: offer.experienceSummary,
+      keywords: [],
+    },
+    recruiterName: 'Ana',
+    note: null,
+    lang: 'es',
+    match: null,
+  });
+  return result.content;
+}
+
 function summarize(samples: Sample[]): object {
   const withGerunds = samples.filter((sample) => sample.gerunds.length > 0);
   return {
@@ -253,13 +188,13 @@ async function main(): Promise<void> {
     return;
   }
   const client = new OpenAI({ apiKey });
-  const parser = new CvAdaptationParserService(
-    {
-      get: (key: string, fallback?: string) =>
-        key === 'OPENAI_MODEL' ? model : fallback,
-    } as never,
-    { client } as unknown as OpenaiService,
-  );
+  const config = {
+    get: (key: string, fallback?: string) =>
+      key === 'OPENAI_MODEL' ? model : fallback,
+  } as never;
+  const openai = { client } as unknown as OpenaiService;
+  const cvParser = new CvAdaptationParserService(config, openai);
+  const letterParser = new CoverLetterParserService(config, openai);
   mkdirSync(outputDir, { recursive: true });
 
   const samples: Sample[] = [];
@@ -270,36 +205,29 @@ async function main(): Promise<void> {
 
     for (let rep = 1; rep <= cvReps; rep++) {
       try {
-        const text = await generateCvDescriptions(parser, profile, offer);
+        const text = await generateCvDescriptions(cvParser, profile, offer);
         const name = `${label}-cv-${base}-${rep}.md`;
         writeFileSync(join(outputDir, name), text, 'utf8');
-        samples.push({ kind: 'cv', name, text, gerunds: findGerunds(text) });
+        samples.push({
+          kind: 'cv',
+          name,
+          text,
+          gerunds: findSpanishGerunds(text),
+        });
       } catch (error) {
         console.error(`CV ${base} rep ${rep} falló:`, (error as Error).message);
       }
     }
 
-    const letter = await generateLetter(client, profile, offer);
+    const letter = await generateLetter(letterParser, profile, offer);
     const letterName = `${label}-letter-${base}.md`;
     writeFileSync(join(outputDir, letterName), letter, 'utf8');
     samples.push({
       kind: 'letter',
       name: letterName,
       text: letter,
-      gerunds: findGerunds(letter),
+      gerunds: findSpanishGerunds(letter),
     });
-
-    if (process.env.EVAL_REWRITE === '1' && findGerunds(letter).length > 0) {
-      const rewritten = await rewriteGerunds(client, letter);
-      const rewrittenName = `${label}-letter-rewritten-${base}.md`;
-      writeFileSync(join(outputDir, rewrittenName), rewritten, 'utf8');
-      samples.push({
-        kind: 'rewrite',
-        name: rewrittenName,
-        text: rewritten,
-        gerunds: findGerunds(rewritten),
-      });
-    }
   }
 
   const summary = {
@@ -307,7 +235,6 @@ async function main(): Promise<void> {
     model,
     cv: summarize(samples.filter((sample) => sample.kind === 'cv')),
     letter: summarize(samples.filter((sample) => sample.kind === 'letter')),
-    rewrite: summarize(samples.filter((sample) => sample.kind === 'rewrite')),
   };
   writeFileSync(
     join(outputDir, `${label}-summary.json`),
