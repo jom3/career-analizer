@@ -230,6 +230,24 @@ describe('CoverLetterParserService', () => {
     expect(createMock.mock.calls.length).toBeLessThanOrEqual(2);
   });
 
+  it('quita la oración que menciona una skill faltante si la corrección no la elimina', async () => {
+    const withMissingSkill = {
+      ...input,
+      offer: { ...input.offer, requiredSkills: ['TypeScript', 'Kubernetes'] },
+    };
+    const draftWithMissingSkill =
+      'Dear María López,\n\nBuilt APIs with TypeScript. I have no experience with Kubernetes.\n\nI am available for an interview.';
+    mockReply(draftWithMissingSkill);
+    mockReply(draftWithMissingSkill);
+
+    const result = await service.generate(withMissingSkill);
+
+    expect(result.content).toBe(
+      'Dear María López,\n\nBuilt APIs with TypeScript.\n\nI am available for an interview.',
+    );
+    expect(result.warnings).toEqual([]);
+  });
+
   it('devuelve el borrador con advertencias si la corrección falla', async () => {
     mockReply(employerViolation);
     createMock.mockRejectedValueOnce(new Error('boom'));

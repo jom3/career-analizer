@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
+import { mentionsToken } from '../common/token-mention';
 import { OpenaiService } from '../openai/openai.service';
 import {
   CvAdaptationParserService,
@@ -234,16 +235,9 @@ describe('CvAdaptationParserService', () => {
     ),
   ) as MentionCase[];
 
-  const mentions = (text: string, skill: string): boolean =>
-    (
-      service as unknown as {
-        mentionsSkill(t: string, s: string): boolean;
-      }
-    ).mentionsSkill(text, skill);
-
   it('cubre los 12 casos de skill-mentions.json', () => {
     for (const testCase of mentionCases) {
-      expect(mentions(testCase.text, testCase.missingSkill)).toBe(
+      expect(mentionsToken(testCase.text, testCase.missingSkill)).toBe(
         testCase.mentions,
       );
     }

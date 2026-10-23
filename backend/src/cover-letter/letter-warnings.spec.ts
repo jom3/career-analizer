@@ -38,6 +38,19 @@ describe('validateLetter con gerundios', () => {
     expect(warnings).toEqual([{ code: 'GERUND', detail: 'utilizando' }]);
   });
 
+  it('marca una skill de la oferta que el perfil no tiene, aunque se niegue', () => {
+    const warnings = validateLetter(
+      'Construí APIs con NestJS. No tengo experiencia con Kubernetes.',
+      {
+        ...base,
+        lang: 'es',
+        missingSkills: ['Kubernetes', 'Terraform'],
+      },
+    );
+
+    expect(warnings).toEqual([{ code: 'MISSING_SKILL', detail: 'Kubernetes' }]);
+  });
+
   it('no aplica la regla a cartas en inglés', () => {
     const warnings = validateLetter('I built the API using NestJS.', {
       ...base,

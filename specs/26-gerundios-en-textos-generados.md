@@ -67,6 +67,27 @@ Modelo `gpt-4o-mini`. CV: 6 pares × 3 repeticiones = 18 textos. Cartas: 6 pares
 - P1-O1 dice «en una empresa del sector tecnológico», que no está en el perfil. Viene del borrador (regla de describir empleadores por sector), no de la corrección. Sin verificación automática de hechos no lo podemos asegurar.
 - P1-O4 conserva un gerundio: la corrección es de una sola pasada.
 
+**Tercera etapa: skills faltantes, fidelidad y gerundio residual.**
+
+| Corrida | Cambio | Cartas con gerundios | Cartas con skill faltante mencionada | Cartas con afirmación sin respaldo (juez) |
+| --- | --- | --- | --- | --- |
+| `fidelity` | advertencia `MISSING_SKILL` en el validador (pero sin limpieza posterior) | 2 | 1 | 6 (juez gpt-4o-mini, poco confiable) |
+| `final` | limpieza determinista de oraciones con skills faltantes + juez gpt-4o | 0 | 0 | 2 de 6 (4 afirmaciones) |
+
+**Cambios aplicados:**
+
+- `MISSING_SKILL`: la carta no puede mencionar tecnologías de la oferta que el perfil no tiene, ni siquiera para negarlas. Criterio de palabra completa compartido con CV, movido a `backend/src/common/token-mention.ts`.
+- Red de seguridad: si la corrección deja una mención a una skill faltante, se quita la oración completa. No agrega hechos. Test en `cover-letter-parser.service.spec.ts`.
+- Juez de fidelidad solo en la medición (`EVAL_JUDGE_MODEL`, por defecto gpt-4o). No está en producción.
+- Gerundio residual: resuelto en la práctica (0 de 6). El límite de dos llamadas (borrador y una corrección) es una decisión deliberada y está cubierto por un test, así que no se agregó una segunda pasada.
+
+**Lo que sigue abierto (revisión humana):**
+
+- P1-O1 y P1-O4: el juez marca «Más de 4 años de experiencia…». La oferta pide «4+ años», pero el perfil no tiene fechas que lo respalden. La carta toma un requisito de la oferta como experiencia del candidato. Hay que decidir si es una regla nueva (años solo si el perfil los prueba) o se acepta.
+- P1-O4: «Utilicé bases de datos en varios proyectos» y «He trabajado para desarrollar aplicaciones backend»: el juez los marca como no respaldados, pero pueden ser parafraseos de la descripción del perfil. Requiere lectura humana.
+- Sector de empleador inventado («empresa del sector tecnológico») y niveles de skill citados como texto: pendiente de regla en el prompt.
+- El juez es un modelo de IA. No reemplaza una revisión humana.
+
 **Decisión:**
 
 - **CV: se adopta** la regla en español (`cv-adaptation-parser.service.ts`): frases que empiezan con verbo conjugado en pasado y sin gerundios. Reduce de 12 a 6 textos con gerundios y de 24 a 7 gerundios. Es el estilo habitual de bullets de CV.
@@ -85,8 +106,11 @@ Modelo `gpt-4o-mini`. CV: 6 pares × 3 repeticiones = 18 textos. Cartas: 6 pares
 - [x] `npm run lint:all` y `npm run build:all` pasan.
 - [x] Cartas: el pipeline completo baja de 4 a 1 de 6 cartas con gerundios (`pipeline-after`).
 - [x] Tests del detector y del validador (`spanish-gerunds.spec.ts`), incluidos falsos positivos.
-- [ ] Revisión humana de los hallazgos de la segunda etapa (negaciones de skills, sector inventado, gerundio residual).
-- [ ] Verificar que la corrección no agrega hechos: requiere un chequeo de fidelidad (pendiente).
+- [x] Negaciones de skills faltantes: se marcan (`MISSING_SKILL`) y, si la corrección no las quita, se eliminan (`final`: 0 de 6).
+- [x] Gerundio residual: 0 de 6 en la corrida final.
+- [x] Chequeo de fidelidad automatizado en la medición (juez gpt-4o): 2 de 6 cartas con afirmaciones sin respaldo, revisadas arriba.
+- [ ] Decidir la regla de años de experiencia (oferta vs. perfil) y el tratamiento de sectores inventados.
+- [ ] Revisión humana de las cartas de `final` antes de cerrar la spec.
 
 ## Risks
 

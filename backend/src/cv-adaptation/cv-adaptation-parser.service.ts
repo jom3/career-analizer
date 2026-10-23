@@ -1,6 +1,7 @@
 import { BadGatewayException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { apiError } from '../common/api-error-codes';
+import { mentionsToken } from '../common/token-mention';
 import { OpenaiService } from '../openai/openai.service';
 import type { AdaptedProfileSnapshot } from './cv-adaptation.types';
 
@@ -191,22 +192,8 @@ export class CvAdaptationParserService {
     }
     const forbidden = missingSkills.map((skill) => skill.toLowerCase());
     const safe = experienceDescriptions.filter(
-      (item) =>
-        !forbidden.some((skill) => this.mentionsSkill(item.text, skill)),
+      (item) => !forbidden.some((skill) => mentionsToken(item.text, skill)),
     );
     return { experienceDescriptions: safe };
-  }
-
-  // Compara por palabra completa: evita que "Go" descarte "good" o que "Java"
-  // descarte "JavaScript". Los símbolos de C++ y C# se respetan como parte del
-  // token, y "Node" sí matchea "Node.js" (el punto no es carácter de palabra).
-  private mentionsSkill(text: string, skillToken: string): boolean {
-    const token = skillToken.trim();
-    if (token.length === 0) {
-      return false;
-    }
-    const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const pattern = new RegExp(`(?<![\\w+#.])${escaped}(?![\\w+#])`, 'i');
-    return pattern.test(text);
   }
 }

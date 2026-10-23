@@ -428,6 +428,8 @@ export const en: Record<string, string> = {
     'It uses vague adjectives without supporting data.',
   'coverLetter.warning.UNSUPPORTED_NUMBER':
     'It mentions a figure that is not in your profile or the offer.',
+  'coverLetter.warning.MISSING_SKILL':
+    'It mentions a technology from the offer that is not in your profile, even to deny it.',
   'coverLetter.warning.GERUND':
     'Uses Spanish gerunds (-ando, -iendo) that read like a literal translation. A conjugated verb reads better.',
   'coverLetter.saveChanges': 'Save changes',

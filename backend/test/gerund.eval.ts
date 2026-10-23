@@ -3,6 +3,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import OpenAI from 'openai';
 import { CoverLetterParserService } from '../src/cover-letter/cover-letter-parser.service';
+import { mentionsToken } from '../src/common/token-mention';
 import { findSpanishGerunds } from '../src/cover-letter/spanish-gerunds';
 import {
   CvAdaptationParserService,
@@ -21,6 +22,7 @@ const outputDir = join(__dirname, 'gerund-eval-out');
 const label = process.env.EVAL_LABEL ?? 'run';
 const cvReps = Number(process.env.EVAL_REPS ?? 3);
 const model = process.env.OPENAI_MODEL ?? 'gpt-4o-mini';
+const judgeModel = process.env.EVAL_JUDGE_MODEL ?? 'gpt-4o';
 
 interface ProfileFixture {
   id: string;
@@ -118,6 +120,8 @@ interface Sample {
   name: string;
   text: string;
   gerunds: string[];
+  unsupported: string[];
+  missingSkills: string[];
 }
 
 async function generateCvDescriptions(
@@ -167,6 +171,57 @@ async function generateLetter(
   return result.content;
 }
 
+async function unsupportedClaims(
+  client: OpenAI,
+  letter: string,
+  profile: ProfileSnapshot,
+  offer: OfferFixture,
+): Promise<string[]> {
+  const completion = await client.chat.completions.create({
+    model: judgeModel,
+    temperature: 0,
+    response_format: {
+      type: 'json_schema',
+      json_schema: {
+        name: 'claims',
+        strict: true,
+        schema: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            unsupported: { type: 'array', items: { type: 'string' } },
+          },
+          required: ['unsupported'],
+        },
+      },
+    },
+    messages: [
+      {
+        role: 'system',
+        content:
+          'You audit a cover letter against two sources: the candidate profile and the job offer. List only the factual claims about the candidate (technology, role, company, metric, achievement, education, years, sector, skill level) that the two sources do NOT state. A claim supported by either source is not an issue. Do not list the sources themselves. Return an empty list when nothing is unsupported.',
+      },
+      { role: 'user', content: `Offer:\n${JSON.stringify(offer)}` },
+      { role: 'user', content: `Profile:\n${JSON.stringify(profile)}` },
+      { role: 'user', content: `Letter:\n${letter}` },
+    ],
+  });
+  const raw = completion.choices[0]?.message?.content ?? '{"unsupported":[]}';
+  return (JSON.parse(raw) as { unsupported: string[] }).unsupported;
+}
+
+function missingSkillMentions(
+  letter: string,
+  profile: ProfileSnapshot,
+  offer: OfferFixture,
+): string[] {
+  const profileText = JSON.stringify(profile);
+  return [...offer.requiredSkills, ...offer.preferredSkills].filter(
+    (skill) =>
+      !mentionsToken(profileText, skill) && mentionsToken(letter, skill),
+  );
+}
+
 function summarize(samples: Sample[]): object {
   const withGerunds = samples.filter((sample) => sample.gerunds.length > 0);
   return {
@@ -213,6 +268,8 @@ async function main(): Promise<void> {
           name,
           text,
           gerunds: findSpanishGerunds(text),
+          unsupported: [],
+          missingSkills: [],
         });
       } catch (error) {
         console.error(`CV ${base} rep ${rep} falló:`, (error as Error).message);
@@ -222,19 +279,32 @@ async function main(): Promise<void> {
     const letter = await generateLetter(letterParser, profile, offer);
     const letterName = `${label}-letter-${base}.md`;
     writeFileSync(join(outputDir, letterName), letter, 'utf8');
+    const claims = await unsupportedClaims(client, letter, profile, offer);
+    const skillMentions = missingSkillMentions(letter, profile, offer);
     samples.push({
       kind: 'letter',
       name: letterName,
       text: letter,
       gerunds: findSpanishGerunds(letter),
+      unsupported: claims,
+      missingSkills: skillMentions,
     });
   }
 
+  const letters = samples.filter((sample) => sample.kind === 'letter');
   const summary = {
     label,
     model,
     cv: summarize(samples.filter((sample) => sample.kind === 'cv')),
-    letter: summarize(samples.filter((sample) => sample.kind === 'letter')),
+    letter: {
+      ...summarize(letters),
+      withUnsupportedClaims: letters.filter((s) => s.unsupported.length > 0)
+        .length,
+      unsupportedClaims: letters.flatMap((s) => s.unsupported).slice(0, 15),
+      withMissingSkillMentions: letters.filter(
+        (s) => s.missingSkills.length > 0,
+      ).length,
+    },
   };
   writeFileSync(
     join(outputDir, `${label}-summary.json`),

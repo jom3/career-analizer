@@ -24,7 +24,8 @@ export type CoverLetterWarningCode =
   | 'GENERIC_CLOSING'
   | 'EMPTY_ADJECTIVE'
   | 'UNSUPPORTED_NUMBER'
-  | 'GERUND';
+  | 'GERUND'
+  | 'MISSING_SKILL';
 
 export interface CoverLetterWarning {
   code: CoverLetterWarningCode;
