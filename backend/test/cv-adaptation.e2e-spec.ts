@@ -7,6 +7,7 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 import { CvAdaptationParserService } from './../src/cv-adaptation/cv-adaptation-parser.service';
+import { JobMatchParserService } from './../src/job-match/job-match-parser.service';
 
 const DOCX_MIME =
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
@@ -38,6 +39,24 @@ const parserMock = {
   modelName: 'test-model',
 };
 
+// Este e2e crea un match para probar jobMatchId ajeno: se mockea el parser de
+// match para no llamar a OpenAI real desde CI.
+const matchParserMock = {
+  match: jest.fn().mockResolvedValue({
+    overallScore: 70,
+    overallJustification: 'Mock',
+    dimensions: [
+      { key: 'skills', score: 70, justification: 'Mock' },
+      { key: 'experience', score: 70, justification: 'Mock' },
+      { key: 'education', score: 70, justification: 'Mock' },
+      { key: 'languages', score: 70, justification: 'Mock' },
+    ],
+    gaps: [],
+    recommendations: [],
+  }),
+  modelName: 'test-model',
+};
+
 describe('CV Adaptation (e2e)', () => {
   let app: INestApplication<App>;
   const email = `cv-adap-${Date.now()}@test.dev`;
@@ -50,6 +69,8 @@ describe('CV Adaptation (e2e)', () => {
     })
       .overrideProvider(CvAdaptationParserService)
       .useValue(parserMock)
+      .overrideProvider(JobMatchParserService)
+      .useValue(matchParserMock)
       .compile();
 
     app = moduleFixture.createNestApplication();

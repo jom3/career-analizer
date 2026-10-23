@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Lint, build and unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npm run prisma:generate -w career-analyzer-backend
+
+      - name: Lint
+        run: npm run lint:all
+
+      - name: Build
+        run: npm run build:all
+
+      - name: Backend unit tests
+        run: npm run test -w career-analyzer-backend
+
+      - name: Frontend unit tests
+        run: npm run test -w career-analyzer-frontend -- --watch=false
+
+  e2e:
+    name: E2E with ephemeral Postgres
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: career_analyzer
+          POSTGRES_PASSWORD: career_analyzer_dev
+          POSTGRES_DB: career_analyzer
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U career_analyzer -d career_analyzer"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://career_analyzer:career_analyzer_dev@localhost:5432/career_analyzer?schema=public
+      OPENAI_API_KEY: ci-test-key
+      JWT_SECRET: ci-jwt-secret-with-more-than-32-characters
+      CLIENT_ORIGIN: http://localhost:4200
+      MAIL_DRIVER: log
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npm run prisma:generate -w career-analyzer-backend
+
+      - name: Prepare uploads directory
+        run: mkdir -p backend/uploads
+
+      - name: Apply migrations
+        working-directory: backend
+        run: npx prisma migrate deploy
+
+      - name: End-to-end tests
+        run: npm run test:e2e -w career-analyzer-backend -- --runInBand
