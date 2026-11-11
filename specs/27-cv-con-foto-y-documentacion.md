@@ -1,6 +1,6 @@
 # SPEC 27 — CV con foto y CV documentado
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 05, SPEC 06, SPEC 07, SPEC 09
 > **Date:** 2026-11-09
 > **Objective:** Agregar dos documentos derivados del Candidate Profile, independientes del CV ATS (SPEC 07/09): (1) un CV con foto con el diseño de referencia del usuario, y (2) un CV documentado que es el CV con foto más los títulos y certificados adjuntos como anexos. Ambos en DOCX y PDF. La foto y los archivos se suben una sola vez, se guardan en el servidor y se reutilizan en cada generación.
@@ -160,7 +160,7 @@ Cada paso deja el sistema compilable y funcionando.
 8. **Módulo `cv-documented`:** `cv-documented.service.ts`:
    - Reutiliza `CvPhotoService` para la primera parte (con variante `documented`).
    - Anexos PDF con `pdf-lib`. Anexos DOCX con `pdfjs-dist` y `@napi-rs/canvas`.
-   - Límites de 10 anexos y 40 MB.
+   - Límites de 30 anexos y 40 MB.
    - `cv-documented.controller.ts` con `GET /cv-documented` y `cv-documented.module.ts`. Registrar en `app.module.ts`.
 9. **Frontend, perfil.** En `profile.component`:
    - Sección de foto (subir, reemplazar, borrar, preview con `<img src="/api/profile/photo">`).
@@ -173,24 +173,24 @@ Cada paso deja el sistema compilable y funcionando.
 
 ## Acceptance criteria
 
-- [ ] `PUT /profile/photo` acepta JPG o PNG hasta 10 MB; rechaza otros tipos (400) y archivos mayores (413). El archivo se guarda con nombre aleatorio dentro de `uploads/profile/`.
-- [ ] `PUT /profile/photo` reemplazar elimina el archivo anterior del disco. `DELETE /profile/photo` elimina el archivo y limpia `photoPath`.
-- [ ] `GET /profile/photo` devuelve la imagen con el `Content-Type` correcto; sin foto → 404; de otro usuario → 404.
-- [ ] `PUT` de archivo de título o certificado acepta PDF, JPG y PNG hasta 10 MB; un PDF cifrado o corrupto → 400.
-- [ ] `PUT /profile` (sincronización) no borra ni altera los archivos adjuntos de items que siguen presentes; si quita un item, su archivo se elimina del disco.
-- [ ] `showInCompactCv` y `showInDocumentedCv` se persisten, tienen default `true`, y se reflejan en `GET /profile`.
-- [ ] `GET /cv-photo?format=pdf` y `format=docx` generan el documento con la foto (si existe), el diseño de referencia y los datos del perfil. El texto del PDF es seleccionable.
-- [ ] En `/cv-photo`, un certificado con `showInCompactCv = false` no aparece; en `/cv-export` (ATS) tampoco.
-- [ ] Barras de habilidades = `level/5`; barras de idiomas según la escala CEFR de 6 niveles; fechas en formato corto en `es` y `en`.
-- [ ] `GET /cv-documented?format=pdf` genera la primera parte del CV más un anexo por título o certificado con archivo y `showInDocumentedCv = true`, en orden de `sortOrder`, cada uno en su propia hoja con la cabecera de sección y sin páginas separadoras.
-- [ ] `GET /cv-documented?format=docx` genera lo mismo, con los PDF rasterizados como imágenes y las imágenes insertadas directamente.
-- [ ] Más de 10 anexos o más de 40 MB → 400 con mensaje claro; no se genera el documento.
-- [ ] Sin cookie → 401 en todos los endpoints nuevos. `format` inválido → 400. `lang` inválido → 400.
-- [ ] En el frontend, los botones de generación muestran la animación de carga mientras espera la respuesta y disparan la descarga al terminar.
-- [ ] Los archivos de documentos y foto sobreviven a un reinicio del backend (volumen en dev y prod).
-- [ ] Ningún documento generado se persiste, y no se usa `localStorage`.
-- [ ] `npm run build:all`, `npm run lint:all` y `npm run test -w career-analyzer-backend` pasan (unit + e2e), contra una base de prueba y no la de datos reales.
-- [ ] Verificación visual manual: el CV con foto se compara lado a lado con el Word de referencia y no tiene diferencias de estructura (franja, columnas, barras, orden de secciones).
+- [x] `PUT /profile/photo` acepta JPG o PNG hasta 10 MB; rechaza otros tipos (400) y archivos mayores (413). El archivo se guarda con nombre aleatorio dentro de `uploads/profile/`.
+- [x] `PUT /profile/photo` reemplazar elimina el archivo anterior del disco. `DELETE /profile/photo` elimina el archivo y limpia `photoPath`.
+- [x] `GET /profile/photo` devuelve la imagen con el `Content-Type` correcto; sin foto → 404; de otro usuario → 404.
+- [x] `PUT` de archivo de título o certificado acepta PDF, JPG y PNG hasta 10 MB; un PDF cifrado o corrupto → 400.
+- [x] `PUT /profile` (sincronización) no borra ni altera los archivos adjuntos de items que siguen presentes; si quita un item, su archivo se elimina del disco.
+- [x] `showInCompactCv` y `showInDocumentedCv` se persisten, tienen default `true`, y se reflejan en `GET /profile`.
+- [x] `GET /cv-photo?format=pdf` y `format=docx` generan el documento con la foto (si existe), el diseño de referencia y los datos del perfil. El texto del PDF es seleccionable.
+- [x] En `/cv-photo`, un certificado con `showInCompactCv = false` no aparece; en `/cv-export` (ATS) tampoco.
+- [x] Barras de habilidades = `level/5`; barras de idiomas según la escala CEFR de 6 niveles; fechas en formato corto en `es` y `en`.
+- [x] `GET /cv-documented?format=pdf` genera la primera parte del CV más un anexo por título o certificado con archivo y `showInDocumentedCv = true`, en orden de `sortOrder`, cada uno en su propia hoja con la cabecera de sección y sin páginas separadoras.
+- [x] `GET /cv-documented?format=docx` genera lo mismo, con los PDF rasterizados como imágenes y las imágenes insertadas directamente.
+- [x] Más de 30 anexos o más de 40 MB → 400 con mensaje claro; no se genera el documento.
+- [x] Sin cookie → 401 en todos los endpoints nuevos. `format` inválido → 400. `lang` inválido → 400.
+- [x] En el frontend, los botones de generación muestran la animación de carga mientras espera la respuesta y disparan la descarga al terminar.
+- [x] Los archivos de documentos y foto sobreviven a un reinicio del backend (volumen en dev y prod).
+- [x] Ningún documento generado se persiste, y no se usa `localStorage`.
+- [x] `npm run build:all`, `npm run lint:all` y `npm run test -w career-analyzer-backend` pasan (unit + e2e), contra una base de prueba y no la de datos reales.
+- [x] Verificación visual manual: el CV con foto se compara lado a lado con el Word de referencia y no tiene diferencias de estructura (franja, columnas, barras, orden de secciones).
 
 ## Decisions
 
@@ -200,7 +200,7 @@ Cada paso deja el sistema compilable y funcionando.
 - **Sí:** validación de tipo por magic bytes y de tamaño (10 MB por archivo); PDF validado con `pdf-lib` al subir.
 - **Sí:** anexos en PDF y DOCX con el mismo contenido. En DOCX los PDF se rasterizan; en PDF se copian sin pérdida.
 - **Sí:** cabecera en la misma hoja del documento (no página separadora), con el documento escalado debajo para no superponer texto sobre el certificado. Orientación horizontal para documentos horizontales.
-- **Sí:** límites de 10 anexos y 40 MB por generación, para evitar documentos inmanejables.
+- **Sí:** límites de 30 anexos y 40 MB por generación, para evitar documentos inmanejables.
 - **Sí:** `memoryStorage` en la subida, para validar antes de tocar el disco.
 - **Sí:** barras de nivel solo en el CV con foto. El CV ATS mantiene la decisión de SPEC 09 (sin niveles).
 - **No:** nacionalidad. Se quita del diseño y del modelo.
@@ -212,7 +212,7 @@ Cada paso deja el sistema compilable y funcionando.
 | Riesgo | Mitigación |
 | --- | --- |
 | `@napi-rs/canvas` no tiene binario compatible con la imagen Alpine | Paso 2 lo verifica antes de implementar; si falla, se usa una imagen base Debian o un rasterizador alternativo, decidido con una nueva revisión de la spec. |
-| Un PDF de certificado de muchas páginas genera muchas imágenes en el DOCX | Límite de 40 MB total y 10 anexos; las páginas se rasterizan a 150 DPI con JPEG 85. |
+| Un PDF de certificado de muchas páginas genera muchas imágenes en el DOCX | Límite de 40 MB total y 30 anexos; las páginas se rasterizan a 150 DPI con JPEG 85. |
 | Sincronización completa de `PUT /profile` borra archivos de items que el frontend recrea | Los archivos no viajan en el `PUT` y el `PUT` no escribe campos de archivo; el frontend conserva los `id` al editar. |
 | Archivos huérfanos en disco tras borrar items | Eliminación explícita en `syncEducation`/`syncCertifications` y en el borrado de perfil; prueba de e2e que lo verifica. |
 | Ruta de archivo manipulada | Rutas generadas por el servidor; la lectura valida que la ruta esté dentro de `uploads/profile/`. |

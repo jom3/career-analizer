@@ -1,6 +1,6 @@
 # SPEC 28 — Formulario modal y correcciones del perfil
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 05, SPEC 06, SPEC 17, SPEC 27
 > **Date:** 2026-11-10
 > **Objective:** Mejorar la edición del perfil: crear y editar cada ítem (experiencia, educación, certificaciones, proyectos, habilidades e idiomas) desde un modal, insertar los ítems nuevos arriba de la lista, habilitar el adjunto de archivos sin recargar la página y corregir la persistencia de los checkboxes de visibilidad de CV.
@@ -50,18 +50,18 @@
 
 ## Acceptance criteria
 
-- [ ] "+ Agregar" en cualquier sección abre el modal; el ítem nuevo aparece arriba de la lista al confirmar, sin bajar en la página.
-- [ ] "Editar" abre el modal con los datos actuales; cancelar no modifica el ítem.
-- [ ] "Eliminar" quita el ítem de la lista.
-- [ ] El botón del modal dice "Aplicar"; tras aplicarlo, la barra inferior indica "Cambios sin guardar" hasta pulsar "Guardar perfil".
-- [ ] El resultado de guardar se muestra en un aviso fijo visible desde cualquier posición de la página.
-- [ ] Las validaciones del cliente coinciden con el backend (año 1900-2100, URL, obligatorios sin espacios, longitudes, máximo 5 métricas) y el modal nombra el campo inválido.
-- [ ] Un 400 del backend se muestra con sección, número de ítem y campo.
-- [ ] Guardar el perfil persiste `showInCompactCv` y `showInDocumentedCv` de educación y certificaciones; el valor elegido se mantiene tras guardar.
-- [ ] Tras guardar el perfil, el adjunto de título y certificado queda habilitado sin recargar la página.
-- [ ] Tags de duplicado y de rango solapado se muestran en la tarjeta correspondiente.
-- [ ] La generación de PDF no imprime avisos de políticas de acceso de pdfmake.
-- [ ] `npm run build:all`, `npm run lint:all` y las pruebas unitarias de frontend y backend pasan.
+- [x] "+ Agregar" en cualquier sección abre el modal; el ítem nuevo aparece arriba de la lista al confirmar, sin bajar en la página.
+- [x] "Editar" abre el modal con los datos actuales; cancelar no modifica el ítem.
+- [x] "Eliminar" quita el ítem de la lista.
+- [x] El botón del modal dice "Aplicar"; tras aplicarlo, la barra inferior indica "Cambios sin guardar" hasta pulsar "Guardar perfil".
+- [x] El resultado de guardar se muestra en un aviso fijo visible desde cualquier posición de la página.
+- [x] Las validaciones del cliente coinciden con el backend (año 1900-2100, URL, obligatorios sin espacios, longitudes, máximo 5 métricas) y el modal nombra el campo inválido.
+- [x] Un 400 del backend se muestra con sección, número de ítem y campo.
+- [x] Guardar el perfil persiste `showInCompactCv` y `showInDocumentedCv` de educación y certificaciones; el valor elegido se mantiene tras guardar.
+- [x] Tras guardar el perfil, el adjunto de título y certificado queda habilitado sin recargar la página.
+- [x] Tags de duplicado y de rango solapado se muestran en la tarjeta correspondiente.
+- [x] La generación de PDF no imprime avisos de políticas de acceso de pdfmake.
+- [x] `npm run build:all`, `npm run lint:all` y las pruebas unitarias de frontend y backend pasan.
 
 ## Decisions
 
