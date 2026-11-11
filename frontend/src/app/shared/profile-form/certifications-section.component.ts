@@ -64,6 +64,7 @@ import { scrollToItem } from './section-utils';
             </label>
             <label class="form-field field-xsmall">
               {{ i18n.t('profile.year') }}
+              <span class="muted">({{ i18n.t('common.optional') }})</span>
               <input formControlName="year" type="number" min="1900" max="2100" />
             </label>
             <label class="checkbox field-medium">

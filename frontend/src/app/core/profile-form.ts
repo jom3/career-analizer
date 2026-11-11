@@ -215,6 +215,9 @@ function toDateInput(value?: string | null): string {
 }
 
 function toYear(value?: number | string | null): number | null {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
   const year = Number(value);
   return Number.isInteger(year) ? year : null;
 }

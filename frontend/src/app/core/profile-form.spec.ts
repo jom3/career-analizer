@@ -75,7 +75,12 @@ describe('validaciones del formulario', () => {
 
   it('acepta el año vacío', () => {
     const form = newCertificationForm({ name: 'Curso' });
+    expect(form.controls.year.value).toBeNull();
     expect(form.controls.year.valid).toBe(true);
+
+    const withNull = newCertificationForm({ name: 'Curso', year: null });
+    expect(withNull.controls.year.value).toBeNull();
+    expect(withNull.controls.year.valid).toBe(true);
   });
 
   it('rechaza nombres con solo espacios', () => {
