@@ -55,6 +55,8 @@ model Profile {
   locationEn     String?
   summaryEs      String?
   summaryEn      String?
+  photoPath      String?
+  photoMimeType  String?
   source         Source           @default(USER)
   experiences    Experience[]
   skills         Skill[]
@@ -125,6 +127,11 @@ model Education {
   fieldEn        String?
   descriptionEs  String?
   descriptionEn  String?
+  documentPath       String?
+  documentMimeType   String?
+  documentName       String?
+  showInCompactCv    Boolean   @default(true)
+  showInDocumentedCv Boolean   @default(true)
   sortOrder      Int       @default(0)
   source         Source    @default(USER)
   createdAt      DateTime  @default(now())
@@ -144,6 +151,11 @@ model Certification {
   nameEn    String?
   issuerEs  String?
   issuerEn  String?
+  documentPath       String?
+  documentMimeType   String?
+  documentName       String?
+  showInCompactCv    Boolean  @default(true)
+  showInDocumentedCv Boolean  @default(true)
   sortOrder Int      @default(0)
   source    Source   @default(USER)
   createdAt DateTime @default(now())

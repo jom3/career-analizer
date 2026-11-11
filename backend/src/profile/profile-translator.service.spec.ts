@@ -24,6 +24,8 @@ function buildProfile(): ProfileWithCollections {
     locationEn: null,
     summaryEs: 'Especialista backend con enfoque en APIs.',
     summaryEn: null,
+    photoPath: null,
+    photoMimeType: null,
     source: 'USER',
     createdAt: new Date(),
     updatedAt: new Date(),

@@ -7,7 +7,13 @@ const API_ERROR_KEYS: Record<string, string> = {
   INVALID_INPUT: 'errors.invalidInput',
   OFFER_ALREADY_SAVED: 'errors.offerAlreadySaved',
   PROFILE_INCOMPLETE: 'errors.profileIncomplete',
+  TOO_MANY_ANNEXES: 'errors.tooManyAnnexes',
+  ANNEXES_TOO_LARGE: 'errors.annexesTooLarge',
 };
+
+export function apiCodeKey(code: string | undefined): string | null {
+  return code ? (API_ERROR_KEYS[code] ?? null) : null;
+}
 
 export function apiErrorKey(error: unknown): string | null {
   if (!(error instanceof HttpErrorResponse)) {

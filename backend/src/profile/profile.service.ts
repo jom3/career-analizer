@@ -3,6 +3,7 @@ import { Prisma } from '../generated/prisma/client';
 import { Source } from '../generated/prisma/enums.js';
 import { PrismaService } from '../prisma/prisma.service';
 import { ProfileDto } from './dto/profile.dto';
+import { ProfileFileStorageService } from './profile-files/profile-file-storage.service';
 import {
   resolveBilingualString,
   resolveBilingualStringArray,
@@ -31,6 +32,7 @@ export class ProfileService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly translator: ProfileTranslatorService,
+    private readonly fileStorage: ProfileFileStorageService,
   ) {}
 
   async getForUser(userId: string): Promise<ProfileWithCollections> {
@@ -209,35 +211,56 @@ export class ProfileService {
     userId: string,
     dto: ProfileDto,
   ): Promise<ProfileWithCollections> {
-    return this.prisma.$transaction(async (tx) => {
-      const profile =
-        (await tx.profile.findUnique({ where: { userId } })) ??
-        (await tx.profile.create({ data: { userId } }));
+    const { profile, removedDocuments } = await this.prisma.$transaction(
+      async (tx) => {
+        const current =
+          (await tx.profile.findUnique({ where: { userId } })) ??
+          (await tx.profile.create({ data: { userId } }));
 
-      await tx.profile.update({
-        where: { id: profile.id },
-        data: {
-          ...this.profileBilingualData(dto),
-          phone: dto.phone ?? null,
-          website: dto.website ?? null,
-          linkedin: dto.linkedin ?? null,
-          source: dto.source ?? Source.USER,
-        },
-        include: profileInclude,
-      });
+        await tx.profile.update({
+          where: { id: current.id },
+          data: {
+            ...this.profileBilingualData(dto),
+            phone: dto.phone ?? null,
+            website: dto.website ?? null,
+            linkedin: dto.linkedin ?? null,
+            source: dto.source ?? Source.USER,
+          },
+          include: profileInclude,
+        });
 
-      await this.syncExperiences(tx, profile.id, dto.experiences);
-      await this.syncSkills(tx, profile.id, dto.skills);
-      await this.syncEducation(tx, profile.id, dto.education);
-      await this.syncCertifications(tx, profile.id, dto.certifications);
-      await this.syncProjects(tx, profile.id, dto.projects);
-      await this.syncLanguages(tx, profile.id, dto.languages);
+        await this.syncExperiences(tx, current.id, dto.experiences);
+        await this.syncSkills(tx, current.id, dto.skills);
+        const removedEducation = await this.syncEducation(
+          tx,
+          current.id,
+          dto.education,
+        );
+        const removedCertifications = await this.syncCertifications(
+          tx,
+          current.id,
+          dto.certifications,
+        );
+        await this.syncProjects(tx, current.id, dto.projects);
+        await this.syncLanguages(tx, current.id, dto.languages);
 
-      return tx.profile.findUniqueOrThrow({
-        where: { id: profile.id },
-        include: profileInclude,
-      });
-    });
+        const saved = await tx.profile.findUniqueOrThrow({
+          where: { id: current.id },
+          include: profileInclude,
+        });
+        return {
+          profile: saved,
+          removedDocuments: [...removedEducation, ...removedCertifications],
+        };
+      },
+    );
+
+    await Promise.all(
+      removedDocuments.map((documentPath) =>
+        this.fileStorage.remove(documentPath),
+      ),
+    );
+    return profile;
   }
 
   private toDate(value?: string): Date | null {
@@ -363,7 +386,7 @@ export class ProfileService {
     tx: Prisma.TransactionClient,
     profileId: string,
     items: ProfileDto['education'],
-  ): Promise<void> {
+  ): Promise<string[]> {
     const owned = await tx.education.findMany({
       where: { profileId },
       select: { id: true },
@@ -373,6 +396,10 @@ export class ProfileService {
       .filter((item) => item.id && ownedIds.has(item.id))
       .map((item) => item.id!);
 
+    const removed = await tx.education.findMany({
+      where: { profileId, id: { notIn: keptIds } },
+      select: { documentPath: true },
+    });
     await tx.education.deleteMany({
       where: { profileId, id: { notIn: keptIds } },
     });
@@ -404,6 +431,8 @@ export class ProfileService {
         description: description.flat,
         descriptionEs: description.es,
         descriptionEn: description.en,
+        showInCompactCv: item.showInCompactCv ?? true,
+        showInDocumentedCv: item.showInDocumentedCv ?? true,
         source: item.source ?? Source.USER,
         sortOrder: item.sortOrder,
       };
@@ -413,13 +442,14 @@ export class ProfileService {
         await tx.education.create({ data: { ...data, profileId } });
       }
     }
+    return this.documentPaths(removed);
   }
 
   private async syncCertifications(
     tx: Prisma.TransactionClient,
     profileId: string,
     items: ProfileDto['certifications'],
-  ): Promise<void> {
+  ): Promise<string[]> {
     const owned = await tx.certification.findMany({
       where: { profileId },
       select: { id: true },
@@ -429,6 +459,10 @@ export class ProfileService {
       .filter((item) => item.id && ownedIds.has(item.id))
       .map((item) => item.id!);
 
+    const removed = await tx.certification.findMany({
+      where: { profileId, id: { notIn: keptIds } },
+      select: { documentPath: true },
+    });
     await tx.certification.deleteMany({
       where: { profileId, id: { notIn: keptIds } },
     });
@@ -445,6 +479,8 @@ export class ProfileService {
         issuerEn: issuer.en,
         year: item.year ?? null,
         url: item.url ?? null,
+        showInCompactCv: item.showInCompactCv ?? true,
+        showInDocumentedCv: item.showInDocumentedCv ?? true,
         source: item.source ?? Source.USER,
         sortOrder: item.sortOrder,
       };
@@ -454,6 +490,13 @@ export class ProfileService {
         await tx.certification.create({ data: { ...data, profileId } });
       }
     }
+    return this.documentPaths(removed);
+  }
+
+  private documentPaths(rows: { documentPath: string | null }[]): string[] {
+    return rows
+      .map((row) => row.documentPath)
+      .filter((path): path is string => Boolean(path));
   }
 
   private async syncProjects(

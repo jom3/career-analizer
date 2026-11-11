@@ -188,6 +188,14 @@ export class EducationDto {
   @IsEnum(Source)
   source?: Source;
 
+  @IsOptional()
+  @IsBoolean()
+  showInCompactCv?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  showInDocumentedCv?: boolean;
+
   @IsInt()
   sortOrder!: number;
 }
@@ -225,6 +233,14 @@ export class CertificationDto {
   @IsOptional()
   @IsUrl()
   url?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  showInCompactCv?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  showInDocumentedCv?: boolean;
 
   @IsOptional()
   @IsEnum(Source)

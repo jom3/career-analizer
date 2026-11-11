@@ -25,6 +25,7 @@
     "test:gerund-eval": "ts-node test/gerund.eval.ts"
   },
   "dependencies": {
+    "@napi-rs/canvas": "^0.1.80",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.1",
@@ -37,10 +38,13 @@
     "class-validator": "^0.15.1",
     "cookie-parser": "^1.4.7",
     "docx": "^9.7.1",
+    "image-size": "^2.1.0",
     "mammoth": "^1.12.0",
     "nodemailer": "^9.0.6",
     "openai": "^7.4.0",
+    "pdf-lib": "^1.17.1",
     "pdf-parse": "^2.4.5",
+    "pdfjs-dist": "^5.4.296",
     "pdfmake": "^0.3.11",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
