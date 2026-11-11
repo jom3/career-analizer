@@ -1,8 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
-import pdfMake from 'pdfmake';
-import vfsFonts from 'pdfmake/build/vfs_fonts';
-import { Content, TCreatedPdf, TDocumentDefinitions } from 'pdfmake/interfaces';
+import { Content, TDocumentDefinitions } from 'pdfmake/interfaces';
 import { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { selectLang, selectLangList, UiLang } from '../i18n/ui-lang';
@@ -10,6 +8,8 @@ import {
   CvSkillGroupingService,
   type CvSkillGroup,
 } from './cv-skill-grouping.service';
+import { applyCompactVisibility } from './cv-visibility';
+import { renderPdf } from './pdf-engine';
 
 export type CvLang = 'es' | 'en';
 
@@ -29,6 +29,12 @@ export interface CvSkill {
   level: number;
 }
 
+export interface CvDocument {
+  path: string;
+  mimeType: string;
+  name: string;
+}
+
 export interface CvEducation {
   degree: string;
   institution: string;
@@ -37,12 +43,18 @@ export interface CvEducation {
   endDate?: Date;
   current: boolean;
   description?: string;
+  showInCompactCv?: boolean;
+  showInDocumentedCv?: boolean;
+  document?: CvDocument;
 }
 
 export interface CvCertification {
   name: string;
   issuer?: string;
   year?: number;
+  showInCompactCv?: boolean;
+  showInDocumentedCv?: boolean;
+  document?: CvDocument;
 }
 
 export interface CvProject {
@@ -74,6 +86,7 @@ export interface CvData {
   certifications: CvCertification[];
   projects: CvProject[];
   languages: CvLanguage[];
+  photo?: CvDocument;
 }
 
 const profileInclude = {
@@ -106,39 +119,6 @@ const sectionTitles: Record<CvLang, Record<string, string>> = {
   },
 };
 
-const robotoFonts = {
-  Roboto: {
-    normal: 'Roboto-Regular.ttf',
-    bold: 'Roboto-Medium.ttf',
-    italics: 'Roboto-Italic.ttf',
-    bolditalics: 'Roboto-MediumItalic.ttf',
-  },
-};
-
-interface PdfMakeServer {
-  virtualfs: {
-    existsSync(path: string): boolean;
-    writeFileSync(path: string, content: string, encoding: string): void;
-  };
-  setFonts(fonts: Record<string, unknown>): void;
-  createPdf(doc: TDocumentDefinitions): TCreatedPdf;
-}
-
-const pdfMakeServer = pdfMake as unknown as PdfMakeServer;
-
-let fontsLoaded = false;
-
-function ensureFonts(): void {
-  if (fontsLoaded) {
-    return;
-  }
-  for (const [name, content] of Object.entries(vfsFonts)) {
-    pdfMakeServer.virtualfs.writeFileSync(name, content, 'base64');
-  }
-  pdfMakeServer.setFonts(robotoFonts);
-  fontsLoaded = true;
-}
-
 function formatMonthYear(date?: Date | null): string | null {
   if (!date) {
     return null;
@@ -160,6 +140,17 @@ function formatDateRange(
     return '';
   }
   return `${startLabel ?? '—'} — ${endLabel ?? '—'}`;
+}
+
+function toCvDocument(file: {
+  path?: string | null;
+  mimeType?: string | null;
+  name?: string | null;
+}): CvDocument | undefined {
+  if (!file.path || !file.mimeType) {
+    return undefined;
+  }
+  return { path: file.path, mimeType: file.mimeType, name: file.name ?? '' };
 }
 
 @Injectable()
@@ -225,6 +216,11 @@ export class CvExportService {
       skills: (profile?.skills ?? [])
         .filter((item) => item.name)
         .map((item) => ({ name: item.name, level: item.level })),
+      photo: toCvDocument({
+        path: profile?.photoPath,
+        mimeType: profile?.photoMimeType,
+        name: 'photo',
+      }),
       education: (profile?.education ?? [])
         .filter((item) => item.degree && item.institution)
         .map((item) => ({
@@ -244,6 +240,13 @@ export class CvExportService {
             selectLang(item.descriptionEs, item.descriptionEn, targetLang) ??
             item.description ??
             undefined,
+          showInCompactCv: item.showInCompactCv,
+          showInDocumentedCv: item.showInDocumentedCv,
+          document: toCvDocument({
+            path: item.documentPath,
+            mimeType: item.documentMimeType,
+            name: item.documentName,
+          }),
         })),
       certifications: (profile?.certifications ?? [])
         .filter((item) => item.name)
@@ -254,6 +257,13 @@ export class CvExportService {
             item.issuer ??
             undefined,
           year: item.year ?? undefined,
+          showInCompactCv: item.showInCompactCv,
+          showInDocumentedCv: item.showInDocumentedCv,
+          document: toCvDocument({
+            path: item.documentPath,
+            mimeType: item.documentMimeType,
+            name: item.documentName,
+          }),
         })),
       projects: (profile?.projects ?? [])
         .filter((item) => item.name)
@@ -282,10 +292,10 @@ export class CvExportService {
   }
 
   async buildPdf(data: CvData, lang: CvLang): Promise<Buffer> {
-    ensureFonts();
-    const skillGroups = await this.resolveSkillGroups(data, lang);
+    const compact = applyCompactVisibility(data);
+    const skillGroups = await this.resolveSkillGroups(compact, lang);
     const doc: TDocumentDefinitions = {
-      content: this.buildPdfContent({ ...data, skillGroups }, lang),
+      content: this.buildPdfContent({ ...compact, skillGroups }, lang),
       defaultStyle: { font: 'Roboto', fontSize: 10 },
       styles: {
         name: { fontSize: 20, bold: true },
@@ -302,14 +312,15 @@ export class CvExportService {
         body: { fontSize: 10, margin: [0, 0, 0, 4] },
       },
     };
-    return pdfMakeServer.createPdf(doc).getBuffer();
+    return renderPdf(doc);
   }
 
   async buildDocx(data: CvData, lang: CvLang): Promise<Buffer> {
-    const skillGroups = await this.resolveSkillGroups(data, lang);
+    const compact = applyCompactVisibility(data);
+    const skillGroups = await this.resolveSkillGroups(compact, lang);
     const doc = new Document({
       sections: [
-        { children: this.buildDocxContent({ ...data, skillGroups }, lang) },
+        { children: this.buildDocxContent({ ...compact, skillGroups }, lang) },
       ],
     });
     return Packer.toBuffer(doc);

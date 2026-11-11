@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../prisma/prisma.service';
 import { ProfileService, profileInclude } from './profile.service';
 import { ProfileTranslatorService } from './profile-translator.service';
+import { ProfileFileStorageService } from './profile-files/profile-file-storage.service';
 
 describe('ProfileService', () => {
   let service: ProfileService;
@@ -60,6 +61,9 @@ describe('ProfileService', () => {
   const translatorMock = {
     translate: jest.fn(),
   };
+  const fileStorageMock = {
+    remove: jest.fn(),
+  };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -73,6 +77,7 @@ describe('ProfileService', () => {
         ProfileService,
         { provide: PrismaService, useValue: prismaMock },
         { provide: ProfileTranslatorService, useValue: translatorMock },
+        { provide: ProfileFileStorageService, useValue: fileStorageMock },
       ],
     }).compile();
 
@@ -107,6 +112,31 @@ describe('ProfileService', () => {
   });
 
   describe('replaceForUser', () => {
+    it('removes the files of education and certifications deleted from the profile', async () => {
+      txMock.education.findMany
+        .mockResolvedValueOnce([{ id: 'edu-1' }])
+        .mockResolvedValueOnce([
+          { documentPath: 'uploads/profile/degree.pdf' },
+        ]);
+      txMock.certification.findMany
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([{ documentPath: null }]);
+
+      await service.replaceForUser('user-1', {
+        experiences: [],
+        skills: [],
+        education: [],
+        certifications: [],
+        projects: [],
+        languages: [],
+      });
+
+      expect(fileStorageMock.remove).toHaveBeenCalledTimes(1);
+      expect(fileStorageMock.remove).toHaveBeenCalledWith(
+        'uploads/profile/degree.pdf',
+      );
+    });
+
     const emptySections = {
       education: [],
       certifications: [],

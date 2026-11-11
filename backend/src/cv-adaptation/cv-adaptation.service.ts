@@ -49,6 +49,8 @@ function emptyProfile(): ProfileWithCollections {
     locationEn: null,
     summaryEs: null,
     summaryEn: null,
+    photoPath: null,
+    photoMimeType: null,
     source: 'USER',
     experiences: [],
     skills: [],

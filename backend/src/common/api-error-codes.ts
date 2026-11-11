@@ -2,7 +2,9 @@ export type ApiErrorCode =
   | 'AI_UNAVAILABLE'
   | 'INVALID_INPUT'
   | 'OFFER_ALREADY_SAVED'
-  | 'PROFILE_INCOMPLETE';
+  | 'PROFILE_INCOMPLETE'
+  | 'TOO_MANY_ANNEXES'
+  | 'ANNEXES_TOO_LARGE';
 
 export interface ApiErrorBody {
   code: ApiErrorCode;

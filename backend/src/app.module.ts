@@ -6,6 +6,8 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { CvAdaptationModule } from './cv-adaptation/cv-adaptation.module';
 import { CvExportModule } from './cv-export/cv-export.module';
+import { CvPhotoModule } from './cv-photo/cv-photo.module';
+import { CvDocumentedModule } from './cv-documented/cv-documented.module';
 import { CvImportModule } from './cv-import/cv-import.module';
 import { CoverLetterModule } from './cover-letter/cover-letter.module';
 import { CvAnalysisModule } from './cv-analysis/cv-analysis.module';
@@ -44,6 +46,8 @@ import { ProfileModule } from './profile/profile.module';
     CvAnalysisModule,
     CvImportModule,
     CvExportModule,
+    CvPhotoModule,
+    CvDocumentedModule,
     JobAnalysisModule,
     JobMatchModule,
     CvAdaptationModule,
