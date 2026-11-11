@@ -2,6 +2,9 @@ export const es: Record<string, string> = {
   'app.title': 'Career Analyzer',
 
   'common.cancel': 'Cancelar',
+  'common.save': 'Guardar',
+  'common.apply': 'Aplicar',
+  'common.edit': 'Editar',
   'common.delete': 'Eliminar',
   'common.add': 'Agregar',
   'common.close': 'Cerrar',
@@ -18,6 +21,20 @@ export const es: Record<string, string> = {
   'errors.offerAlreadySaved': 'Esta oferta ya está guardada en tu historial.',
   'errors.profileIncomplete':
     'Completá tu perfil con una skill y una experiencia o proyecto antes de redactar la carta.',
+  'errors.tooManyAnnexes':
+    'Tenés más de 30 documentos adjuntos. Quitá algunos o desmarcá "Mostrar en CV documentado".',
+  'errors.annexesTooLarge':
+    'Los documentos adjuntos superan los 40 MB. Quitá algunos o desmarcá "Mostrar en CV documentado".',
+
+  'validation.required': 'es obligatorio',
+  'validation.integer': 'debe ser un número entero',
+  'validation.min': 'no puede ser menor que {value}',
+  'validation.max': 'no puede ser mayor que {value}',
+  'validation.maxLength': 'no puede superar {value} caracteres',
+  'validation.maxItems': 'no puede tener más de {value} elementos',
+  'validation.date': 'debe ser una fecha válida',
+  'validation.url': 'debe ser una URL válida',
+  'validation.generic': 'valor inválido',
 
   'offerContext.label': 'Oferta',
   'offerContext.untitled': 'Oferta sin título',
@@ -101,6 +118,7 @@ export const es: Record<string, string> = {
   'profile.docx': 'Descargar DOCX',
   'profile.generating': 'Generando…',
   'profile.saved': 'Perfil guardado.',
+  'profile.unsavedChanges': 'Cambios sin guardar',
   'profile.loadError': 'No se pudo cargar tu perfil.',
   'profile.loading': 'Cargando tu perfil…',
   'profile.saveErrorInvalid':
@@ -108,6 +126,30 @@ export const es: Record<string, string> = {
   'profile.saveError400': 'Hay campos inválidos. Revisá los formularios.',
   'profile.saveError': 'No se pudo guardar el perfil. Intentá de nuevo.',
   'profile.downloadError': 'No se pudo descargar el CV. Intentá de nuevo.',
+  'profile.documentsTitle': 'Generar currículums',
+  'profile.documentsHint':
+    'El CV con foto usa solo lo marcado para CV compacto. El documentado incluye lo marcado para CV documentado, con sus archivos como anexos.',
+  'profile.cvPhoto': 'CV con foto',
+  'profile.cvDocumented': 'CV documentado',
+  'profile.photoTitle': 'Foto',
+  'profile.photoAlt': 'Foto de perfil',
+  'profile.photoEmpty': 'Todavía no subiste una foto.',
+  'profile.photoUpload': 'Subir foto',
+  'profile.photoReplace': 'Cambiar foto',
+  'profile.photoRemove': 'Quitar foto',
+  'profile.photoHint': 'JPG o PNG, máximo 10 MB.',
+  'profile.attachDocument': 'Adjuntar archivo',
+  'profile.replaceDocument': 'Reemplazar',
+  'profile.removeDocument': 'Quitar archivo',
+  'profile.documentHint': 'PDF, JPG o PNG, máximo 10 MB.',
+  'profile.documentSaveFirst':
+    'Guardá el perfil para poder adjuntar un archivo a este item.',
+  'profile.uploading': 'Subiendo…',
+  'profile.fileTooLarge': 'El archivo supera los 10 MB.',
+  'profile.fileError':
+    'No se pudo subir el archivo. Revisá el formato (PDF, JPG o PNG) y el tamaño.',
+  'profile.showInCompactCv': 'Mostrar en CV compacto',
+  'profile.showInDocumentedCv': 'Mostrar en CV documentado',
 
   'profile.tabEs': 'Español',
   'profile.tabEn': 'Inglés',
@@ -135,6 +177,7 @@ export const es: Record<string, string> = {
   'profile.currentJob': 'Trabajo actual',
   'profile.description': 'Descripción',
   'profile.metrics': 'Logros (opcional)',
+  'profile.metricsLimit': 'Máximo 5 logros.',
   'profile.metricsPlaceholder': 'p. ej. Reduje la latencia un 40%',
   'profile.removeMetric': 'Quitar',
   'profile.addMetric': 'Agregar logro',
@@ -144,6 +187,7 @@ export const es: Record<string, string> = {
   'profile.emptySkills': 'Todavía no agregaste habilidades.',
   'profile.skill': 'Habilidad',
   'profile.level': 'Nivel',
+  'profile.name': 'Nombre',
 
   'profile.education': 'Educación',
   'profile.addEducation': 'Agregar educación',
@@ -154,6 +198,7 @@ export const es: Record<string, string> = {
   'profile.inProgress': 'En curso',
 
   'profile.certifications': 'Certificaciones',
+  'profile.certification': 'Certificación',
   'profile.addCertification': 'Agregar certificación',
   'profile.emptyCertifications': 'Todavía no agregaste certificaciones.',
   'profile.certName': 'Nombre',
@@ -162,6 +207,7 @@ export const es: Record<string, string> = {
   'profile.url': 'URL',
 
   'profile.projects': 'Proyectos',
+  'profile.project': 'Proyecto',
   'profile.addProject': 'Agregar proyecto',
   'profile.emptyProjects': 'Todavía no agregaste proyectos.',
   'profile.projectName': 'Nombre',

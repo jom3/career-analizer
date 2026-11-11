@@ -50,6 +50,9 @@ export interface Education {
   current: boolean;
   description?: string | null;
   descriptionI18n?: LocalizedValue;
+  showInCompactCv?: boolean;
+  showInDocumentedCv?: boolean;
+  documentName?: string | null;
   source?: Source;
   sortOrder: number;
 }
@@ -62,6 +65,9 @@ export interface Certification {
   issuerI18n?: LocalizedValue;
   year?: number | null;
   url?: string | null;
+  showInCompactCv?: boolean;
+  showInDocumentedCv?: boolean;
+  documentName?: string | null;
   source?: Source;
   sortOrder: number;
 }
@@ -102,6 +108,7 @@ export interface Profile {
   linkedin: string | null;
   summary: string | null;
   summaryI18n?: LocalizedValue;
+  photoMimeType?: string | null;
   source?: Source;
   experiences: Experience[];
   skills: Skill[];

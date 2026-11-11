@@ -1,20 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  Component,
-  OnDestroy,
-  OnInit,
-  inject,
-  signal,
-} from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, type FormArray } from '@angular/forms';
-import { merge, Subscription } from 'rxjs';
-import { apiErrorKey } from '../core/http-errors';
+import { Subscription } from 'rxjs';
+import { apiCodeKey, apiErrorKey } from '../core/http-errors';
 import type { Profile } from '../core/models/profile';
-import {
-  experienceDuplicateKey,
-  findDuplicates,
-  skillDuplicateKey,
-} from '../core/duplicates';
+import { experienceDuplicateKey, findDuplicates, skillDuplicateKey } from '../core/duplicates';
 import { overlappingExperiences } from '../core/overlap-warning';
 import {
   buildProfileForm,
@@ -29,7 +19,17 @@ import {
 } from '../core/profile-form';
 import { I18nService, type UiLang } from '../core/i18n/i18n.service';
 import { ProfileService } from '../core/profile.service';
-import { CvExportService, CvExportFormat } from '../core/cv-export.service';
+import {
+  describeBackendError,
+  describeFormError,
+  findFirstInvalidPath,
+} from '../core/profile-errors';
+import {
+  CvDownloadError,
+  CvExportService,
+  type CvDocumentPath,
+  type CvExportFormat,
+} from '../core/cv-export.service';
 import {
   applyLangToForm,
   buildBilingualPayload,
@@ -44,6 +44,7 @@ import { EducationSectionComponent } from '../shared/profile-form/education-sect
 import { ExperienceSectionComponent } from '../shared/profile-form/experience-section.component';
 import { LanguagesSectionComponent } from '../shared/profile-form/languages-section.component';
 import { PersonalInfoSectionComponent } from '../shared/profile-form/personal-info-section.component';
+import { PhotoSectionComponent } from '../shared/profile-form/photo-section.component';
 import { ProjectsSectionComponent } from '../shared/profile-form/projects-section.component';
 import { SkillsSectionComponent } from '../shared/profile-form/skills-section.component';
 import { SummarySectionComponent } from '../shared/profile-form/summary-section.component';
@@ -60,6 +61,7 @@ import { SummarySectionComponent } from '../shared/profile-form/summary-section.
     CertificationsSectionComponent,
     ProjectsSectionComponent,
     LanguagesSectionComponent,
+    PhotoSectionComponent,
   ],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',
@@ -72,7 +74,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
   readonly loading = signal(true);
   readonly saving = signal(false);
   readonly saved = signal(false);
-  readonly downloading = signal<'pdf' | 'docx' | null>(null);
+  readonly downloading = signal<string | null>(null);
+  readonly hasPhoto = signal(false);
   readonly errorMessage = signal('');
   readonly loadError = signal('');
   readonly duplicateSkillIndices = signal<ReadonlySet<number>>(new Set());
@@ -80,6 +83,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   readonly overlapIndices = signal<ReadonlySet<number>>(new Set());
   readonly activeLang = signal<UiLang>(this.i18n.lang());
   readonly translating = signal(false);
+  readonly unsaved = signal(false);
 
   private sideStore: LangValues = emptyLangValues();
 
@@ -115,9 +119,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   translateButtonKey(): string {
-    return this.otherLang === 'en'
-      ? 'profile.translateToEn'
-      : 'profile.translateToEs';
+    return this.otherLang === 'en' ? 'profile.translateToEn' : 'profile.translateToEs';
   }
 
   async ngOnInit(): Promise<void> {
@@ -130,12 +132,15 @@ export class ProfileComponent implements OnInit, OnDestroy {
       this.loading.set(false);
     }
     this.refreshDuplicates();
-    // merge, no combineLatest: cada colección debe recalcular por su cuenta.
-    this.duplicateSubscription = merge(
-      this.experiences.valueChanges,
-      this.skills.valueChanges,
-    ).subscribe(() => this.refreshDuplicates());
-    this.experiences.valueChanges.subscribe(() => this.refreshOverlaps());
+    // Se escucha el formulario completo: al cargar el perfil las listas se
+    // reemplazan por instancias nuevas y las suscripciones por lista quedarían
+    // apuntando a las viejas.
+    this.duplicateSubscription = this.form.valueChanges.subscribe(() => {
+      this.refreshDuplicates();
+      this.refreshOverlaps();
+      this.unsaved.set(true);
+      this.saved.set(false);
+    });
   }
 
   // Aplica un perfil cargado/guardado al editor: determina la pestaña activa
@@ -155,19 +160,24 @@ export class ProfileComponent implements OnInit, OnDestroy {
           : ui;
     this.activeLang.set(active);
     this.sideStore = extractLangValues(profile, active === 'es' ? 'en' : 'es');
+    this.hasPhoto.set(Boolean(profile.photoMimeType));
     loadProfileForm(this.form, profile);
     applyLangToForm(this.form, extractLangValues(profile, active));
+    this.unsaved.set(false);
   }
 
   onSelectLang(lang: UiLang): void {
     if (lang === this.activeLang()) {
       return;
     }
+    const wasUnsaved = this.unsaved();
     const currentFormValues = extractLangFromForm(this.form);
     const incomingValues = this.sideStore;
     this.sideStore = currentFormValues;
     this.activeLang.set(lang);
     applyLangToForm(this.form, incomingValues);
+    // Cambiar de pestaña no modifica el perfil: se conserva el estado previo.
+    this.unsaved.set(wasUnsaved);
   }
 
   async onTranslate(): Promise<void> {
@@ -220,23 +230,15 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }));
     const result = findDuplicates({ skills, experiences });
     const skillKeys = new Set(result.skills.map((group) => group.key));
-    const experienceKeys = new Set(
-      result.experiences.map((group) => group.key),
-    );
+    const experienceKeys = new Set(result.experiences.map((group) => group.key));
 
-    this.duplicateSkillIndices.set(
-      this.indexSet(skills, skillKeys, skillDuplicateKey),
-    );
+    this.duplicateSkillIndices.set(this.indexSet(skills, skillKeys, skillDuplicateKey));
     this.duplicateExperienceIndices.set(
       this.indexSet(experiences, experienceKeys, experienceDuplicateKey),
     );
   }
 
-  private indexSet<T>(
-    items: T[],
-    keys: Set<string>,
-    toKey: (item: T) => string,
-  ): Set<number> {
+  private indexSet<T>(items: T[], keys: Set<string>, toKey: (item: T) => string): Set<number> {
     const indices = new Set<number>();
     items.forEach((item, index) => {
       if (keys.has(toKey(item))) {
@@ -248,18 +250,21 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   async onSave(): Promise<void> {
     if (this.form.invalid) {
-      this.errorMessage.set(this.i18n.t('profile.saveErrorInvalid'));
+      const path = findFirstInvalidPath(this.form);
+      this.errorMessage.set(
+        describeFormError(this.form, this.i18n) ??
+          this.i18n.t('profile.saveErrorInvalid'),
+      );
+      if (path) {
+        this.scrollToError(path);
+      }
       return;
     }
     this.saving.set(true);
     this.saved.set(false);
     this.errorMessage.set('');
     try {
-      const payload = buildBilingualPayload(
-        this.form,
-        this.activeLang(),
-        this.sideStore,
-      );
+      const payload = buildBilingualPayload(this.form, this.activeLang(), this.sideStore);
       const profile = await this.profileService.putProfile(payload);
       this.applyProfile(profile);
       this.saved.set(true);
@@ -270,24 +275,64 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
   }
 
-  async onDownload(format: CvExportFormat): Promise<void> {
-    this.downloading.set(format);
+  async onDownload(
+    format: CvExportFormat,
+    documentPath: CvDocumentPath = 'cv-export',
+  ): Promise<void> {
+    this.downloading.set(downloadKey(documentPath, format));
     this.errorMessage.set('');
     try {
-      await this.cvExportService.download(format);
-    } catch {
-      this.errorMessage.set(this.i18n.t('profile.downloadError'));
+      await this.cvExportService.download(format, documentPath);
+    } catch (error) {
+      const key = error instanceof CvDownloadError ? apiCodeKey(error.code) : null;
+      this.errorMessage.set(this.i18n.t(key ?? 'profile.downloadError'));
     } finally {
       this.downloading.set(null);
     }
   }
 
+  isDownloading(documentPath: CvDocumentPath, format: CvExportFormat): boolean {
+    return this.downloading() === downloadKey(documentPath, format);
+  }
+
   private messageFor(error: unknown): string {
     const mapped = apiErrorKey(error);
     if (mapped) return this.i18n.t(mapped);
+    const described = describeBackendError(error, this.i18n);
+    if (described) return described;
     if (error instanceof HttpErrorResponse && error.status === 400) {
       return this.i18n.t('profile.saveError400');
     }
     return this.i18n.t('profile.saveError');
   }
+
+  private scrollToError(path: string[]): void {
+    const [section, index] = path;
+    const prefix = SECTION_PREFIXES[section];
+    const itemId =
+      prefix && index !== undefined && /^\d+$/.test(index)
+        ? `${prefix}-item-${index}`
+        : null;
+    setTimeout(() => {
+      const target =
+        (itemId ? document.getElementById(itemId) : null) ??
+        document.querySelector<HTMLElement>(`[formcontrolname="${section}"]`) ??
+        document.querySelector<HTMLElement>('.profile-form');
+      target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 0);
+  }
+}
+
+// Prefijo de los ids de tarjeta de cada sección (ver section-utils).
+const SECTION_PREFIXES: Record<string, string> = {
+  experiences: 'experience',
+  skills: 'skill',
+  education: 'education',
+  certifications: 'certification',
+  projects: 'project',
+  languages: 'language',
+};
+
+function downloadKey(documentPath: CvDocumentPath, format: CvExportFormat): string {
+  return `${documentPath}/${format}`;
 }

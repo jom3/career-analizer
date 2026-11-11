@@ -11,9 +11,16 @@ import type {
   ProfilePayload,
   Source,
 } from './models/profile';
+import {
+  commaSeparatedMaxLength,
+  optionalIntegerRange,
+  optionalUrl,
+  trimmedRequired,
+} from './validators';
 
 export const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'] as const;
 export const SKILL_LEVELS = [1, 2, 3, 4, 5] as const;
+export const MAX_METRICS = 5;
 
 // Tipos de entrada relajados (nullable) para aceptar tanto items de /profile
 // como borradores de CV importado (SPEC 06), cuyos campos pueden venir null.
@@ -46,6 +53,9 @@ export interface EducationInput {
   endDate?: string | null;
   current?: boolean;
   description?: string | null;
+  showInCompactCv?: boolean;
+  showInDocumentedCv?: boolean;
+  documentName?: string | null;
   source?: Source;
 }
 
@@ -55,6 +65,9 @@ export interface CertificationInput {
   issuer?: string | null;
   year?: number | null;
   url?: string | null;
+  showInCompactCv?: boolean;
+  showInDocumentedCv?: boolean;
+  documentName?: string | null;
   source?: Source;
 }
 
@@ -121,6 +134,9 @@ export type EducationForm = FormGroup<{
   endDate: FormControl<string>;
   current: FormControl<boolean>;
   description: FormControl<string>;
+  showInCompactCv: FormControl<boolean>;
+  showInDocumentedCv: FormControl<boolean>;
+  documentName: FormControl<string>;
   source: FormControl<Source>;
 }>;
 
@@ -130,6 +146,9 @@ export type CertificationForm = FormGroup<{
   issuer: FormControl<string>;
   year: FormControl<number | null>;
   url: FormControl<string>;
+  showInCompactCv: FormControl<boolean>;
+  showInDocumentedCv: FormControl<boolean>;
+  documentName: FormControl<string>;
   source: FormControl<Source>;
 }>;
 
@@ -186,8 +205,18 @@ export function newMetricForm(value = ''): FormControl<string> {
   return new FormControl<string>(value, { nonNullable: true });
 }
 
+// Solo fechas ISO completas: una fecha parcial haría fallar el guardado.
 function toDateInput(value?: string | null): string {
-  return value ? value.slice(0, 10) : '';
+  if (!value) {
+    return '';
+  }
+  const date = value.slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : '';
+}
+
+function toYear(value?: number | string | null): number | null {
+  const year = Number(value);
+  return Number.isInteger(year) ? year : null;
 }
 
 export function buildProfileForm(): ProfileForm {
@@ -206,11 +235,11 @@ export function buildProfileForm(): ProfileForm {
     }),
     website: new FormControl<string>('', {
       nonNullable: true,
-      validators: [Validators.maxLength(2048)],
+      validators: [Validators.maxLength(2048), optionalUrl],
     }),
     linkedin: new FormControl<string>('', {
       nonNullable: true,
-      validators: [Validators.maxLength(2048)],
+      validators: [Validators.maxLength(2048), optionalUrl],
     }),
     summary: new FormControl<string>('', {
       nonNullable: true,
@@ -230,14 +259,15 @@ export function newExperienceForm(item?: ExperienceInput): ExperienceForm {
     id: new FormControl<string | null>(item?.id ?? null),
     company: new FormControl<string>(item?.company ?? '', {
       nonNullable: true,
-      validators: [Validators.required],
+      validators: [trimmedRequired, Validators.maxLength(120)],
     }),
     position: new FormControl<string>(item?.position ?? '', {
       nonNullable: true,
-      validators: [Validators.required],
+      validators: [trimmedRequired, Validators.maxLength(120)],
     }),
     location: new FormControl<string>(item?.location ?? '', {
       nonNullable: true,
+      validators: [Validators.maxLength(120)],
     }),
     startDate: new FormControl<string>(toDateInput(item?.startDate), {
       nonNullable: true,
@@ -254,9 +284,12 @@ export function newExperienceForm(item?: ExperienceInput): ExperienceForm {
     }),
     description: new FormControl<string>(item?.description ?? '', {
       nonNullable: true,
+      validators: [Validators.maxLength(2000)],
     }),
     metrics: new FormArray<FormControl<string>>(
-      (item?.metrics ?? []).map((metric) => newMetricForm(metric)),
+      (item?.metrics ?? [])
+        .slice(0, MAX_METRICS)
+        .map((metric) => newMetricForm(metric)),
     ),
     source: new FormControl<Source>(item?.source ?? 'USER', {
       nonNullable: true,
@@ -269,7 +302,7 @@ export function newSkillForm(item?: SkillInput): SkillForm {
     id: new FormControl<string | null>(item?.id ?? null),
     name: new FormControl<string>(item?.name ?? '', {
       nonNullable: true,
-      validators: [Validators.required],
+      validators: [trimmedRequired, Validators.maxLength(60)],
     }),
     level: new FormControl<number>(item?.level ?? 3, { nonNullable: true }),
     source: new FormControl<Source>(item?.source ?? 'USER', {
@@ -283,13 +316,16 @@ export function newEducationForm(item?: EducationInput): EducationForm {
     id: new FormControl<string | null>(item?.id ?? null),
     degree: new FormControl<string>(item?.degree ?? '', {
       nonNullable: true,
-      validators: [Validators.required],
+      validators: [trimmedRequired, Validators.maxLength(120)],
     }),
     institution: new FormControl<string>(item?.institution ?? '', {
       nonNullable: true,
-      validators: [Validators.required],
+      validators: [trimmedRequired, Validators.maxLength(120)],
     }),
-    field: new FormControl<string>(item?.field ?? '', { nonNullable: true }),
+    field: new FormControl<string>(item?.field ?? '', {
+      nonNullable: true,
+      validators: [Validators.maxLength(120)],
+    }),
     startDate: new FormControl<string>(toDateInput(item?.startDate), {
       nonNullable: true,
     }),
@@ -304,6 +340,17 @@ export function newEducationForm(item?: EducationInput): EducationForm {
       nonNullable: true,
     }),
     description: new FormControl<string>(item?.description ?? '', {
+      nonNullable: true,
+      validators: [Validators.maxLength(2000)],
+    }),
+    showInCompactCv: new FormControl<boolean>(item?.showInCompactCv ?? true, {
+      nonNullable: true,
+    }),
+    showInDocumentedCv: new FormControl<boolean>(
+      item?.showInDocumentedCv ?? true,
+      { nonNullable: true },
+    ),
+    documentName: new FormControl<string>(item?.documentName ?? '', {
       nonNullable: true,
     }),
     source: new FormControl<Source>(item?.source ?? 'USER', {
@@ -319,11 +366,29 @@ export function newCertificationForm(
     id: new FormControl<string | null>(item?.id ?? null),
     name: new FormControl<string>(item?.name ?? '', {
       nonNullable: true,
-      validators: [Validators.required],
+      validators: [trimmedRequired, Validators.maxLength(120)],
     }),
-    issuer: new FormControl<string>(item?.issuer ?? '', { nonNullable: true }),
-    year: new FormControl<number | null>(item?.year ?? null),
-    url: new FormControl<string>(item?.url ?? '', { nonNullable: true }),
+    issuer: new FormControl<string>(item?.issuer ?? '', {
+      nonNullable: true,
+      validators: [Validators.maxLength(120)],
+    }),
+    year: new FormControl<number | null>(toYear(item?.year), {
+      validators: [optionalIntegerRange(1900, 2100)],
+    }),
+    url: new FormControl<string>(item?.url ?? '', {
+      nonNullable: true,
+      validators: [Validators.maxLength(2048), optionalUrl],
+    }),
+    showInCompactCv: new FormControl<boolean>(item?.showInCompactCv ?? true, {
+      nonNullable: true,
+    }),
+    showInDocumentedCv: new FormControl<boolean>(
+      item?.showInDocumentedCv ?? true,
+      { nonNullable: true },
+    ),
+    documentName: new FormControl<string>(item?.documentName ?? '', {
+      nonNullable: true,
+    }),
     source: new FormControl<Source>(item?.source ?? 'USER', {
       nonNullable: true,
     }),
@@ -335,18 +400,28 @@ export function newProjectForm(item?: ProjectInput): ProjectForm {
     id: new FormControl<string | null>(item?.id ?? null),
     name: new FormControl<string>(item?.name ?? '', {
       nonNullable: true,
-      validators: [Validators.required],
+      validators: [trimmedRequired, Validators.maxLength(120)],
     }),
-    role: new FormControl<string>(item?.role ?? '', { nonNullable: true }),
+    role: new FormControl<string>(item?.role ?? '', {
+      nonNullable: true,
+      validators: [Validators.maxLength(120)],
+    }),
     description: new FormControl<string>(item?.description ?? '', {
       nonNullable: true,
+      validators: [Validators.maxLength(2000)],
     }),
-    url: new FormControl<string>(item?.url ?? '', { nonNullable: true }),
+    url: new FormControl<string>(item?.url ?? '', {
+      nonNullable: true,
+      validators: [Validators.maxLength(2048), optionalUrl],
+    }),
     techStack: new FormControl<string>((item?.techStack ?? []).join(', '), {
       nonNullable: true,
+      validators: [commaSeparatedMaxLength(60)],
     }),
     metrics: new FormArray<FormControl<string>>(
-      (item?.metrics ?? []).map((metric) => newMetricForm(metric)),
+      (item?.metrics ?? [])
+        .slice(0, MAX_METRICS)
+        .map((metric) => newMetricForm(metric)),
     ),
     source: new FormControl<Source>(item?.source ?? 'USER', {
       nonNullable: true,
@@ -359,7 +434,7 @@ export function newLanguageForm(item?: LanguageInput): LanguageForm {
     id: new FormControl<string | null>(item?.id ?? null),
     name: new FormControl<string>(item?.name ?? '', {
       nonNullable: true,
-      validators: [Validators.required],
+      validators: [trimmedRequired, Validators.maxLength(60)],
     }),
     level: new FormControl<string>(item?.level ?? 'B1', { nonNullable: true }),
     source: new FormControl<Source>(item?.source ?? 'USER', {
@@ -368,16 +443,9 @@ export function newLanguageForm(item?: LanguageInput): LanguageForm {
   });
 }
 
-function clearAndPush<T extends AbstractControl, I>(
-  array: FormArray<T>,
-  factory: (item?: I) => T,
-  items: I[],
-): void {
-  array.clear();
-  for (const item of items) {
-    array.push(factory(item));
-  }
-}
+// Cada lista se reemplaza por una instancia nueva: el input de las secciones
+// cambia de referencia y la vista se vuelve a renderizar (necesario para
+// habilitar el adjunto de un ítem recién guardado con id).
 
 export function loadProfileForm(form: ProfileForm, profile: Profile): void {
   form.patchValue({
@@ -388,16 +456,32 @@ export function loadProfileForm(form: ProfileForm, profile: Profile): void {
     linkedin: profile.linkedin ?? '',
     summary: profile.summary ?? '',
   });
-  clearAndPush(form.controls.experiences, newExperienceForm, profile.experiences);
-  clearAndPush(form.controls.skills, newSkillForm, profile.skills);
-  clearAndPush(form.controls.education, newEducationForm, profile.education);
-  clearAndPush(
-    form.controls.certifications,
-    newCertificationForm,
-    profile.certifications,
+  form.setControl(
+    'experiences',
+    new FormArray<ExperienceForm>(profile.experiences.map(newExperienceForm)),
   );
-  clearAndPush(form.controls.projects, newProjectForm, profile.projects);
-  clearAndPush(form.controls.languages, newLanguageForm, profile.languages);
+  form.setControl(
+    'skills',
+    new FormArray<SkillForm>(profile.skills.map(newSkillForm)),
+  );
+  form.setControl(
+    'education',
+    new FormArray<EducationForm>(profile.education.map(newEducationForm)),
+  );
+  form.setControl(
+    'certifications',
+    new FormArray<CertificationForm>(
+      profile.certifications.map(newCertificationForm),
+    ),
+  );
+  form.setControl(
+    'projects',
+    new FormArray<ProjectForm>(profile.projects.map(newProjectForm)),
+  );
+  form.setControl(
+    'languages',
+    new FormArray<LanguageForm>(profile.languages.map(newLanguageForm)),
+  );
 }
 
 export function loadCvDraftForm(form: ProfileForm, draft: CvDraftInput): void {
@@ -409,20 +493,34 @@ export function loadCvDraftForm(form: ProfileForm, draft: CvDraftInput): void {
     linkedin: draft.linkedin ?? '',
     summary: draft.summary ?? '',
   });
-  clearAndPush(
-    form.controls.experiences,
-    newExperienceForm,
-    draft.experiences ?? [],
+  form.setControl(
+    'experiences',
+    new FormArray<ExperienceForm>(
+      (draft.experiences ?? []).map(newExperienceForm),
+    ),
   );
-  clearAndPush(form.controls.skills, newSkillForm, draft.skills ?? []);
-  clearAndPush(form.controls.education, newEducationForm, draft.education ?? []);
-  clearAndPush(
-    form.controls.certifications,
-    newCertificationForm,
-    draft.certifications ?? [],
+  form.setControl(
+    'skills',
+    new FormArray<SkillForm>((draft.skills ?? []).map(newSkillForm)),
   );
-  clearAndPush(form.controls.projects, newProjectForm, draft.projects ?? []);
-  clearAndPush(form.controls.languages, newLanguageForm, draft.languages ?? []);
+  form.setControl(
+    'education',
+    new FormArray<EducationForm>((draft.education ?? []).map(newEducationForm)),
+  );
+  form.setControl(
+    'certifications',
+    new FormArray<CertificationForm>(
+      (draft.certifications ?? []).map(newCertificationForm),
+    ),
+  );
+  form.setControl(
+    'projects',
+    new FormArray<ProjectForm>((draft.projects ?? []).map(newProjectForm)),
+  );
+  form.setControl(
+    'languages',
+    new FormArray<LanguageForm>((draft.languages ?? []).map(newLanguageForm)),
+  );
 }
 
 export function profileFormToPayload(form: ProfileForm): ProfilePayload {
@@ -463,6 +561,8 @@ export function profileFormToPayload(form: ProfileForm): ProfilePayload {
       endDate: item.current ? null : item.endDate || null,
       current: item.current,
       description: item.description.trim() || null,
+      showInCompactCv: item.showInCompactCv,
+      showInDocumentedCv: item.showInDocumentedCv,
       source: item.source,
       sortOrder: index,
     })),
@@ -472,6 +572,8 @@ export function profileFormToPayload(form: ProfileForm): ProfilePayload {
       issuer: item.issuer.trim() || null,
       year: item.year || null,
       url: item.url.trim() || null,
+      showInCompactCv: item.showInCompactCv,
+      showInDocumentedCv: item.showInDocumentedCv,
       source: item.source,
       sortOrder: index,
     })),

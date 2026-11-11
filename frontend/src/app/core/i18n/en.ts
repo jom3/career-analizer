@@ -2,6 +2,9 @@ export const en: Record<string, string> = {
   'app.title': 'Career Analyzer',
 
   'common.cancel': 'Cancel',
+  'common.save': 'Save',
+  'common.apply': 'Apply',
+  'common.edit': 'Edit',
   'common.delete': 'Delete',
   'common.add': 'Add',
   'common.close': 'Close',
@@ -18,6 +21,20 @@ export const en: Record<string, string> = {
   'errors.offerAlreadySaved': 'This offer is already saved in your history.',
   'errors.profileIncomplete':
     'Complete your profile with one skill and one experience or project before writing the letter.',
+  'errors.tooManyAnnexes':
+    'You have more than 30 attachments. Remove some or uncheck "Show in documented CV".',
+  'errors.annexesTooLarge':
+    'The attachments exceed 40 MB. Remove some or uncheck "Show in documented CV".',
+
+  'validation.required': 'is required',
+  'validation.integer': 'must be a whole number',
+  'validation.min': 'must be at least {value}',
+  'validation.max': 'must be at most {value}',
+  'validation.maxLength': 'must be at most {value} characters',
+  'validation.maxItems': 'must have at most {value} items',
+  'validation.date': 'must be a valid date',
+  'validation.url': 'must be a valid URL',
+  'validation.generic': 'invalid value',
 
   'offerContext.label': 'Offer',
   'offerContext.untitled': 'Untitled offer',
@@ -100,6 +117,7 @@ export const en: Record<string, string> = {
   'profile.docx': 'Download DOCX',
   'profile.generating': 'Generating…',
   'profile.saved': 'Profile saved.',
+  'profile.unsavedChanges': 'Unsaved changes',
   'profile.loadError': 'Could not load your profile.',
   'profile.loading': 'Loading your profile…',
   'profile.saveErrorInvalid':
@@ -107,6 +125,30 @@ export const en: Record<string, string> = {
   'profile.saveError400': 'There are invalid fields. Review the forms.',
   'profile.saveError': 'Could not save the profile. Try again.',
   'profile.downloadError': 'Could not download the CV. Try again.',
+  'profile.documentsTitle': 'Generate résumés',
+  'profile.documentsHint':
+    'The CV with photo uses only the items marked for the compact CV. The documented CV includes the items marked for it, with their files as attachments.',
+  'profile.cvPhoto': 'CV with photo',
+  'profile.cvDocumented': 'Documented CV',
+  'profile.photoTitle': 'Photo',
+  'profile.photoAlt': 'Profile photo',
+  'profile.photoEmpty': 'You have not uploaded a photo yet.',
+  'profile.photoUpload': 'Upload photo',
+  'profile.photoReplace': 'Change photo',
+  'profile.photoRemove': 'Remove photo',
+  'profile.photoHint': 'JPG or PNG, up to 10 MB.',
+  'profile.attachDocument': 'Attach file',
+  'profile.replaceDocument': 'Replace',
+  'profile.removeDocument': 'Remove file',
+  'profile.documentHint': 'PDF, JPG or PNG, up to 10 MB.',
+  'profile.documentSaveFirst':
+    'Save your profile before attaching a file to this item.',
+  'profile.uploading': 'Uploading…',
+  'profile.fileTooLarge': 'The file is larger than 10 MB.',
+  'profile.fileError':
+    'The file could not be uploaded. Check the format (PDF, JPG or PNG) and the size.',
+  'profile.showInCompactCv': 'Show in compact CV',
+  'profile.showInDocumentedCv': 'Show in documented CV',
 
   'profile.tabEs': 'Spanish',
   'profile.tabEn': 'English',
@@ -135,6 +177,7 @@ export const en: Record<string, string> = {
   'profile.currentJob': 'Current job',
   'profile.description': 'Description',
   'profile.metrics': 'Achievements (optional)',
+  'profile.metricsLimit': 'Up to 5 achievements.',
   'profile.metricsPlaceholder': 'e.g. Reduced latency by 40%',
   'profile.removeMetric': 'Remove',
   'profile.addMetric': 'Add achievement',
@@ -144,6 +187,7 @@ export const en: Record<string, string> = {
   'profile.emptySkills': 'You have not added skills yet.',
   'profile.skill': 'Skill',
   'profile.level': 'Level',
+  'profile.name': 'Name',
 
   'profile.education': 'Education',
   'profile.addEducation': 'Add education',
@@ -154,6 +198,7 @@ export const en: Record<string, string> = {
   'profile.inProgress': 'In progress',
 
   'profile.certifications': 'Certifications',
+  'profile.certification': 'Certification',
   'profile.addCertification': 'Add certification',
   'profile.emptyCertifications': 'You have not added certifications yet.',
   'profile.certName': 'Name',
@@ -162,6 +207,7 @@ export const en: Record<string, string> = {
   'profile.url': 'URL',
 
   'profile.projects': 'Projects',
+  'profile.project': 'Project',
   'profile.addProject': 'Add project',
   'profile.emptyProjects': 'You have not added projects yet.',
   'profile.projectName': 'Name',

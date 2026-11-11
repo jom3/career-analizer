@@ -1,43 +1,56 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  input,
-} from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import { ReactiveFormsModule, type FormArray } from '@angular/forms';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { ItemEditor } from '../../core/item-editor';
 import {
   newEducationForm,
   syncEndDate,
   type EducationForm,
 } from '../../core/profile-form';
+import { DocumentAttachComponent } from './document-attach.component';
+import { FormErrorComponent } from './form-error.component';
+import { ItemModalComponent } from './item-modal.component';
 import { scrollToItem } from './section-utils';
 
 @Component({
   selector: 'app-education-section',
-  imports: [ReactiveFormsModule],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ReactiveFormsModule, DocumentAttachComponent, FormErrorComponent, ItemModalComponent],
   template: `
     <section class="card">
       <header class="section-header">
         <h2>{{ i18n.t('profile.education') }}</h2>
-        <button type="button" class="btn btn--secondary btn--small" (click)="add()">
+        <button type="button" class="btn btn--secondary btn--small" (click)="openNew()">
           + {{ i18n.t('profile.addEducation') }}
         </button>
       </header>
-      @for (item of education().controls; track $index) {
-        <div class="item" [formGroup]="item" [attr.id]="'education-item-' + $index">
-          <div class="item-head">
-            <span class="item-index">{{ $index + 1 }}</span>
-            <button
-              type="button"
-              class="btn btn--danger btn--small"
-              (click)="remove($index)"
-            >
-              {{ i18n.t('common.delete') }}
-            </button>
+      @for (item of education().controls; track item; let index = $index) {
+        <article class="item-card" [attr.id]="'education-item-' + index">
+          <div class="item-card__head">
+            <div>
+              <strong>{{ item.controls.degree.value || '—' }}</strong>
+              <div class="muted">{{ item.controls.institution.value }}</div>
+            </div>
+            <div class="item-card__actions">
+              <button type="button" class="btn btn--secondary btn--small" (click)="openEdit(index)">
+                {{ i18n.t('common.edit') }}
+              </button>
+              <button type="button" class="btn btn--danger btn--small" (click)="remove(index)">
+                {{ i18n.t('common.delete') }}
+              </button>
+            </div>
           </div>
-          <div class="form-fields">
+          <app-document-attach [section]="'education'" [item]="item" />
+        </article>
+      } @empty {
+        <p class="muted">{{ i18n.t('profile.emptyEducation') }}</p>
+      }
+      @if (editor.draft(); as draft) {
+        <app-item-modal
+          [title]="editor.isNew() ? i18n.t('profile.addEducation') : i18n.t('common.edit')"
+          (confirmed)="confirm()"
+          (dismissed)="editor.dismiss()"
+        >
+          <div class="form-fields" [formGroup]="draft">
             <label class="form-field field-full">
               {{ i18n.t('profile.degree') }}
               <input formControlName="degree" type="text" />
@@ -62,18 +75,27 @@ import { scrollToItem } from './section-utils';
               <input
                 formControlName="current"
                 type="checkbox"
-                (change)="onCurrentChange(item, $event)"
+                (change)="onCurrentChange(draft, $event)"
               />
               {{ i18n.t('profile.inProgress') }}
             </label>
+            <label class="form-field field-full">
+              {{ i18n.t('profile.description') }}
+              <textarea formControlName="description" rows="3"></textarea>
+            </label>
+            <label class="checkbox field-medium">
+              <input formControlName="showInCompactCv" type="checkbox" />
+              {{ i18n.t('profile.showInCompactCv') }}
+            </label>
+            <label class="checkbox field-medium">
+              <input formControlName="showInDocumentedCv" type="checkbox" />
+              {{ i18n.t('profile.showInDocumentedCv') }}
+            </label>
           </div>
-          <label class="form-field field-full">
-            {{ i18n.t('profile.description') }}
-            <textarea formControlName="description" rows="3"></textarea>
-          </label>
-        </div>
-      } @empty {
-        <p class="muted">{{ i18n.t('profile.emptyEducation') }}</p>
+          @if (editor.invalid()) {
+            <app-form-error [form]="draft" section="education" />
+          }
+        </app-item-modal>
       }
     </section>
   `,
@@ -81,11 +103,21 @@ import { scrollToItem } from './section-utils';
 export class EducationSectionComponent {
   readonly i18n = inject(I18nService);
   readonly education = input.required<FormArray<EducationForm>>();
+  readonly editor = new ItemEditor<EducationForm>();
 
-  add(): void {
-    const index = this.education().length;
-    this.education().push(newEducationForm());
-    scrollToItem('education', index);
+  openNew(): void {
+    this.editor.openNew(this.education(), () => newEducationForm());
+  }
+
+  openEdit(index: number): void {
+    this.editor.openEdit(this.education(), index);
+  }
+
+  confirm(): void {
+    const isNew = this.editor.isNew();
+    if (this.editor.confirm() && isNew) {
+      scrollToItem('education', 0);
+    }
   }
 
   remove(index: number): void {
