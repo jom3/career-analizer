@@ -4,7 +4,9 @@ import { mkdir, readFile, unlink, writeFile } from 'fs/promises';
 import * as path from 'path';
 import type { ProfileFileKind } from './file-signature';
 
-export const PROFILE_UPLOAD_DIR = path.join('uploads', 'profile');
+// Ruta relativa siempre en formato POSIX: la columna de la base la comparte
+// el host (Windows) y el contenedor (Linux), donde el separador cambia.
+export const PROFILE_UPLOAD_DIR = 'uploads/profile';
 
 @Injectable()
 export class ProfileFileStorageService {
@@ -12,7 +14,7 @@ export class ProfileFileStorageService {
 
   async save(buffer: Buffer, kind: ProfileFileKind): Promise<string> {
     await mkdir(this.rootDir, { recursive: true });
-    const relativePath = path.join(
+    const relativePath = path.posix.join(
       PROFILE_UPLOAD_DIR,
       `${randomUUID()}.${kind}`,
     );
@@ -49,7 +51,12 @@ export class ProfileFileStorageService {
   }
 
   private resolveSafePath(relativePath: string): string {
-    const absolutePath = path.resolve(process.cwd(), relativePath);
+    // Los registros creados en Windows guardaron la ruta con `\`; al leerla
+    // desde el contenedor hay que normalizarla al separador POSIX.
+    const absolutePath = path.resolve(
+      process.cwd(),
+      relativePath.replace(/\\/g, '/'),
+    );
     if (!absolutePath.startsWith(this.rootDir + path.sep)) {
       throw new Error('Ruta de archivo fuera del directorio permitido.');
     }

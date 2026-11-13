@@ -9,6 +9,12 @@ describe('ProfileFileStorageService', () => {
     ).resolves.toBeNull();
   });
 
+  it('resolves legacy Windows paths inside the upload directory', async () => {
+    await expect(
+      storage.readOrNull('uploads\\profile\\missing-file.pdf'),
+    ).resolves.toBeNull();
+  });
+
   it('rejects paths outside the upload directory', async () => {
     await expect(storage.readOrNull('../../etc/passwd')).rejects.toThrow(
       'Ruta de archivo fuera del directorio permitido.',

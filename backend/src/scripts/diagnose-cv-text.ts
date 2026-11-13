@@ -131,7 +131,7 @@ async function main(): Promise<void> {
     console.log('');
 
     const rawBuffer = await readFile(
-      path.resolve(process.cwd(), document.storagePath),
+      path.resolve(process.cwd(), document.storagePath.replace(/\\/g, '/')),
     );
     const rawText = await extractRaw(rawBuffer, document.mimeType);
 

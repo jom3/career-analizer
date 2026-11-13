@@ -56,7 +56,7 @@ export class CvImportService {
           userId,
           originalName: file.originalname,
           mimeType,
-          storagePath: path.join('uploads', file.filename),
+          storagePath: path.posix.join('uploads', file.filename),
           extractedText: text,
           sourceLanguage,
           model: this.cvParser.modelName,
