@@ -14,6 +14,7 @@
     "docker:up": "node scripts/docker-up.js",
     "docker:down": "docker compose -f docker-compose.yml down",
     "docker:build": "docker compose -f docker-compose.yml build",
+    "docker:sync-uploads": "node scripts/docker-sync-uploads.js",
     "docker:prod:up": "docker compose -f docker-compose.prod.yml up -d --build",
     "docker:prod:down": "docker compose -f docker-compose.prod.yml down"
   }

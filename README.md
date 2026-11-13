@@ -146,6 +146,12 @@ docker compose -f docker-compose.prod.yml exec backend npx prisma migrate deploy
 
 Named volumes `pgdata` and `uploads` persist across `docker compose down` (without `-v`); `docker compose down -v` removes them explicitly.
 
+Uploaded files (CVs, profile photos and documents) live in `backend/uploads`, always stored with POSIX separators (`uploads/profile/<file>`). In development the container uses the host directory through the bind mount; in production `/app/backend/uploads` is resolved by the `uploads` volume, so existing host files must be copied into it once:
+
+```sh
+npm run docker:sync-uploads   # backend/uploads -> volume `uploads`
+```
+
 ## Technology Stack
 
 ### Backend
