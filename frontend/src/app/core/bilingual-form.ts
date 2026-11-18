@@ -1,6 +1,7 @@
-import { FormArray } from '@angular/forms';
+import { FormArray, FormGroup } from '@angular/forms';
 import type { Profile, ProfilePayload } from './models/profile';
 import type { UiLang } from './i18n/i18n.service';
+import { cloneGroup } from './item-editor';
 import {
   newMetricForm,
   type CertificationForm,
@@ -276,6 +277,130 @@ export function applyLangToForm(form: ProfileForm, values: LangValues): void {
     if (!value) return;
     item.controls.name.setValue(value.name);
   });
+
+  refreshFormLists(form);
+}
+
+// En modo zoneless, mutar los controles en sitio no vuelve a renderizar las
+// tarjetas de las secciones. Se reemplazan las listas por clones para que cada
+// sección reciba un FormArray nuevo (mismo patrón que loadProfileForm).
+function refreshFormLists(form: ProfileForm): void {
+  form.setControl('experiences', cloneList(form.controls.experiences));
+  form.setControl('skills', cloneList(form.controls.skills));
+  form.setControl('education', cloneList(form.controls.education));
+  form.setControl('certifications', cloneList(form.controls.certifications));
+  form.setControl('projects', cloneList(form.controls.projects));
+  form.setControl('languages', cloneList(form.controls.languages));
+}
+
+function cloneList<G extends FormGroup>(list: FormArray<G>): FormArray<G> {
+  const controls = list.controls.map((control) => cloneGroup(control as G));
+  return new FormArray<G>(controls);
+}
+
+// Aplica la traducción al idioma destino emparejando cada ítem por id (no por
+// índice): los ítems nuevos sin guardar no existen en la respuesta del backend
+// y se dejan como están. Devuelve cuántos ítems quedaron sin traducir.
+export function applyTranslatedProfile(
+  form: ProfileForm,
+  profile: Profile,
+  lang: UiLang,
+): number {
+  const values = extractLangValues(profile, lang);
+
+  form.controls.headline.setValue(values.headline);
+  form.controls.location.setValue(values.location);
+  form.controls.summary.setValue(values.summary);
+
+  let skipped = 0;
+  const applyById = <G extends FormGroup, T extends { id?: string }>(
+    current: FormArray<G>,
+    items: T[],
+    setValues: (group: G, item: T) => void,
+  ): FormArray<G> => {
+    const byId = new Map(
+      items
+        .filter((item) => item.id)
+        .map((item) => [item.id as string, item] as const),
+    );
+    const groups = current.controls.map((control) => {
+      const group = cloneGroup(control as G);
+      const id = group.get('id')?.value as string | null;
+      const item = id ? byId.get(id) : undefined;
+      if (!item) {
+        skipped++;
+        return group;
+      }
+      setValues(group, item);
+      return group;
+    });
+    return new FormArray<G>(groups);
+  };
+
+  form.setControl(
+    'experiences',
+    applyById(form.controls.experiences, profile.experiences, (group, item) => {
+      group.controls.position.setValue(readLocalized(item, 'position', lang));
+      group.controls.location.setValue(readLocalized(item, 'location', lang));
+      group.controls.description.setValue(
+        readLocalized(item, 'description', lang),
+      );
+      setMetrics(
+        group.controls.metrics,
+        readLocalizedArray(item, 'metrics', lang),
+      );
+    }),
+  );
+
+  form.setControl(
+    'education',
+    applyById(form.controls.education, profile.education, (group, item) => {
+      group.controls.degree.setValue(readLocalized(item, 'degree', lang));
+      group.controls.institution.setValue(
+        readLocalized(item, 'institution', lang),
+      );
+      group.controls.field.setValue(readLocalized(item, 'field', lang));
+      group.controls.description.setValue(
+        readLocalized(item, 'description', lang),
+      );
+    }),
+  );
+
+  form.setControl(
+    'certifications',
+    applyById(
+      form.controls.certifications,
+      profile.certifications,
+      (group, item) => {
+        group.controls.name.setValue(readLocalized(item, 'name', lang));
+        group.controls.issuer.setValue(readLocalized(item, 'issuer', lang));
+      },
+    ),
+  );
+
+  form.setControl(
+    'projects',
+    applyById(form.controls.projects, profile.projects, (group, item) => {
+      group.controls.name.setValue(readLocalized(item, 'name', lang));
+      group.controls.role.setValue(readLocalized(item, 'role', lang));
+      group.controls.description.setValue(
+        readLocalized(item, 'description', lang),
+      );
+      setMetrics(
+        group.controls.metrics,
+        readLocalizedArray(item, 'metrics', lang),
+      );
+    }),
+  );
+
+  form.setControl(
+    'languages',
+    applyById(form.controls.languages, profile.languages, (group, item) => {
+      group.controls.name.setValue(readLocalized(item, 'name', lang));
+    }),
+  );
+
+  return skipped;
 }
 
 function clean(value: string): string | null {

@@ -156,6 +156,8 @@ export const en: Record<string, string> = {
   'profile.translateToEs': 'Translate to Spanish',
   'profile.translating': 'Translating…',
   'profile.translateError': 'Could not translate the profile. Try again.',
+  'profile.translateSkippedNew':
+    'New unsaved items were not translated. Save your profile and translate again.',
 
   'profile.personalInfo': 'Personal information',
   'profile.headline': 'Professional headline',

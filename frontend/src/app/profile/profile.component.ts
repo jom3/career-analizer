@@ -32,6 +32,7 @@ import {
 } from '../core/cv-export.service';
 import {
   applyLangToForm,
+  applyTranslatedProfile,
   buildBilingualPayload,
   emptyLangValues,
   extractLangFromForm,
@@ -77,6 +78,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   readonly downloading = signal<string | null>(null);
   readonly hasPhoto = signal(false);
   readonly errorMessage = signal('');
+  readonly translateNotice = signal('');
   readonly loadError = signal('');
   readonly duplicateSkillIndices = signal<ReadonlySet<number>>(new Set());
   readonly duplicateExperienceIndices = signal<ReadonlySet<number>>(new Set());
@@ -178,6 +180,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     applyLangToForm(this.form, incomingValues);
     // Cambiar de pestaña no modifica el perfil: se conserva el estado previo.
     this.unsaved.set(wasUnsaved);
+    this.translateNotice.set('');
   }
 
   async onTranslate(): Promise<void> {
@@ -186,12 +189,16 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.translating.set(true);
     this.saved.set(false);
     this.errorMessage.set('');
+    this.translateNotice.set('');
     try {
       const profile = await this.profileService.translateProfile(target, source);
       const sourceValues = extractLangFromForm(this.form);
       this.sideStore = sourceValues;
       this.activeLang.set(target);
-      applyLangToForm(this.form, extractLangValues(profile, target));
+      const skipped = applyTranslatedProfile(this.form, profile, target);
+      if (skipped > 0) {
+        this.translateNotice.set(this.i18n.t('profile.translateSkippedNew'));
+      }
     } catch {
       this.errorMessage.set(this.i18n.t('profile.translateError'));
     } finally {
@@ -263,6 +270,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.saving.set(true);
     this.saved.set(false);
     this.errorMessage.set('');
+    this.translateNotice.set('');
     try {
       const payload = buildBilingualPayload(this.form, this.activeLang(), this.sideStore);
       const profile = await this.profileService.putProfile(payload);

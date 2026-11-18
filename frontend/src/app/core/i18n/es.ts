@@ -157,6 +157,8 @@ export const es: Record<string, string> = {
   'profile.translateToEs': 'Traducir al español',
   'profile.translating': 'Traduciendo…',
   'profile.translateError': 'No se pudo traducir el perfil. Intentá de nuevo.',
+  'profile.translateSkippedNew':
+    'Los ítems nuevos sin guardar no se tradujeron. Guardá el perfil y volvé a traducir.',
 
   'profile.personalInfo': 'Información personal',
   'profile.headline': 'Título profesional',

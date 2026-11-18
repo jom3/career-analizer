@@ -159,10 +159,13 @@
     </form>
   }
 
-  @if (errorMessage() || saved()) {
+  @if (errorMessage() || translateNotice() || saved()) {
     <div class="toast-stack" aria-live="polite">
       @if (errorMessage()) {
         <p class="alert alert--error" role="alert">{{ errorMessage() }}</p>
+      }
+      @if (translateNotice()) {
+        <p class="alert alert--info" role="status">{{ translateNotice() }}</p>
       }
       @if (saved()) {
         <p class="alert alert--success" role="status">{{ i18n.t('profile.saved') }}</p>
