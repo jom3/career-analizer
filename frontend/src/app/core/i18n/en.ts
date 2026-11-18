@@ -287,6 +287,7 @@ export const en: Record<string, string> = {
   'jobAnalysis.emptyHistory':
     'You have not saved any offers yet. Analyze one and save it to see it here.',
   'jobAnalysis.viewMatch': 'Check fit',
+  'jobAnalysis.viewOffer': 'View offer here',
   'jobAnalysis.adaptCv': 'Adapt CV',
   'jobAnalysis.coverLetter': 'Cover letter',
   'jobAnalysis.edit': 'Edit',

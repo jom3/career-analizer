@@ -207,7 +207,22 @@
             [class.history-item--highlight]="highlightedOfferId() === offer.id"
           >
             <div class="history-main">
-              <strong>{{ offer.title }}</strong>
+              <div class="history-head">
+                <strong>{{ offer.title }}</strong>
+                @if (offer.status !== 'PENDING') {
+                  <span class="history-status">
+                    @if (offer.status === 'APPLIED') {
+                      <span class="tag tag--status-applied">
+                        ✓ {{ i18n.t('jobAnalysis.statusApplied') }}
+                      </span>
+                    } @else if (offer.status === 'OMITTED') {
+                      <span class="tag tag--status-omitted">
+                        — {{ i18n.t('jobAnalysis.statusOmitted') }}
+                      </span>
+                    }
+                  </span>
+                }
+              </div>
               <span class="muted">
                 {{ offer.company || '—' }}
                 @if (offer.level) {
@@ -219,35 +234,23 @@
                 @if (offer.status === 'APPLIED' && offer.appliedAt) {
                   · {{ i18n.t('jobAnalysis.appliedOn') }} {{ formatDate(offer.appliedAt) }}
                 }
+                @if (offer.inputType === 'IMAGE') {
+                  · {{ i18n.t('jobAnalysis.imageSource') }}
+                }
               </span>
               @if (offer.url) {
                 <a
                   class="history-link"
                   [href]="offer.url"
+                  [title]="offer.url"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  {{ offer.url }}
+                  {{ i18n.t('jobAnalysis.viewOffer') }}
                 </a>
-              }
-              @if (offer.inputType === 'IMAGE') {
-                <span class="muted history-meta">{{ i18n.t('jobAnalysis.imageSource') }}</span>
               }
               @if (expandedRawId() === offer.id) {
                 <pre class="raw-text">{{ offer.rawInput }}</pre>
-              }
-              @if (offer.status !== 'PENDING') {
-                <span class="history-status">
-                  @if (offer.status === 'APPLIED') {
-                    <span class="tag tag--status-applied">
-                      ✓ {{ i18n.t('jobAnalysis.statusApplied') }}
-                    </span>
-                  } @else if (offer.status === 'OMITTED') {
-                    <span class="tag tag--status-omitted">
-                      — {{ i18n.t('jobAnalysis.statusOmitted') }}
-                    </span>
-                  }
-                </span>
               }
             </div>
             <div class="history-actions">
